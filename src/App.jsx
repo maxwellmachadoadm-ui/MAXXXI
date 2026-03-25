@@ -1,19 +1,19 @@
 import { useState, useRef, useEffect } from "react";
 
 const INIT_COMPANIES = ["Forme Seguro","Original Fotografia","Doctor Wealth","CDL"];
-const INIT_AREAS = ["Financeiro","Estratégico","Marketing","Comercial"];
-const AREA_ICONS = {"Financeiro":"₿","Estratégico":"◈","Marketing":"◉","Comercial":"◆"};
-const getAreaIcon = a => AREA_ICONS[a]||"◇";
-const FILE_ICONS = {pdf:"📄",doc:"📝",docx:"📝",xls:"📊",xlsx:"📊",ppt:"📋",pptx:"📋",txt:"📃",json:"🗂",default:"📎"};
+const INIT_AREAS = ["Financeiro","EstratÃ©gico","Marketing","Comercial"];
+const AREA_ICONS = {"Financeiro":"â¿","EstratÃ©gico":"â","Marketing":"â","Comercial":"â"};
+const getAreaIcon = a => AREA_ICONS[a]||"â";
+const FILE_ICONS = {pdf:"ð",doc:"ð",docx:"ð",xls:"ð",xlsx:"ð",ppt:"ð",pptx:"ð",txt:"ð",json:"ð",default:"ð"};
 const getFileIcon = n => FILE_ICONS[n.split(".").pop().toLowerCase()]||FILE_ICONS.default;
 const formatSize = b => b<1024?`${b}B`:b<1048576?`${(b/1024).toFixed(1)}KB`:`${(b/1048576).toFixed(1)}MB`;
 const fmt = v => (v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-const MESES_FULL = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-const CATS = ["Alimentação","Gasolina","Lazer","Restaurante","Farmácia","Saúde","Educação","Moradia","Transporte","Vestuário","Assinaturas","Outros"];
+const MESES_FULL = ["Janeiro","Fevereiro","MarÃ§o","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const CATS = ["AlimentaÃ§Ã£o","Gasolina","Lazer","Restaurante","FarmÃ¡cia","SaÃºde","EducaÃ§Ã£o","Moradia","Transporte","VestuÃ¡rio","Assinaturas","Outros"];
 const CAT_COLORS = ["#c9a84c","#dfc27a","#b8870a","#5bc4a0","#e07a5f","#a78bfa","#7a5a00","#edd99a","#c9a84c88","#dfc27a88","#5bc4a088","#e07a5f88"];
-const CONTRACT_STATUS = ["Ativo","A vencer","Vencido","Em negociação","Encerrado"];
-const STATUS_COLORS = {"Ativo":"#5bc4a0","A vencer":"#c9a84c","Vencido":"#e07a5f","Em negociação":"#a78bfa","Encerrado":"#555"};
-const RISK_LABELS = ["Baixo","Médio","Alto","Crítico"];
+const CONTRACT_STATUS = ["Ativo","A vencer","Vencido","Em negociaÃ§Ã£o","Encerrado"];
+const STATUS_COLORS = {"Ativo":"#5bc4a0","A vencer":"#c9a84c","Vencido":"#e07a5f","Em negociaÃ§Ã£o":"#a78bfa","Encerrado":"#555"};
+const RISK_LABELS = ["Baixo","MÃ©dio","Alto","CrÃ­tico"];
 const RISK_COLORS = ["#5bc4a0","#c9a84c","#e07a5f","#cc2222"];
 
 const CALENDAR_EVENTS = [
@@ -21,30 +21,30 @@ const CALENDAR_EVENTS = [
   {id:"2",title:"Mauro Sicredi",date:"2026-03-24",start:"14:30",end:"15:30",allDay:false},
   {id:"3",title:"Adapta Live",date:"2026-03-24",start:"19:00",end:"20:00",allDay:false},
   {id:"4",title:"Antonio Idea BH",date:"2026-03-25",start:"11:00",end:"12:00",allDay:false},
-  {id:"5",title:"Dra Júlia",date:"2026-03-25",start:"16:30",end:"17:30",allDay:false},
+  {id:"5",title:"Dra JÃºlia",date:"2026-03-25",start:"16:30",end:"17:30",allDay:false},
   {id:"6",title:"Stay at Nobile Suites Diamond",date:"2026-03-29",start:"",end:"",allDay:true},
 ];
 
 const AGENT_NAME = "ORION";
-const AGENT_SUBTITLE = "Inteligência Executiva MAXXXI";
+const AGENT_SUBTITLE = "InteligÃªncia Executiva MAXXXI";
 
 const AGENT_TIPS = [
   {type:"melhoria",msg:"Ative metas mensais por empresa para comparar Meta x Realizado em tempo real."},
   {type:"gestao",msg:"OKR: defina 3 objetivos-chave por trimestre. Foco gera resultado."},
-  {type:"lei",msg:"Empresas médicas: observe a Resolução CFM 2.336/2023 sobre publicidade médica."},
-  {type:"motivacao",msg:"'Não gerencie o que não pode medir.' — Peter Drucker"},
-  {type:"melhoria",msg:"Alertas automáticos de inadimplência acima de 5% previnem perdas."},
-  {type:"gestao",msg:"Método 80/20: 20% dos clientes geram 80% da receita. Identifique-os."},
-  {type:"gestao",msg:"L10 (EOS/Traction): reunião semanal de 15min aumenta execução em 40%."},
-  {type:"lei",msg:"Lei 14.133/2021: verifique conformidade para contratos com entidades públicas."},
-  {type:"motivacao",msg:"'Excelência não é um ato, é um hábito.' — Aristóteles"},
-  {type:"melhoria",msg:"Configure alertas de vencimento de contratos com 30, 15 e 7 dias de antecedência."},
-  {type:"gestao",msg:"PDCA: Plan→Do→Check→Act em cada meta. Nunca repita o mesmo erro."},
-  {type:"motivacao",msg:"'Empresas excelentes acreditam na melhoria contínua.' — Tom Peters"},
+  {type:"lei",msg:"Empresas mÃ©dicas: observe a ResoluÃ§Ã£o CFM 2.336/2023 sobre publicidade mÃ©dica."},
+  {type:"motivacao",msg:"'NÃ£o gerencie o que nÃ£o pode medir.' â Peter Drucker"},
+  {type:"melhoria",msg:"Alertas automÃ¡ticos de inadimplÃªncia acima de 5% previnem perdas."},
+  {type:"gestao",msg:"MÃ©todo 80/20: 20% dos clientes geram 80% da receita. Identifique-os."},
+  {type:"gestao",msg:"L10 (EOS/Traction): reuniÃ£o semanal de 15min aumenta execuÃ§Ã£o em 40%."},
+  {type:"lei",msg:"Lei 14.133/2021: verifique conformidade para contratos com entidades pÃºblicas."},
+  {type:"motivacao",msg:"'ExcelÃªncia nÃ£o Ã© um ato, Ã© um hÃ¡bito.' â AristÃ³teles"},
+  {type:"melhoria",msg:"Configure alertas de vencimento de contratos com 30, 15 e 7 dias de antecedÃªncia."},
+  {type:"gestao",msg:"PDCA: PlanâDoâCheckâAct em cada meta. Nunca repita o mesmo erro."},
+  {type:"motivacao",msg:"'Empresas excelentes acreditam na melhoria contÃ­nua.' â Tom Peters"},
 ];
 const TC = {melhoria:"#c9a84c",gestao:"#5bc4a0",lei:"#e07a5f",motivacao:"#a78bfa"};
-const TL = {melhoria:"MELHORIA",gestao:"GESTÃO",lei:"ATENÇÃO LEGAL",motivacao:"INSPIRAÇÃO"};
-const TI = {melhoria:"💡",gestao:"📐",lei:"⚖️",motivacao:"✨"};
+const TL = {melhoria:"MELHORIA",gestao:"GESTÃO",lei:"ATENÃÃO LEGAL",motivacao:"INSPIRAÃÃO"};
+const TI = {melhoria:"ð¡",gestao:"ð",lei:"âï¸",motivacao:"â¨"};
 
 const G = {900:"#000",800:"#0d0d0d",700:"#1a1a1a",600:"#7a5a00",500:"#b8870a",400:"#c9a84c",300:"#dfc27a",200:"#edd99a",100:"#f5eabc"};
 
@@ -53,7 +53,7 @@ const LS = {
   set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}},
 };
 
-// ─── ESTILOS ATUALIZADOS — LAYOUT EXECUTIVO PREMIUM ──────────────────────────
+// âââ ESTILOS ATUALIZADOS â LAYOUT EXECUTIVO PREMIUM ââââââââââââââââââââââââââ
 const S = {
   inp:{background:G[800],border:`1px solid ${G[600]}`,borderRadius:8,padding:"10px 14px",color:G[100],fontSize:14,outline:"none"},
   btn:{background:`linear-gradient(135deg,${G[400]},${G[300]})`,border:"none",borderRadius:8,padding:"10px 18px",color:"#000",fontWeight:700,fontSize:13,cursor:"pointer"},
@@ -67,7 +67,7 @@ const S = {
   grid:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:14,marginBottom:16},
 };
 
-// ─── HEALTH ──────────────────────────────────────────────────────────────────
+// âââ HEALTH ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function calcHealth(kpis) {
   let s=50;
   if(kpis.fat>0){
@@ -82,7 +82,7 @@ function calcHealth(kpis) {
 }
 function HealthBadge({score}) {
   const c=score>=75?"#5bc4a0":score>=50?G[400]:score>=30?"#e07a5f":"#cc2222";
-  const l=score>=75?"Saudável":score>=50?"Estável":score>=30?"Atenção":"Crítico";
+  const l=score>=75?"SaudÃ¡vel":score>=50?"EstÃ¡vel":score>=30?"AtenÃ§Ã£o":"CrÃ­tico";
   return (
     <div style={{display:"flex",alignItems:"center",gap:8}}>
       <div style={{width:36,height:36,borderRadius:"50%",border:`2px solid ${c}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:c,background:c+"11"}}>{score}</div>
@@ -91,7 +91,7 @@ function HealthBadge({score}) {
   );
 }
 
-// ─── MINI CHART ──────────────────────────────────────────────────────────────
+// âââ MINI CHART ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function BarChart({data,height=80}) {
   const max=Math.max(...data.map(d=>d.value),1);
   return (
@@ -106,7 +106,7 @@ function BarChart({data,height=80}) {
   );
 }
 
-// ─── AGENDA ──────────────────────────────────────────────────────────────────
+// âââ AGENDA ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function AgendaWidget() {
   const today = new Date().toISOString().slice(0,10);
   const [events,setEvents] = useState(CALENDAR_EVENTS);
@@ -128,27 +128,27 @@ function AgendaWidget() {
   return (
     <div style={{background:G[800],border:`1px solid ${G[600]}44`,borderLeft:`3px solid #5bc4a0`,borderRadius:14,padding:"16px 20px",marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-        <div style={{fontSize:11,letterSpacing:"3px",color:"#5bc4a0"}}>📅 AGENDA — GOOGLE CALENDAR</div>
+        <div style={{fontSize:11,letterSpacing:"3px",color:"#5bc4a0"}}>ð AGENDA â GOOGLE CALENDAR</div>
         <div style={{display:"flex",gap:8}}>
-          <button onClick={()=>setShowLink(v=>!v)} style={{background:`${G[600]}33`,border:`1px solid ${G[600]}`,borderRadius:7,padding:"5px 12px",color:G[300],fontSize:11,cursor:"pointer",letterSpacing:"1px"}}>🔗 LINK</button>
+          <button onClick={()=>setShowLink(v=>!v)} style={{background:`${G[600]}33`,border:`1px solid ${G[600]}`,borderRadius:7,padding:"5px 12px",color:G[300],fontSize:11,cursor:"pointer",letterSpacing:"1px"}}>ð LINK</button>
           <button onClick={()=>setShowForm(v=>!v)} style={{background:`${G[400]}22`,border:`1px solid ${G[500]}`,borderRadius:7,padding:"5px 12px",color:G[300],fontSize:11,cursor:"pointer",letterSpacing:"1px"}}>+ EVENTO</button>
-          <a href="https://calendar.google.com" target="_blank" rel="noopener noreferrer" style={{fontSize:11,color:G[600],textDecoration:"none",letterSpacing:"1px",padding:"5px 8px"}}>ABRIR ↗</a>
+          <a href="https://calendar.google.com" target="_blank" rel="noopener noreferrer" style={{fontSize:11,color:G[600],textDecoration:"none",letterSpacing:"1px",padding:"5px 8px"}}>ABRIR â</a>
         </div>
       </div>
       {showLink&&(
         <div style={{background:`#5bc4a011`,border:`1px solid #5bc4a033`,borderRadius:9,padding:"14px 16px",marginBottom:14}}>
           <div style={{fontSize:11,color:"#5bc4a0",letterSpacing:"2px",marginBottom:6}}>LINK DE DISPONIBILIDADE</div>
-          <div style={{fontSize:12,color:G[600],marginBottom:10}}>Compartilhe para que alguém veja sua agenda e marque um horário</div>
+          <div style={{fontSize:12,color:G[600],marginBottom:10}}>Compartilhe para que alguÃ©m veja sua agenda e marque um horÃ¡rio</div>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
             <div style={{flex:1,background:G[700],borderRadius:7,padding:"9px 12px",fontSize:11,color:G[400],overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{availLink}</div>
-            <button onClick={copyLink} style={{background:copied?"#5bc4a0":G[700],border:`1px solid ${copied?"#5bc4a0":G[600]}`,borderRadius:7,padding:"8px 16px",color:copied?"#000":G[300],fontSize:11,cursor:"pointer",fontWeight:600,transition:"all 0.2s",whiteSpace:"nowrap"}}>{copied?"COPIADO ✓":"COPIAR"}</button>
+            <button onClick={copyLink} style={{background:copied?"#5bc4a0":G[700],border:`1px solid ${copied?"#5bc4a0":G[600]}`,borderRadius:7,padding:"8px 16px",color:copied?"#000":G[300],fontSize:11,cursor:"pointer",fontWeight:600,transition:"all 0.2s",whiteSpace:"nowrap"}}>{copied?"COPIADO â":"COPIAR"}</button>
           </div>
         </div>
       )}
       {showForm&&(
         <div style={{background:G[700],borderRadius:9,padding:"16px",marginBottom:14,display:"flex",flexDirection:"column",gap:10}}>
           <div style={{fontSize:11,color:G[500],letterSpacing:"3px",marginBottom:2}}>NOVO COMPROMISSO</div>
-          <input style={{...S.inp,width:"100%",boxSizing:"border-box"}} placeholder="Título do evento..." value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))}/>
+          <input style={{...S.inp,width:"100%",boxSizing:"border-box"}} placeholder="TÃ­tulo do evento..." value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))}/>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
             <input type="date" style={{...S.inp,flex:1}} value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))}/>
             <label style={{display:"flex",alignItems:"center",gap:6,fontSize:13,color:G[400],cursor:"pointer",flexShrink:0}}>
@@ -168,7 +168,7 @@ function AgendaWidget() {
           </div>
         </div>
       )}
-      {upcoming.length===0&&<div style={{fontSize:13,color:G[700]}}>Nenhum evento nos próximos dias</div>}
+      {upcoming.length===0&&<div style={{fontSize:13,color:G[700]}}>Nenhum evento nos prÃ³ximos dias</div>}
       {upcoming.map(ev=>(
         <div key={ev.id} style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
           <div style={{width:42,textAlign:"center",flexShrink:0}}>
@@ -179,17 +179,17 @@ function AgendaWidget() {
             <div style={{fontSize:14,fontWeight:600,color:G[100]}}>{ev.title}</div>
             {ev.allDay
               ? <div style={{fontSize:11,color:G[600],marginTop:2}}>Dia inteiro</div>
-              : ev.start&&<div style={{fontSize:11,color:G[600],marginTop:2}}>{ev.start}{ev.end?" — "+ev.end:""}</div>
+              : ev.start&&<div style={{fontSize:11,color:G[600],marginTop:2}}>{ev.start}{ev.end?" â "+ev.end:""}</div>
             }
           </div>
-          <button style={{...S.del,fontSize:13}} onClick={()=>setEvents(events.filter(x=>x.id!==ev.id))}>✕</button>
+          <button style={{...S.del,fontSize:13}} onClick={()=>setEvents(events.filter(x=>x.id!==ev.id))}>â</button>
         </div>
       ))}
     </div>
   );
 }
 
-// ─── ALERTS BELL ─────────────────────────────────────────────────────────────
+// âââ ALERTS BELL âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function AlertsBell({companies}) {
   const [open,setOpen] = useState(false);
   const today = new Date();
@@ -197,7 +197,7 @@ function AlertsBell({companies}) {
   companies.forEach(c=>{
     const kpis=LS.get("mx_kpi_"+c,{fat:0,custo:0,meta:0,clientes:0,inadimplencia:0,caixa:0,pipeline:0});
     const contracts=LS.get("mx_contracts_"+c,[]);
-    if(kpis.fat>0&&kpis.inadimplencia/kpis.fat>0.05) alerts.push({type:"danger",msg:`${c}: inadimplência acima de 5%`});
+    if(kpis.fat>0&&kpis.inadimplencia/kpis.fat>0.05) alerts.push({type:"danger",msg:`${c}: inadimplÃªncia acima de 5%`});
     if(kpis.meta>0&&kpis.fat/kpis.meta<0.8) alerts.push({type:"warning",msg:`${c}: meta abaixo de 80%`});
     if(kpis.caixa<0) alerts.push({type:"danger",msg:`${c}: caixa negativo`});
     contracts.forEach(ct=>{
@@ -211,16 +211,16 @@ function AlertsBell({companies}) {
   return (
     <div style={{position:"relative"}}>
       <button onClick={()=>setOpen(v=>!v)} style={{background:"none",border:`1px solid ${color}44`,borderRadius:9,padding:"8px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:6,color,fontSize:16,position:"relative"}}>
-        🔔
+        ð
         {alerts.length>0&&<div style={{position:"absolute",top:-4,right:-4,background:color,borderRadius:"50%",width:18,height:18,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:"#000"}}>{alerts.length}</div>}
       </button>
       {open&&(
         <div style={{position:"absolute",top:48,right:0,background:G[800],border:`1px solid ${G[600]}`,borderRadius:14,padding:"16px",width:320,zIndex:100,boxShadow:`0 8px 32px #00000088`}}>
           <div style={{fontSize:11,letterSpacing:"3px",color:G[500],marginBottom:12}}>ALERTAS ATIVOS</div>
-          {alerts.length===0&&<div style={{fontSize:13,color:G[600]}}>Nenhum alerta no momento ✓</div>}
+          {alerts.length===0&&<div style={{fontSize:13,color:G[600]}}>Nenhum alerta no momento â</div>}
           {alerts.map((a,i)=>(
             <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:8,background:a.type==="danger"?"#e07a5f11":"#c9a84c11",border:`1px solid ${a.type==="danger"?"#e07a5f33":"#c9a84c33"}`,borderRadius:9,padding:"10px 12px"}}>
-              <span style={{fontSize:14}}>{a.type==="danger"?"⚠":"⚡"}</span>
+              <span style={{fontSize:14}}>{a.type==="danger"?"â ":"â¡"}</span>
               <span style={{fontSize:13,color:G[200],lineHeight:1.4}}>{a.msg}</span>
             </div>
           ))}
@@ -230,17 +230,17 @@ function AlertsBell({companies}) {
   );
 }
 
-// ─── DAILY CHECK-IN ───────────────────────────────────────────────────────────
+// âââ DAILY CHECK-IN âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function DailyCheckin() {
   const today = new Date().toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
   const key = "mx_checkin_"+new Date().toISOString().slice(0,10);
   const [items,setItems] = useState(()=>LS.get(key,["","",""]));
-  const prompts = ["O que é prioridade hoje?","Qual decisão não pode esperar?","Que resultado vou entregar hoje?"];
+  const prompts = ["O que Ã© prioridade hoje?","Qual decisÃ£o nÃ£o pode esperar?","Que resultado vou entregar hoje?"];
   const update = (i,v) => { const n=[...items]; n[i]=v; setItems(n); LS.set(key,n); };
   return (
     <div style={{background:`${G[800]}`,border:`1px solid ${G[600]}44`,borderLeft:`3px solid ${G[400]}`,borderRadius:14,padding:"16px 20px",marginBottom:20}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-        <div style={{fontSize:11,letterSpacing:"3px",color:G[400]}}>CHECK-IN DO DIA — {today.toUpperCase()}</div>
+        <div style={{fontSize:11,letterSpacing:"3px",color:G[400]}}>CHECK-IN DO DIA â {today.toUpperCase()}</div>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
         {prompts.map((p,i)=>(
@@ -254,7 +254,7 @@ function DailyCheckin() {
   );
 }
 
-// ─── USER PROFILE ─────────────────────────────────────────────────────────────
+// âââ USER PROFILE âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function UserProfile() {
   return (
     <div style={{display:"flex",alignItems:"center",gap:10,padding:"6px 14px",background:G[800],border:`1px solid ${G[700]}`,borderRadius:10,cursor:"pointer"}}>
@@ -264,7 +264,7 @@ function UserProfile() {
   );
 }
 
-// ─── COMMAND BAR ──────────────────────────────────────────────────────────────
+// âââ COMMAND BAR ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function CommandBar({companies,areas,onNavigate}) {
   const [open,setOpen] = useState(false);
   const [q,setQ] = useState("");
@@ -282,12 +282,12 @@ function CommandBar({companies,areas,onNavigate}) {
   return (
     <>
       <button onClick={()=>setOpen(true)} style={{background:G[800],border:`1px solid ${G[700]}`,borderRadius:9,padding:"8px 16px",color:G[600],fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",gap:8}}>
-        <span>⌘</span> Busca rápida <span style={{fontSize:11,opacity:0.6}}>Ctrl+K</span>
+        <span>â</span> Busca rÃ¡pida <span style={{fontSize:11,opacity:0.6}}>Ctrl+K</span>
       </button>
       {open&&(
         <div style={{position:"fixed",inset:0,background:"#00000088",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"center",paddingTop:100}} onClick={()=>{setOpen(false);setQ("");}}>
           <div style={{background:G[800],border:`1px solid ${G[500]}`,borderRadius:16,width:"90%",maxWidth:540,overflow:"hidden"}} onClick={e=>e.stopPropagation()}>
-            <input ref={ref} value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar empresa, área ou workspace..." style={{...S.inp,width:"100%",boxSizing:"border-box",borderRadius:0,border:"none",borderBottom:`1px solid ${G[700]}`,fontSize:15,padding:"18px 20px"}}/>
+            <input ref={ref} value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar empresa, Ã¡rea ou workspace..." style={{...S.inp,width:"100%",boxSizing:"border-box",borderRadius:0,border:"none",borderBottom:`1px solid ${G[700]}`,fontSize:15,padding:"18px 20px"}}/>
             {results.slice(0,6).map((r,i)=>(
               <div key={i} onClick={r.action} style={{padding:"14px 20px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${G[700]}33`}}>
                 <span style={{fontSize:14,color:G[100]}}>{r.label}</span>
@@ -303,10 +303,10 @@ function CommandBar({companies,areas,onNavigate}) {
   );
 }
 
-// ─── ORION ────────────────────────────────────────────────────────────────────
+// âââ ORION ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function OrionAgent() {
   const [open,setOpen] = useState(false);
-  const [msgs,setMsgs] = useState([{role:"ai",text:"Olá! Sou o ORION, sua inteligência executiva MAXXXI. Analiso dados, respondo estrategicamente e auxilio em decisões. Como posso ajudar hoje?"}]);
+  const [msgs,setMsgs] = useState([{role:"ai",text:"OlÃ¡! Sou o ORION, sua inteligÃªncia executiva MAXXXI. Analiso dados, respondo estrategicamente e auxilio em decisÃµes. Como posso ajudar hoje?"}]);
   const [input,setInput] = useState("");
   const [loading,setLoading] = useState(false);
   const endRef = useRef();
@@ -316,25 +316,25 @@ function OrionAgent() {
     setInput("");
     const newMsgs=[...msgs,{role:"user",text:q}];
     setMsgs(newMsgs); setLoading(true);
-    const ctx="Você é o ORION — Inteligência Executiva MAXXXI. Especialista em gestão empresarial, finanças, estratégia, compliance e inovação. Responda de forma direta, executiva e em português. Use metodologias modernas (OKR, BSC, PDCA, Lean) quando relevante. Empresas: Forme Seguro, Original Fotografia, Doctor Wealth, CDL.";
+    const ctx="VocÃª Ã© o ORION â InteligÃªncia Executiva MAXXXI. Especialista em gestÃ£o empresarial, finanÃ§as, estratÃ©gia, compliance e inovaÃ§Ã£o. Responda de forma direta, executiva e em portuguÃªs. Use metodologias modernas (OKR, BSC, PDCA, Lean) quando relevante. Empresas: Forme Seguro, Original Fotografia, Doctor Wealth, CDL.";
     try {
       const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:ctx,messages:newMsgs.slice(-10).map(m=>({role:m.role==="ai"?"assistant":"user",content:m.text}))})});
       const data=await res.json();
       setMsgs(p=>[...p,{role:"ai",text:data.content?.[0]?.text||"Erro ao processar."}]);
-    } catch { setMsgs(p=>[...p,{role:"ai",text:"Erro de conexão."}]); }
+    } catch { setMsgs(p=>[...p,{role:"ai",text:"Erro de conexÃ£o."}]); }
     setLoading(false);
   };
   return (
     <>
       <button onClick={()=>setOpen(v=>!v)}
-        style={{position:"fixed",bottom:28,right:28,width:60,height:60,borderRadius:"50%",background:`linear-gradient(135deg,${G[600]},${G[500]})`,border:`2px solid ${G[400]}`,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:2,boxShadow:`0 4px 28px ${G[400]}55`,zIndex:300,transition:"all 0.2s"}}>
+        style={{position:"fixed",bottom:28,right:28,width:60,height:60,borderRadius:16,background:`linear-gradient(135deg,#1a1200,${G[700]})`,border:`1px solid ${G[400]}`,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:2,boxShadow:`0 4px 28px ${G[400]}55`,zIndex:300,transition:"all 0.2s"}}>
         <div style={{fontSize:10,fontWeight:800,color:G[100],letterSpacing:"1px"}}>ORION</div>
-        <div style={{fontSize:16}}>{open?"✕":"🤖"}</div>
+        <div style={{fontSize:16}}>{open?"â":"ð¤"}</div>
       </button>
       {open&&(
         <div style={{position:"fixed",bottom:104,right:28,width:380,background:G[800],border:`1px solid ${G[500]}`,borderRadius:18,display:"flex",flexDirection:"column",zIndex:300,boxShadow:`0 8px 40px #00000099`,overflow:"hidden"}}>
           <div style={{background:`linear-gradient(135deg,${G[700]},${G[800]})`,padding:"16px 20px",borderBottom:`1px solid ${G[700]}`,display:"flex",alignItems:"center",gap:12}}>
-            <div style={{width:36,height:36,borderRadius:"50%",background:`linear-gradient(135deg,${G[500]},${G[400]})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>🤖</div>
+            <div style={{width:36,height:36,borderRadius:"50%",background:`linear-gradient(135deg,${G[500]},${G[400]})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>ð¤</div>
             <div>
               <div style={{fontSize:14,fontWeight:700,color:G[100],letterSpacing:"1px"}}>ORION</div>
               <div style={{fontSize:10,color:G[500],letterSpacing:"2px"}}>{AGENT_SUBTITLE}</div>
@@ -345,7 +345,7 @@ function OrionAgent() {
             {msgs.map((m,i)=>(
               <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start"}}>
                 <div style={{maxWidth:"85%",background:m.role==="user"?`linear-gradient(135deg,${G[600]},${G[500]})`:`${G[700]}`,border:`1px solid ${m.role==="user"?G[500]:G[600]}44`,borderRadius:m.role==="user"?"12px 12px 4px 12px":"12px 12px 12px 4px",padding:"10px 14px",fontSize:13,color:G[100],lineHeight:1.6,whiteSpace:"pre-wrap"}}>
-                  {m.role==="ai"&&<div style={{fontSize:9,color:G[500],letterSpacing:"2px",marginBottom:4}}>ORION · INTELIGÊNCIA EXECUTIVA</div>}
+                  {m.role==="ai"&&<div style={{fontSize:9,color:G[500],letterSpacing:"2px",marginBottom:4}}>ORION Â· INTELIGÃNCIA EXECUTIVA</div>}
                   {m.text}
                 </div>
               </div>
@@ -355,7 +355,7 @@ function OrionAgent() {
           </div>
           <div style={{padding:"12px 16px",borderTop:`1px solid ${G[700]}`,display:"flex",gap:8}}>
             <input style={{...S.inp,flex:1,fontSize:13,padding:"9px 14px"}} placeholder="Pergunte ao ORION..." value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()}/>
-            <button style={{...S.btn,padding:"9px 16px",minWidth:44}} onClick={send} disabled={loading}>↑</button>
+            <button style={{...S.btn,padding:"9px 16px",minWidth:44}} onClick={send} disabled={loading}>â</button>
           </div>
         </div>
       )}
@@ -363,7 +363,7 @@ function OrionAgent() {
   );
 }
 
-// ─── AGENT TIP ────────────────────────────────────────────────────────────────
+// âââ AGENT TIP ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function AgentTip() {
   const [idx,setIdx]=useState(0);
   const [loading,setLoading]=useState(false);
@@ -376,7 +376,7 @@ function AgentTip() {
         <div style={{flex:1}}>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
             <span style={{fontSize:11,letterSpacing:"2px",color:TC[tip.type],fontWeight:600}}>{TL[tip.type]}</span>
-            <span style={{fontSize:11,color:G[700]}}>· Agente MAXXXI</span>
+            <span style={{fontSize:11,color:G[700]}}>Â· Agente MAXXXI</span>
           </div>
           <div style={{fontSize:14,color:G[200],lineHeight:1.6,opacity:loading?0.2:1,transition:"opacity 0.3s"}}>{tip.msg}</div>
         </div>
@@ -389,7 +389,7 @@ function AgentTip() {
   );
 }
 
-// ─── CONSOLIDATED ─────────────────────────────────────────────────────────────
+// âââ CONSOLIDATED âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function ConsolidatedPanel({companies}) {
   const allKpis=companies.map(c=>({company:c,kpis:LS.get("mx_kpi_"+c,{fat:0,custo:0,meta:0,clientes:0,inadimplencia:0,caixa:0,pipeline:0})}));
   const totalFat=allKpis.reduce((s,k)=>s+k.kpis.fat,0);
@@ -397,9 +397,9 @@ function ConsolidatedPanel({companies}) {
   const totalCli=allKpis.reduce((s,k)=>s+k.kpis.clientes,0);
   return (
     <div style={{background:G[800],border:`1px solid ${G[500]}44`,borderRadius:14,padding:"20px 24px",marginBottom:16}}>
-      <div style={S.lbl}>Visão CEO — Ecossistema Consolidado</div>
+      <div style={S.lbl}>VisÃ£o CEO â Ecossistema Consolidado</div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:16}}>
-        {[{l:"Faturamento Total",v:fmt(totalFat)},{l:"Resultado Líquido",v:fmt(totalRes)},{l:"Clientes Totais",v:totalCli}].map((k,i)=>(
+        {[{l:"Faturamento Total",v:fmt(totalFat)},{l:"Resultado LÃ­quido",v:fmt(totalRes)},{l:"Clientes Totais",v:totalCli}].map((k,i)=>(
           <div key={i} style={{background:`${G[700]}55`,borderRadius:10,padding:"14px 16px"}}>
             <div style={{fontSize:11,color:G[600],marginBottom:4}}>{k.l}</div>
             <div style={{fontSize:22,fontWeight:700,color:G[300]}}>{k.v}</div>
@@ -426,7 +426,7 @@ function ConsolidatedPanel({companies}) {
   );
 }
 
-// ─── BRIEFING MODAL ───────────────────────────────────────────────────────────
+// âââ BRIEFING MODAL âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function BriefingModal({company,onClose}) {
   const kpis=LS.get("mx_kpi_"+company,{fat:0,custo:0,meta:0,clientes:0,inadimplencia:0,caixa:0,pipeline:0});
   const contracts=LS.get("mx_contracts_"+company,[]).filter(c=>c.status!=="Encerrado");
@@ -443,11 +443,11 @@ function BriefingModal({company,onClose}) {
           </div>
           <div style={{display:"flex",alignItems:"center",gap:14}}>
             <HealthBadge score={score}/>
-            <button onClick={onClose} style={{background:"none",border:`1px solid ${G[700]}`,borderRadius:8,padding:"8px 12px",color:G[600],cursor:"pointer",fontSize:16}}>✕</button>
+            <button onClick={onClose} style={{background:"none",border:`1px solid ${G[700]}`,borderRadius:8,padding:"8px 12px",color:G[600],cursor:"pointer",fontSize:16}}>â</button>
           </div>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20}}>
-          {[{l:"Faturamento",v:fmt(kpis.fat)},{l:"Custo Total",v:fmt(kpis.custo)},{l:"Meta",v:fmt(kpis.meta)},{l:"Margem",v:kpis.fat>0?`${Math.round((kpis.fat-kpis.custo)/kpis.fat*100)}%`:"—"},{l:"Clientes",v:kpis.clientes||"—"},{l:"Inadimplência",v:fmt(kpis.inadimplencia)}].map((k,i)=>(
+          {[{l:"Faturamento",v:fmt(kpis.fat)},{l:"Custo Total",v:fmt(kpis.custo)},{l:"Meta",v:fmt(kpis.meta)},{l:"Margem",v:kpis.fat>0?`${Math.round((kpis.fat-kpis.custo)/kpis.fat*100)}%`:"â"},{l:"Clientes",v:kpis.clientes||"â"},{l:"InadimplÃªncia",v:fmt(kpis.inadimplencia)}].map((k,i)=>(
             <div key={i} style={{background:`${G[700]}55`,borderRadius:10,padding:"12px 16px"}}>
               <div style={{fontSize:11,color:G[600],marginBottom:4}}>{k.l}</div>
               <div style={{fontSize:18,color:G[200],fontWeight:600}}>{k.v}</div>
@@ -456,16 +456,16 @@ function BriefingModal({company,onClose}) {
         </div>
         {contracts.length>0&&<><div style={S.lbl}>Contratos Ativos</div>{contracts.slice(0,3).map((c,i)=><div key={i} style={{background:`${G[700]}55`,borderRadius:10,padding:"12px 14px",marginBottom:8,display:"flex",justifyContent:"space-between"}}><span style={{fontSize:13,color:G[200]}}>{c.nome}</span><span style={{fontSize:12,color:STATUS_COLORS[c.status]||G[400]}}>{c.status}</span></div>)}</>}
         {risks.filter(r=>r.nivel>=2).length>0&&<><div style={{...S.lbl,marginTop:14}}>Riscos Altos</div>{risks.filter(r=>r.nivel>=2).slice(0,3).map((r,i)=><div key={i} style={{background:`#e07a5f11`,border:"1px solid #e07a5f33",borderRadius:10,padding:"10px 14px",marginBottom:8,fontSize:13,color:G[200]}}>{r.descricao}</div>)}</>}
-        {decisions.length>0&&<><div style={{...S.lbl,marginTop:14}}>Últimas Decisões</div>{decisions.slice(0,3).map((d,i)=><div key={i} style={{background:`${G[700]}55`,borderRadius:10,padding:"10px 14px",marginBottom:8,fontSize:13,color:G[200]}}>{d.descricao}</div>)}</>}
+        {decisions.length>0&&<><div style={{...S.lbl,marginTop:14}}>Ãltimas DecisÃµes</div>{decisions.slice(0,3).map((d,i)=><div key={i} style={{background:`${G[700]}55`,borderRadius:10,padding:"10px 14px",marginBottom:8,fontSize:13,color:G[200]}}>{d.descricao}</div>)}</>}
       </div>
     </div>
   );
 }
 
-// ─── WORKSPACE ────────────────────────────────────────────────────────────────
+// âââ WORKSPACE ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function Workspace({company,area}) {
   const [tab,setTab] = useState("kpi");
-  const TABS = [{id:"kpi",label:"KPI & Metas"},{id:"contracts",label:"Contratos"},{id:"risks",label:"Riscos"},{id:"decisions",label:"Decisões"},{id:"files",label:"Arquivos"}];
+  const TABS = [{id:"kpi",label:"KPI & Metas"},{id:"contracts",label:"Contratos"},{id:"risks",label:"Riscos"},{id:"decisions",label:"DecisÃµes"},{id:"files",label:"Arquivos"}];
   return (
     <div>
       <div style={{display:"flex",gap:4,marginBottom:20,borderBottom:`1px solid ${G[700]}`,paddingBottom:0}}>
@@ -482,7 +482,7 @@ function Workspace({company,area}) {
   );
 }
 
-// ─── KPI PANEL ────────────────────────────────────────────────────────────────
+// âââ KPI PANEL ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function KPIPanel({company}) {
   const [kpis,setKpis] = useState(()=>LS.get("mx_kpi_"+company,{fat:0,custo:0,meta:0,clientes:0,inadimplencia:0,caixa:0,pipeline:0}));
   const save=(k,v)=>{ const n={...kpis,[k]:parseFloat(v)||0}; setKpis(n); LS.set("mx_kpi_"+company,n); };
@@ -491,11 +491,11 @@ function KPIPanel({company}) {
   return (
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-        <div style={S.lbl}>{company} — Indicadores</div>
+        <div style={S.lbl}>{company} â Indicadores</div>
         <HealthBadge score={score}/>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:12,marginBottom:20}}>
-        {[{k:"fat",l:"Faturamento Mensal"},{k:"custo",l:"Custo Total"},{k:"meta",l:"Meta Mensal"},{k:"clientes",l:"Nº Clientes"},{k:"inadimplencia",l:"Inadimplência (R$)"},{k:"caixa",l:"Caixa Atual"},{k:"pipeline",l:"Pipeline / Funil"}].map(({k,l})=>(
+        {[{k:"fat",l:"Faturamento Mensal"},{k:"custo",l:"Custo Total"},{k:"meta",l:"Meta Mensal"},{k:"clientes",l:"NÂº Clientes"},{k:"inadimplencia",l:"InadimplÃªncia (R$)"},{k:"caixa",l:"Caixa Atual"},{k:"pipeline",l:"Pipeline / Funil"}].map(({k,l})=>(
           <div key={k} style={{background:`${G[700]}55`,borderRadius:12,padding:"14px 16px"}}>
             <div style={{fontSize:11,color:G[600],marginBottom:6}}>{l}</div>
             <input type="number" style={{...S.inp,width:"100%",boxSizing:"border-box",fontSize:15,fontWeight:600,padding:"8px 12px"}} value={kpis[k]||""} onChange={e=>save(k,e.target.value)} placeholder="0"/>
@@ -512,7 +512,7 @@ function KPIPanel({company}) {
   );
 }
 
-// ─── CONTRACTS PANEL ──────────────────────────────────────────────────────────
+// âââ CONTRACTS PANEL ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function ContractsPanel({company}) {
   const [contracts,setContracts] = useState(()=>LS.get("mx_contracts_"+company,[]));
   const [showForm,setShowForm] = useState(false);
@@ -540,12 +540,12 @@ function ContractsPanel({company}) {
         <div key={c.id||i} style={{background:`${G[700]}55`,borderRadius:12,padding:"14px 18px",marginBottom:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
             <div style={{fontSize:15,fontWeight:600,color:G[100],marginBottom:4}}>{c.nome}</div>
-            <div style={{fontSize:12,color:G[600]}}>{fmt(c.valor)}{c.vencimento&&` · Vence ${new Date(c.vencimento+"T12:00:00").toLocaleDateString("pt-BR")}`}</div>
+            <div style={{fontSize:12,color:G[600]}}>{fmt(c.valor)}{c.vencimento&&` Â· Vence ${new Date(c.vencimento+"T12:00:00").toLocaleDateString("pt-BR")}`}</div>
             {c.obs&&<div style={{fontSize:12,color:G[600],marginTop:2}}>{c.obs}</div>}
           </div>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <span style={{fontSize:12,color:STATUS_COLORS[c.status]||G[400],background:(STATUS_COLORS[c.status]||G[400])+"22",padding:"4px 12px",borderRadius:20,fontWeight:600}}>{c.status}</span>
-            <button style={S.del} onClick={()=>save(contracts.filter((_,j)=>j!==i))}>✕</button>
+            <button style={S.del} onClick={()=>save(contracts.filter((_,j)=>j!==i))}>â</button>
           </div>
         </div>
       ))}
@@ -553,7 +553,7 @@ function ContractsPanel({company}) {
   );
 }
 
-// ─── RISKS PANEL ──────────────────────────────────────────────────────────────
+// âââ RISKS PANEL ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function RisksPanel({company}) {
   const [risks,setRisks] = useState(()=>LS.get("mx_risks_"+company,[]));
   const [form,setForm] = useState({descricao:"",nivel:1,mitigacao:""});
@@ -572,7 +572,7 @@ function RisksPanel({company}) {
           <select style={{...S.sel,width:"100%"}} value={form.nivel} onChange={e=>setForm(p=>({...p,nivel:parseInt(e.target.value)}))}>
             {RISK_LABELS.map((l,i)=><option key={l} value={i}>{l}</option>)}
           </select>
-          <input style={{...S.inp,width:"100%",boxSizing:"border-box"}} placeholder="Plano de mitigação..." value={form.mitigacao} onChange={e=>setForm(p=>({...p,mitigacao:e.target.value}))}/>
+          <input style={{...S.inp,width:"100%",boxSizing:"border-box"}} placeholder="Plano de mitigaÃ§Ã£o..." value={form.mitigacao} onChange={e=>setForm(p=>({...p,mitigacao:e.target.value}))}/>
           <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}><button style={S.ghost} onClick={()=>setShowForm(false)}>Cancelar</button><button style={S.btn} onClick={add}>Salvar</button></div>
         </div>
       )}
@@ -582,11 +582,11 @@ function RisksPanel({company}) {
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
             <div>
               <div style={{fontSize:15,fontWeight:600,color:G[100],marginBottom:4}}>{r.descricao}</div>
-              {r.mitigacao&&<div style={{fontSize:13,color:G[600]}}>→ {r.mitigacao}</div>}
+              {r.mitigacao&&<div style={{fontSize:13,color:G[600]}}>â {r.mitigacao}</div>}
             </div>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
               <span style={{fontSize:12,color:RISK_COLORS[r.nivel]||G[400],background:(RISK_COLORS[r.nivel]||G[400])+"22",padding:"4px 12px",borderRadius:20,fontWeight:600}}>{RISK_LABELS[r.nivel]}</span>
-              <button style={S.del} onClick={()=>save(risks.filter((_,j)=>j!==i))}>✕</button>
+              <button style={S.del} onClick={()=>save(risks.filter((_,j)=>j!==i))}>â</button>
             </div>
           </div>
         </div>
@@ -595,7 +595,7 @@ function RisksPanel({company}) {
   );
 }
 
-// ─── DECISIONS PANEL ──────────────────────────────────────────────────────────
+// âââ DECISIONS PANEL ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function DecisionsPanel({company}) {
   const [decisions,setDecisions] = useState(()=>LS.get("mx_decisions_"+company,[]));
   const [form,setForm] = useState({descricao:"",responsavel:"",prazo:"",status:"Pendente"});
@@ -605,32 +605,32 @@ function DecisionsPanel({company}) {
   return (
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-        <div style={S.lbl}>Histórico de Decisões</div>
-        <button style={S.btn} onClick={()=>setShowForm(v=>!v)}>+ Decisão</button>
+        <div style={S.lbl}>HistÃ³rico de DecisÃµes</div>
+        <button style={S.btn} onClick={()=>setShowForm(v=>!v)}>+ DecisÃ£o</button>
       </div>
       {showForm&&(
         <div style={{background:G[700],borderRadius:12,padding:"18px 20px",marginBottom:16,display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-          <div style={{gridColumn:"1/-1"}}><input style={{...S.inp,width:"100%",boxSizing:"border-box"}} placeholder="Descreva a decisão..." value={form.descricao} onChange={e=>setForm(p=>({...p,descricao:e.target.value}))}/></div>
-          <input style={S.inp} placeholder="Responsável" value={form.responsavel} onChange={e=>setForm(p=>({...p,responsavel:e.target.value}))}/>
+          <div style={{gridColumn:"1/-1"}}><input style={{...S.inp,width:"100%",boxSizing:"border-box"}} placeholder="Descreva a decisÃ£o..." value={form.descricao} onChange={e=>setForm(p=>({...p,descricao:e.target.value}))}/></div>
+          <input style={S.inp} placeholder="ResponsÃ¡vel" value={form.responsavel} onChange={e=>setForm(p=>({...p,responsavel:e.target.value}))}/>
           <input type="date" style={S.inp} value={form.prazo} onChange={e=>setForm(p=>({...p,prazo:e.target.value}))}/>
           <div style={{gridColumn:"1/-1",display:"flex",gap:8,justifyContent:"flex-end"}}><button style={S.ghost} onClick={()=>setShowForm(false)}>Cancelar</button><button style={S.btn} onClick={add}>Salvar</button></div>
         </div>
       )}
-      {decisions.length===0&&<div style={{fontSize:13,color:G[600]}}>Nenhuma decisão registrada.</div>}
+      {decisions.length===0&&<div style={{fontSize:13,color:G[600]}}>Nenhuma decisÃ£o registrada.</div>}
       {decisions.map((d,i)=>(
         <div key={d.id||i} style={{background:`${G[700]}55`,borderRadius:12,padding:"14px 18px",marginBottom:10,display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
           <div>
             <div style={{fontSize:15,fontWeight:600,color:G[100],marginBottom:4}}>{d.descricao}</div>
-            <div style={{fontSize:12,color:G[600]}}>{d.data&&new Date(d.data+"T12:00:00").toLocaleDateString("pt-BR")}{d.responsavel&&` · ${d.responsavel}`}{d.prazo&&` · Prazo: ${new Date(d.prazo+"T12:00:00").toLocaleDateString("pt-BR")}`}</div>
+            <div style={{fontSize:12,color:G[600]}}>{d.data&&new Date(d.data+"T12:00:00").toLocaleDateString("pt-BR")}{d.responsavel&&` Â· ${d.responsavel}`}{d.prazo&&` Â· Prazo: ${new Date(d.prazo+"T12:00:00").toLocaleDateString("pt-BR")}`}</div>
           </div>
-          <button style={S.del} onClick={()=>save(decisions.filter((_,j)=>j!==i))}>✕</button>
+          <button style={S.del} onClick={()=>save(decisions.filter((_,j)=>j!==i))}>â</button>
         </div>
       ))}
     </div>
   );
 }
 
-// ─── FILES PANEL ──────────────────────────────────────────────────────────────
+// âââ FILES PANEL ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function FilesPanel({company,area}) {
   const key=`mx_files_${company}_${area}`;
   const [files,setFiles] = useState(()=>LS.get(key,[]));
@@ -644,32 +644,32 @@ function FilesPanel({company,area}) {
   return (
     <div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-        <div style={S.lbl}>{company} / {area} — Arquivos</div>
+        <div style={S.lbl}>{company} / {area} â Arquivos</div>
         <button style={S.btn} onClick={()=>ref.current.click()}>+ Upload</button>
       </div>
       <input ref={ref} type="file" multiple style={{display:"none"}} onChange={e=>addFiles(e.target.files)}/>
       <div onDragOver={e=>{e.preventDefault();setDragOver(true);}} onDragLeave={()=>setDragOver(false)} onDrop={e=>{e.preventDefault();setDragOver(false);addFiles(e.dataTransfer.files);}}
         style={{border:`2px dashed ${dragOver?G[400]:G[700]}`,borderRadius:14,padding:"32px 20px",textAlign:"center",marginBottom:16,background:dragOver?`${G[400]}11`:"transparent",transition:"all 0.15s",cursor:"pointer"}} onClick={()=>ref.current.click()}>
-        <div style={{fontSize:28,marginBottom:8}}>📁</div>
+        <div style={{fontSize:28,marginBottom:8}}>ð</div>
         <div style={{fontSize:14,color:G[600]}}>Arraste arquivos aqui ou clique para selecionar</div>
       </div>
-      {files.length===0&&<div style={{fontSize:13,color:G[600]}}>Nenhum arquivo nesta área.</div>}
+      {files.length===0&&<div style={{fontSize:13,color:G[600]}}>Nenhum arquivo nesta Ã¡rea.</div>}
       {files.map((f,i)=>(
         <div key={f.id||i} style={{background:`${G[700]}55`,borderRadius:12,padding:"12px 16px",marginBottom:8,display:"flex",alignItems:"center",gap:12}}>
           <span style={{fontSize:22}}>{getFileIcon(f.name)}</span>
           <div style={{flex:1}}>
             <div style={{fontSize:14,fontWeight:600,color:G[100]}}>{f.name}</div>
-            <div style={{fontSize:11,color:G[600]}}>{formatSize(f.size)} · {f.date}</div>
+            <div style={{fontSize:11,color:G[600]}}>{formatSize(f.size)} Â· {f.date}</div>
           </div>
-          {f.url&&<a href={f.url} download={f.name} style={{fontSize:11,color:G[400],textDecoration:"none",padding:"5px 12px",border:`1px solid ${G[600]}`,borderRadius:7}}>↓</a>}
-          <button style={S.del} onClick={()=>save(files.filter((_,j)=>j!==i))}>✕</button>
+          {f.url&&<a href={f.url} download={f.name} style={{fontSize:11,color:G[400],textDecoration:"none",padding:"5px 12px",border:`1px solid ${G[600]}`,borderRadius:7}}>â</a>}
+          <button style={S.del} onClick={()=>save(files.filter((_,j)=>j!==i))}>â</button>
         </div>
       ))}
     </div>
   );
 }
 
-// ─── PERSONAL FINANCE ─────────────────────────────────────────────────────────
+// âââ PERSONAL FINANCE âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function PersonalFinance() {
   const [tab,setTab]=useState("despesas");
   const [transactions,setTransactions]=useState(()=>LS.get("mx_personal_transactions",[]));
@@ -687,7 +687,7 @@ function PersonalFinance() {
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:20}}>
         {[{l:"Receitas",v:receitas,c:"#5bc4a0"},{l:"Despesas",v:despesas,c:"#e07a5f"},{l:"Saldo",v:receitas-despesas,c:receitas-despesas>=0?"#5bc4a0":"#e07a5f"}].map((k,i)=>(
           <div key={i} style={{background:`${G[700]}55`,borderRadius:12,padding:"14px 18px"}}>
-            <div style={{fontSize:11,color:G[600],marginBottom:6}}>{k.l} — {MESES_FULL[mes]}</div>
+            <div style={{fontSize:11,color:G[600],marginBottom:6}}>{k.l} â {MESES_FULL[mes]}</div>
             <div style={{fontSize:22,fontWeight:700,color:k.c}}>{fmt(k.v)}</div>
           </div>
         ))}
@@ -697,14 +697,14 @@ function PersonalFinance() {
         <div style={{display:"flex",gap:4}}>
           {["receitas","despesas","todos"].map(t=><button key={t} onClick={()=>setTab(t)} style={{...S.ghost,fontSize:12,padding:"6px 14px",borderColor:tab===t?G[400]:G[700],color:tab===t?G[300]:G[600]}}>{t.charAt(0).toUpperCase()+t.slice(1)}</button>)}
         </div>
-        <button style={S.btn} onClick={()=>setShowForm(v=>!v)}>+ Lançamento</button>
+        <button style={S.btn} onClick={()=>setShowForm(v=>!v)}>+ LanÃ§amento</button>
       </div>
       {showForm&&(
         <div style={{background:G[700],borderRadius:12,padding:"18px 20px",marginBottom:16,display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
           <select style={{...S.sel,gridColumn:"1/-1"}} value={form.tipo} onChange={e=>setForm(p=>({...p,tipo:e.target.value}))}>
             <option value="despesa">Despesa</option><option value="receita">Receita</option>
           </select>
-          <input style={{...S.inp,gridColumn:"1/-1"}} placeholder="Descrição" value={form.descricao} onChange={e=>setForm(p=>({...p,descricao:e.target.value}))}/>
+          <input style={{...S.inp,gridColumn:"1/-1"}} placeholder="DescriÃ§Ã£o" value={form.descricao} onChange={e=>setForm(p=>({...p,descricao:e.target.value}))}/>
           <input type="number" style={S.inp} placeholder="Valor" value={form.valor||""} onChange={e=>setForm(p=>({...p,valor:parseFloat(e.target.value)||0}))}/>
           <input type="date" style={S.inp} value={form.data} onChange={e=>{ const d=new Date(e.target.value+"T12:00:00"); setForm(p=>({...p,data:e.target.value,mes:d.getMonth(),ano:d.getFullYear()})); }}/>
           {form.tipo==="despesa"&&<select style={{...S.sel,gridColumn:"1/-1"}} value={form.categoria} onChange={e=>setForm(p=>({...p,categoria:e.target.value}))}>{CATS.map(c=><option key={c}>{c}</option>)}</select>}
@@ -715,11 +715,11 @@ function PersonalFinance() {
         <div key={t.id||i} style={{background:`${G[700]}55`,borderRadius:12,padding:"12px 16px",marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
             <div style={{fontSize:14,fontWeight:600,color:G[100]}}>{t.descricao}</div>
-            <div style={{fontSize:11,color:G[600]}}>{new Date(t.data+"T12:00:00").toLocaleDateString("pt-BR")}{t.categoria&&` · ${t.categoria}`}</div>
+            <div style={{fontSize:11,color:G[600]}}>{new Date(t.data+"T12:00:00").toLocaleDateString("pt-BR")}{t.categoria&&` Â· ${t.categoria}`}</div>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             <span style={{fontSize:15,fontWeight:700,color:t.tipo==="receita"?"#5bc4a0":"#e07a5f"}}>{t.tipo==="receita"?"+":"-"}{fmt(t.valor)}</span>
-            <button style={S.del} onClick={()=>save(transactions.filter((_,j)=>j!==i))}>✕</button>
+            <button style={S.del} onClick={()=>save(transactions.filter((_,j)=>j!==i))}>â</button>
           </div>
         </div>
       ))}
@@ -727,7 +727,7 @@ function PersonalFinance() {
   );
 }
 
-// ─── COMPANY CARD ─────────────────────────────────────────────────────────────
+// âââ COMPANY CARD âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function CompanyCard({name,hov,logoUrl,onSelect,onDelete,onLogoUpload,onBriefing}) {
   const ref=useRef();
   const kpis=LS.get("mx_kpi_"+name,{fat:0,custo:0,meta:0,clientes:0,inadimplencia:0,caixa:0,pipeline:0});
@@ -750,12 +750,12 @@ function CompanyCard({name,hov,logoUrl,onSelect,onDelete,onLogoUpload,onBriefing
       {kpis.fat>0&&<div style={{fontSize:13,color:G[400],fontWeight:600}}>{fmt(kpis.fat)}</div>}
       <button style={{position:"absolute",bottom:12,right:12,background:`${G[600]}44`,border:`1px solid ${G[500]}`,borderRadius:7,padding:"4px 10px",color:G[300],fontSize:11,cursor:"pointer",letterSpacing:"1px"}} onClick={e=>{e.stopPropagation();onBriefing();}}>BRIEF</button>
       <input ref={ref} type="file" accept="image/*" style={{display:"none"}} onClick={e=>e.stopPropagation()} onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>onLogoUpload(ev.target.result);r.readAsDataURL(f);e.target.value="";}}/>
-      <button style={{position:"absolute",top:10,right:10,...S.del}} onClick={e=>{e.stopPropagation();onDelete();}}>✕</button>
+      <button style={{position:"absolute",top:10,right:10,...S.del}} onClick={e=>{e.stopPropagation();onDelete();}}>â</button>
     </div>
   );
 }
 
-// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+// âââ MAIN APP âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 export default function Maxxxi() {
   const [companies,setCompanies]=useState(()=>LS.get("mx_companies",INIT_COMPANIES));
   const [logoMap,setLogoMap]=useState(()=>LS.get("mx_logos",{}));
@@ -784,11 +784,11 @@ export default function Maxxxi() {
   return (
     <div style={{minHeight:"100vh",background:"#000",color:G[200],fontFamily:"'Inter',system-ui,sans-serif",display:"flex",flexDirection:"column"}}>
 
-      {/* ── HEADER ── */}
+      {/* ââ HEADER ââ */}
       <div style={{padding:"16px 40px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:`1px solid ${G[700]}`,gap:14,flexWrap:"wrap"}}>
         <div style={{cursor:"pointer"}} onClick={goHome}>
           <div style={{fontSize:34,fontWeight:900,letterSpacing:"-3px",lineHeight:1,color:G[300]}}>MAX<span style={{color:G[400]}}>XXI</span></div>
-          <div style={{fontSize:10,color:G[600],letterSpacing:"4px",textTransform:"uppercase",marginTop:3}}>Plataforma de Gestão Executiva</div>
+          <div style={{fontSize:10,color:G[600],letterSpacing:"4px",textTransform:"uppercase",marginTop:3}}>Plataforma de GestÃ£o Executiva</div>
         </div>
         <a href="https://drive.google.com/drive/folders/1OnjLvt2-wl_f-KParYc6e7CJ0EPbw4O2" target="_blank" rel="noopener noreferrer"
           style={{display:"flex",alignItems:"center",gap:8,background:G[800],border:`1px solid ${G[600]}`,borderRadius:10,padding:"9px 16px",color:G[300],fontSize:13,textDecoration:"none",letterSpacing:"1px"}}>
@@ -810,29 +810,29 @@ export default function Maxxxi() {
       </div>
       <div style={{height:2,background:`linear-gradient(90deg,transparent,${G[400]} 30%,${G[300]} 50%,${G[400]} 70%,transparent)`}}/>
 
-      {/* ── CONTEÚDO ── */}
+      {/* ââ CONTEÃDO ââ */}
       <div style={{flex:1,padding:"28px 40px",maxWidth:1600,margin:"0 auto",width:"100%",boxSizing:"border-box"}}>
 
         {/* Breadcrumb nas sub-telas */}
         {screen!=="companies"&&(
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:20,fontSize:13}}>
             <span style={{cursor:"pointer",color:G[600]}} onClick={goHome}>Ecossistema</span>
-            {selCompany&&<><span style={{color:G[700]}}>›</span><span style={{cursor:screen==="workspace"?"pointer":"default",color:screen==="workspace"?G[600]:G[400]}} onClick={goAreas}>{selCompany}</span></>}
-            {screen==="workspace"&&<><span style={{color:G[700]}}>›</span><span style={{color:G[400]}}>{selArea}</span></>}
-            {screen==="personal"&&<><span style={{color:G[700]}}>›</span><span style={{color:G[400]}}>Gestão Pessoal</span></>}
+            {selCompany&&<><span style={{color:G[700]}}>âº</span><span style={{cursor:screen==="workspace"?"pointer":"default",color:screen==="workspace"?G[600]:G[400]}} onClick={goAreas}>{selCompany}</span></>}
+            {screen==="workspace"&&<><span style={{color:G[700]}}>âº</span><span style={{color:G[400]}}>{selArea}</span></>}
+            {screen==="personal"&&<><span style={{color:G[700]}}>âº</span><span style={{color:G[400]}}>GestÃ£o Pessoal</span></>}
           </div>
         )}
 
-        {/* ── HOME: EMPRESAS PRIMEIRO ── */}
+        {/* ââ HOME: EMPRESAS PRIMEIRO ââ */}
         {screen==="companies"&&(
           <>
-            {/* Visão CEO */}
+            {/* VisÃ£o CEO */}
             <div style={{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap"}}>
-              <button onClick={()=>setShowConsolidated(v=>!v)} style={{...S.ghost,fontSize:12}}>{showConsolidated?"▼ Fechar Visão CEO":"▶ Visão CEO Consolidada"}</button>
+              <button onClick={()=>setShowConsolidated(v=>!v)} style={{...S.ghost,fontSize:12}}>{showConsolidated?"â¼ Fechar VisÃ£o CEO":"â¶ VisÃ£o CEO Consolidada"}</button>
             </div>
             {showConsolidated&&<ConsolidatedPanel companies={companies}/>}
 
-            {/* Empresas — destaque máximo */}
+            {/* Empresas â destaque mÃ¡ximo */}
             <div style={{fontSize:11,letterSpacing:"3px",color:G[500],textTransform:"uppercase",marginBottom:10}}>Ecossistema</div>
             <div style={{fontSize:24,fontWeight:700,color:G[100],marginBottom:20,letterSpacing:"-0.5px"}}>Qual empresa vamos trabalhar agora?</div>
             <div style={S.grid}>
@@ -846,9 +846,9 @@ export default function Maxxxi() {
                 </div>
               ))}
               <div style={{...S.card(hov==="pessoal"),borderStyle:"dashed"}} onMouseEnter={()=>setHov("pessoal")} onMouseLeave={()=>setHov(null)} onClick={()=>setScreen("personal")}>
-                <div style={{fontSize:24,color:G[400]}}>👤</div>
-                <div style={{fontSize:16,fontWeight:700,color:G[100]}}>Gestão Pessoal</div>
-                <div style={{fontSize:13,color:G[600]}}>Finanças · Receitas · Despesas</div>
+                <div style={{fontSize:24,color:G[400]}}>ð¤</div>
+                <div style={{fontSize:16,fontWeight:700,color:G[100]}}>GestÃ£o Pessoal</div>
+                <div style={{fontSize:13,color:G[600]}}>FinanÃ§as Â· Receitas Â· Despesas</div>
               </div>
               {showAddC?(
                 <div style={{gridColumn:"1/-1",display:"flex",gap:10}}>
@@ -863,7 +863,7 @@ export default function Maxxxi() {
               )}
             </div>
 
-            {/* Agenda, Check-in e Dica — no FINAL */}
+            {/* Agenda, Check-in e Dica â no FINAL */}
             <div style={{marginTop:32}}>
               <AgendaWidget/>
               <DailyCheckin/>
@@ -872,28 +872,28 @@ export default function Maxxxi() {
           </>
         )}
 
-        {/* Áreas */}
+        {/* Ãreas */}
         {screen==="areas"&&(
           <>
-            <div style={{fontSize:11,letterSpacing:"3px",color:G[500],textTransform:"uppercase",marginBottom:10}}>Áreas — {selCompany}</div>
+            <div style={{fontSize:11,letterSpacing:"3px",color:G[500],textTransform:"uppercase",marginBottom:10}}>Ãreas â {selCompany}</div>
             <div style={{fontSize:24,fontWeight:700,color:G[100],marginBottom:20}}>Onde vamos focar agora?</div>
             <div style={S.grid}>
               {areas.map(a=>(
                 <div key={a} style={S.card(hov===a)} onMouseEnter={()=>setHov(a)} onMouseLeave={()=>setHov(null)} onClick={()=>{setSelArea(a);setScreen("workspace");}}>
                   <div style={{fontSize:22,color:G[400]}}>{getAreaIcon(a)}</div>
                   <div style={{fontSize:16,fontWeight:700,color:G[100]}}>{a}</div>
-                  <button style={{position:"absolute",top:10,right:10,...S.del}} onClick={e=>{e.stopPropagation();setAreas(areas.filter(x=>x!==a));}}>✕</button>
+                  <button style={{position:"absolute",top:10,right:10,...S.del}} onClick={e=>{e.stopPropagation();setAreas(areas.filter(x=>x!==a));}}>â</button>
                 </div>
               ))}
               {showAddA?(
                 <div style={{gridColumn:"1/-1",display:"flex",gap:10}}>
-                  <input autoFocus style={S.inp} placeholder="Nova área..." value={newA} onChange={e=>setNewA(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addArea()}/>
+                  <input autoFocus style={S.inp} placeholder="Nova Ã¡rea..." value={newA} onChange={e=>setNewA(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addArea()}/>
                   <button style={S.btn} onClick={addArea}>Adicionar</button>
                   <button style={S.ghost} onClick={()=>{setShowAddA(false);setNewA("");}}>Cancelar</button>
                 </div>
               ):(
                 <div style={S.addCard(hov==="addA")} onClick={()=>setShowAddA(true)} onMouseEnter={()=>setHov("addA")} onMouseLeave={()=>setHov(null)}>
-                  <div style={{width:24,height:24,borderRadius:"50%",border:"1px solid currentColor",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>+</div>Nova área
+                  <div style={{width:24,height:24,borderRadius:"50%",border:"1px solid currentColor",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>+</div>Nova Ã¡rea
                 </div>
               )}
             </div>
@@ -908,16 +908,16 @@ export default function Maxxxi() {
         {screen==="workspace"&&<Workspace company={selCompany} area={selArea}/>}
         {screen==="personal"&&(
           <>
-            <div style={{fontSize:11,letterSpacing:"3px",color:G[500],textTransform:"uppercase",marginBottom:10}}>Gestão Pessoal</div>
+            <div style={{fontSize:11,letterSpacing:"3px",color:G[500],textTransform:"uppercase",marginBottom:10}}>GestÃ£o Pessoal</div>
             <div style={{fontSize:24,fontWeight:700,color:G[100],marginBottom:20}}>Controle de Receitas & Despesas</div>
             <PersonalFinance/>
           </>
         )}
       </div>
 
-      {/* ── FOOTER ── */}
+      {/* ââ FOOTER ââ */}
       <div style={{padding:"12px 40px",borderTop:`1px solid ${G[800]}`,display:"flex",justifyContent:"space-between"}}>
-        <div style={{fontSize:10,color:G[700],letterSpacing:"3px"}}>MAXXXI ◆ MÁQUINA DE GESTÃO</div>
+        <div style={{fontSize:10,color:G[700],letterSpacing:"3px"}}>MAXXXI â MÃQUINA DE GESTÃO</div>
         <div style={{fontSize:10,color:G[700],letterSpacing:"3px"}}>v5.3</div>
       </div>
 
