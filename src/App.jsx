@@ -897,6 +897,11 @@ export default function Maxxxi() {
                 </div>
               )}
             </div>
+            <div style={{marginTop:32,display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
+              <AgendaWidget/>
+              <DailyCheckin/>
+            </div>
+            <AgentTip/>
           </>
         )}
 
