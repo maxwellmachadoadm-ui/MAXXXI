@@ -8,20 +8,13 @@ export default function Login() {
   const [isRegister, setIsRegister] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-
-  // Form fields
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [cpf, setCpf] = useState('')
 
-  // Redirect if already logged in
-  useEffect(() => {
-    if (!loading && user) {
-      navigate('/', { replace: true })
-    }
-  }, [user, loading, navigate])
+  useEffect(() => { if (!loading && user) navigate('/', { replace: true }) }, [user, loading, navigate])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -30,12 +23,8 @@ export default function Login() {
     try {
       if (isRegister) {
         if (!name.trim()) throw new Error('Nome e obrigatorio')
-        if (!email.trim()) throw new Error('E-mail e obrigatorio')
-        if (password.length < 6) throw new Error('Senha deve ter pelo menos 6 caracteres')
         await signUp(email, password, name, phone, cpf)
       } else {
-        if (!email.trim()) throw new Error('E-mail e obrigatorio')
-        if (!password.trim()) throw new Error('Senha e obrigatoria')
         await signIn(email, password)
       }
     } catch (err) {
@@ -45,106 +34,64 @@ export default function Login() {
     }
   }
 
-  function toggleMode() {
-    setIsRegister(!isRegister)
-    setError('')
-  }
-
-  if (loading) return <div className="loading">Carregando...</div>
+  if (loading) return null
   if (user) return null
 
   return (
-    <div className="login-page">
-      <div className="login-container">
-        <div className="login-brand">
-          <h1 className="login-logo">ORION</h1>
-          <p className="login-tagline">Plataforma de Gestao Executiva</p>
+    <div className="login-screen">
+      <div className="login-box">
+        <div className="login-logo">
+          <div className="logo-mark" style={{ width: 40, height: 40, borderRadius: 10 }}>
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
+              <circle cx="12" cy="12" r="2.5" fill="white"/>
+              <circle cx="5" cy="6" r="1.5" fill="rgba(255,255,255,.7)"/>
+              <circle cx="19" cy="6" r="1.5" fill="rgba(255,255,255,.7)"/>
+              <circle cx="19" cy="18" r="1.5" fill="rgba(255,255,255,.5)"/>
+              <circle cx="5" cy="18" r="1" fill="rgba(255,255,255,.4)"/>
+              <line x1="12" y1="12" x2="5" y2="6" stroke="rgba(255,255,255,.35)" strokeWidth="1"/>
+              <line x1="12" y1="12" x2="19" y2="6" stroke="rgba(255,255,255,.35)" strokeWidth="1"/>
+              <line x1="12" y1="12" x2="19" y2="18" stroke="rgba(255,255,255,.25)" strokeWidth="1"/>
+              <line x1="5" y1="6" x2="19" y2="6" stroke="rgba(255,255,255,.2)" strokeWidth=".8"/>
+            </svg>
+          </div>
+          <div>
+            <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 900, fontSize: 20, color: '#fff', letterSpacing: 2 }}>ORION</div>
+            <div style={{ fontSize: 9, color: 'var(--tx3)', letterSpacing: 3, textTransform: 'uppercase' }}>Gestao Executiva</div>
+          </div>
         </div>
 
-        <form className="login-form" onSubmit={handleSubmit}>
-          <h2>{isRegister ? 'Criar Conta' : 'Entrar'}</h2>
-
-          {error && (
-            <div className="login-error">
-              <span>⚠️</span> {error}
-            </div>
-          )}
-
-          {isRegister && (
-            <>
-              <div className="form-group">
-                <label>Nome completo</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  placeholder="Seu nome completo"
-                  autoComplete="name"
-                />
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Telefone</label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={e => setPhone(e.target.value)}
-                    placeholder="(00) 00000-0000"
-                    autoComplete="tel"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>CPF</label>
-                  <input
-                    type="text"
-                    value={cpf}
-                    onChange={e => setCpf(e.target.value)}
-                    placeholder="000.000.000-00"
-                  />
-                </div>
-              </div>
-            </>
-          )}
-
-          <div className="form-group">
-            <label>E-mail</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              autoComplete="email"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Senha</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Sua senha"
-              autoComplete={isRegister ? 'new-password' : 'current-password'}
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="btn btn-primary btn-login"
-            disabled={submitting}
-          >
-            {submitting ? 'Aguarde...' : isRegister ? 'Criar Conta' : 'Entrar'}
-          </button>
-
-          <div className="login-toggle">
-            <span>
-              {isRegister ? 'Ja tem uma conta?' : 'Nao tem conta?'}
-            </span>
-            <button type="button" className="btn-link" onClick={toggleMode}>
-              {isRegister ? 'Fazer login' : 'Criar conta'}
+        {!isRegister ? (
+          <form onSubmit={handleSubmit}>
+            <div className="login-title">Bem-vindo de volta</div>
+            <div className="login-sub">Acesse sua plataforma executiva</div>
+            {error && <div className="alert-r" style={{ marginBottom: 12 }}>{error}</div>}
+            <input className="inp" type="email" placeholder="E-mail" value={email} onChange={e => setEmail(e.target.value)} />
+            <input className="inp" type="password" placeholder="Senha" value={password} onChange={e => setPassword(e.target.value)} />
+            <button className="btn-primary" type="submit" disabled={submitting}>
+              {submitting ? 'Entrando...' : 'Entrar na plataforma'}
             </button>
-          </div>
-        </form>
+            <div className="login-switch">
+              Nao tem conta? <span onClick={() => { setIsRegister(true); setError('') }}>Criar acesso</span>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <div className="login-title">Criar conta</div>
+            <div className="login-sub">Preencha seus dados</div>
+            {error && <div className="alert-r" style={{ marginBottom: 12 }}>{error}</div>}
+            <input className="inp" type="text" placeholder="Nome completo" value={name} onChange={e => setName(e.target.value)} />
+            <input className="inp" type="email" placeholder="E-mail" value={email} onChange={e => setEmail(e.target.value)} />
+            <input className="inp" type="tel" placeholder="Celular" value={phone} onChange={e => setPhone(e.target.value)} />
+            <input className="inp" type="text" placeholder="CPF (opcional)" value={cpf} onChange={e => setCpf(e.target.value)} />
+            <input className="inp" type="password" placeholder="Senha" value={password} onChange={e => setPassword(e.target.value)} />
+            <button className="btn-primary" type="submit" disabled={submitting}>
+              {submitting ? 'Criando...' : 'Criar conta'}
+            </button>
+            <div className="login-switch">
+              Ja tem conta? <span onClick={() => { setIsRegister(false); setError('') }}>Entrar</span>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   )

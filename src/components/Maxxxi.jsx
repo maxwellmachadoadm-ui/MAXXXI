@@ -86,7 +86,7 @@ Responda em portugues, direto e executivo. Max 3 paragrafos.`
         <div className="mx-chat">
           <div className="mx-hdr">
             <div style={{ display: 'flex', alignItems: 'center' }}>
-              <div><div className="mx-hname">🤖 MAXXXI</div><div className="mx-hsub">INTELIGENCIA EXECUTIVA</div></div>
+              <div><div className="mx-hname">🤖 MAXXXI</div><div className="mx-hsub">INTELIGENCIA EXECUTIVA ORION</div></div>
               <span className={`mx-api-status ${serverApi ? 'ok' : 'off'}`}>{serverApi ? 'SERVER' : serverApi === false ? 'LOCAL' : '...'}</span>
             </div>
             <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: 20, cursor: 'pointer' }}>×</button>

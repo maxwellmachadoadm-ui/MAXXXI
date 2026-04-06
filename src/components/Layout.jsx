@@ -76,6 +76,7 @@ export default function Layout({ children }) {
           <button className="notif" onClick={() => { setAlertsOpen(!alertsOpen); setUserMenuOpen(false) }}>
             🔔{alerts.length > 0 && <span className="notif-dot"></span>}
           </button>
+          <button className="tb-btn" id="api-indicator" title="API Claude" style={{ color: 'var(--green)', borderColor: 'rgba(16,185,129,0.3)' }}>⚡ API</button>
           <button className="user-btn" onClick={() => { setUserMenuOpen(!userMenuOpen); setAlertsOpen(false) }}>
             <div className="avatar">{initials}</div>
             <span>{profile?.name || 'Usuario'}</span>
@@ -106,6 +107,7 @@ export default function Layout({ children }) {
                 <span className={`sb-score ${e.score >= 75 ? 'good' : e.score >= 55 ? 'warn' : 'bad'}`}>{e.score}</span>
               </div>
             ))}
+            <div className="sb-add" onClick={() => alert('Funcionalidade em desenvolvimento')}>+ Nova empresa</div>
           </div>
           <div className="sb-div"></div>
           <div className="sb-section">
