@@ -1,0 +1,214 @@
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+import { useData } from '../contexts/DataContext'
+import Maxxxi from './Maxxxi'
+
+export default function Layout({ children }) {
+  const { profile, signOut, isAdmin, inviteUser, getInvites, getUsers } = useAuth()
+  const { empresas, tarefas, generateAlerts } = useData()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [alertsOpen, setAlertsOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [inviteOpen, setInviteOpen] = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState('viewer')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const pending = tarefas.filter(t => t.status !== 'done').length
+  const alerts = generateAlerts()
+  const isActive = (path) => location.pathname === path ? 'sb-item active' : 'sb-item'
+
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setSearchOpen(true) }
+      if (e.key === 'Escape') { setSearchOpen(false); setAlertsOpen(false); setUserMenuOpen(false) }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
+
+  const searchResults = searchQuery.length >= 2 ? [
+    ...empresas.filter(e => e.nome.toLowerCase().includes(searchQuery.toLowerCase()) || e.sigla.toLowerCase().includes(searchQuery.toLowerCase()))
+      .map(e => ({ title: e.nome, sub: e.descricao, icon: e.sigla, color: e.cor, action: () => { navigate(`/empresa/${e.id}`); setSearchOpen(false) } })),
+    ...tarefas.filter(t => t.titulo.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5)
+      .map(t => {
+        const e = empresas.find(x => x.id === t.empresa_id)
+        return { title: t.titulo, sub: `${e?.nome || ''} — ${t.prioridade}`, icon: '☑', color: e?.cor || '#64748b', action: () => { navigate('/tarefas'); setSearchOpen(false) } }
+      })
+  ] : []
+
+  async function handleInvite(e) {
+    e.preventDefault()
+    if (!inviteEmail) return
+    await inviteUser(inviteEmail, inviteRole)
+    alert(`Convite enviado para ${inviteEmail}`)
+    setInviteEmail('')
+    setInviteOpen(false)
+  }
+
+  const initials = profile?.name?.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?'
+
+  return (
+    <div className="app">
+      {/* TOPBAR */}
+      <header className="topbar">
+        <div className="flex aic gap12">
+          <button className="tb-btn burger-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
+          <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+            <div className="logo-mark">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                <circle cx="12" cy="12" r="2.5" fill="white"/><circle cx="5" cy="6" r="1.5" fill="rgba(255,255,255,.7)"/>
+                <circle cx="19" cy="6" r="1.5" fill="rgba(255,255,255,.7)"/><circle cx="19" cy="18" r="1.5" fill="rgba(255,255,255,.5)"/>
+                <line x1="12" y1="12" x2="5" y2="6" stroke="rgba(255,255,255,.35)" strokeWidth="1"/>
+                <line x1="12" y1="12" x2="19" y2="6" stroke="rgba(255,255,255,.35)" strokeWidth="1"/>
+                <line x1="12" y1="12" x2="19" y2="18" stroke="rgba(255,255,255,.25)" strokeWidth="1"/>
+              </svg>
+            </div>
+            <div className="logo-text"><div className="logo-name">ORION</div><div className="logo-sub">Gestao Executiva</div></div>
+          </div>
+          <button className="tb-btn" onClick={() => setSearchOpen(true)}>⌘ Busca rapida</button>
+        </div>
+        <div className="flex aic gap8">
+          <button className="notif" onClick={() => { setAlertsOpen(!alertsOpen); setUserMenuOpen(false) }}>
+            🔔{alerts.length > 0 && <span className="notif-dot"></span>}
+          </button>
+          <button className="user-btn" onClick={() => { setUserMenuOpen(!userMenuOpen); setAlertsOpen(false) }}>
+            <div className="avatar">{initials}</div>
+            <span>{profile?.name || 'Usuario'}</span>
+          </button>
+        </div>
+      </header>
+
+      <div className="main">
+        {/* SIDEBAR */}
+        <nav className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+          <div className="sb-section">
+            <div className="sb-lbl">Navegacao</div>
+            <div className={isActive('/')} onClick={() => { navigate('/'); setSidebarOpen(false) }}>🏠 Home</div>
+            <div className={isActive('/dashboard')} onClick={() => { navigate('/dashboard'); setSidebarOpen(false) }}>📊 Dashboard</div>
+            <div className={isActive('/tarefas')} onClick={() => { navigate('/tarefas'); setSidebarOpen(false) }}>
+              ☑ Tarefas <span className="sb-badge">{pending}</span>
+            </div>
+            <div className={isActive('/ceo')} onClick={() => { navigate('/ceo'); setSidebarOpen(false) }}>📈 Visao CEO</div>
+          </div>
+          <div className="sb-div"></div>
+          <div className="sb-section">
+            <div className="sb-lbl">Portfolio</div>
+            {empresas.filter(e => e.id !== 'gp').map(e => (
+              <div key={e.id} className={location.pathname === `/empresa/${e.id}` ? 'sb-item active' : 'sb-item'}
+                onClick={() => { navigate(`/empresa/${e.id}`); setSidebarOpen(false) }}>
+                <div className="sb-dot" style={{ background: e.cor }}></div>
+                <span style={{ flex: 1, fontSize: 13 }}>{e.nome}</span>
+                <span className={`sb-score ${e.score >= 75 ? 'good' : e.score >= 55 ? 'warn' : 'bad'}`}>{e.score}</span>
+              </div>
+            ))}
+          </div>
+          <div className="sb-div"></div>
+          <div className="sb-section">
+            {empresas.filter(e => e.id === 'gp').map(e => (
+              <div key={e.id} className={location.pathname === `/empresa/${e.id}` ? 'sb-item active' : 'sb-item'}
+                onClick={() => { navigate(`/empresa/${e.id}`); setSidebarOpen(false) }}>💰 {e.nome}</div>
+            ))}
+          </div>
+          {isAdmin && (
+            <>
+              <div className="sb-div"></div>
+              <div className="sb-section">
+                <div className="sb-item" onClick={() => setInviteOpen(true)}>👥 Convidar usuario</div>
+              </div>
+            </>
+          )}
+          <div className="sb-maxxxi">
+            <div className="maxxxi-pill">
+              <span style={{ fontSize: 20 }}>🤖</span>
+              <div><div className="maxxxi-name">MAXXXI</div><div className="maxxxi-status"><div className="pulse"></div> Online</div></div>
+            </div>
+          </div>
+        </nav>
+
+        {/* CONTENT */}
+        <main className="content">{children}</main>
+      </div>
+
+      {/* SEARCH MODAL */}
+      {searchOpen && (
+        <div className="search-overlay show" onClick={(e) => e.target === e.currentTarget && setSearchOpen(false)}>
+          <div className="search-box">
+            <input className="search-input" placeholder="Buscar empresas, tarefas, contatos..." autoFocus
+              value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+            <div className="search-results">
+              {searchResults.length === 0 && <div className="search-empty">
+                {searchQuery.length < 2 ? 'Digite para buscar no ecossistema ORION' : `Nenhum resultado para "${searchQuery}"`}
+              </div>}
+              {searchResults.map((r, i) => (
+                <div key={i} className="search-item" onClick={r.action}>
+                  <div className="search-item-icon" style={{ background: r.color + '18', color: r.color }}>{r.icon}</div>
+                  <div><div className="search-item-title">{r.title}</div><div className="search-item-sub">{r.sub}</div></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ALERTS PANEL */}
+      {alertsOpen && (
+        <div className="alerts-panel show">
+          <div className="alerts-hdr"><span>Alertas ({alerts.length})</span><button onClick={() => setAlertsOpen(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 16 }}>×</button></div>
+          {alerts.length === 0 ? <div style={{ padding: 20, textAlign: 'center', color: '#64748b', fontSize: 13 }}>Nenhum alerta ativo</div> :
+            alerts.map((a, i) => (
+              <div key={i} className="alert-item" onClick={() => { navigate(`/empresa/${a.emp}`); setAlertsOpen(false) }}>
+                <div className="alert-dot" style={{ background: a.level === 'critico' ? 'var(--red)' : 'var(--amber)' }}></div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 2 }}>{a.text}</div>
+                  <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.5px' }}>{a.level === 'critico' ? 'Critico' : 'Atencao'}</div>
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
+
+      {/* USER MENU */}
+      {userMenuOpen && (
+        <div className="user-menu show">
+          <div style={{ padding: '8px 12px', fontSize: 11, color: '#64748b', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            {profile?.email}<br/><span style={{ textTransform: 'uppercase', fontSize: 9, letterSpacing: 1 }}>{profile?.role}</span>
+          </div>
+          <div className="user-menu-item" onClick={() => { setUserMenuOpen(false) }}>📷 Alterar foto</div>
+          <div className="user-menu-item danger" onClick={() => { signOut(); setUserMenuOpen(false) }}>⏎ Sair da conta</div>
+        </div>
+      )}
+
+      {/* INVITE MODAL */}
+      {inviteOpen && (
+        <div className="modal-overlay show" onClick={e => e.target === e.currentTarget && setInviteOpen(false)}>
+          <div className="modal" style={{ width: 420 }}>
+            <div className="modal-title"><span>👥 Convidar Usuario</span><button className="modal-close" onClick={() => setInviteOpen(false)}>×</button></div>
+            <form onSubmit={handleInvite}>
+              <div className="form-group">
+                <label className="form-label">E-mail</label>
+                <input className="inp" type="email" required placeholder="email@exemplo.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Permissao</label>
+                <select className="inp" value={inviteRole} onChange={e => setInviteRole(e.target.value)}>
+                  <option value="viewer">Visualizador</option>
+                  <option value="editor">Editor</option>
+                  <option value="admin">Administrador</option>
+                </select>
+              </div>
+              <button type="submit" className="btn-primary">Enviar Convite</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MAXXXI CHAT */}
+      <Maxxxi />
+    </div>
+  )
+}

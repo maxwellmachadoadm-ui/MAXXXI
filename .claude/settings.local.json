@@ -6,7 +6,19 @@
       "Bash(gh --version)",
       "Bash(npx --version)",
       "Bash(echo \"exit:$?\")",
-      "Bash(where gh:*)"
+      "Bash(where gh:*)",
+      "Bash(winget install:*)",
+      "Bash(npm install:*)",
+      "Bash(export PATH=\"/c/Program Files/GitHub CLI:$PATH\")",
+      "Bash(gh auth:*)",
+      "Bash(gh repo:*)",
+      "Bash(npm list:*)",
+      "Bash(npx vercel:*)",
+      "Bash(npx --yes vercel --version)",
+      "Bash(curl:*)",
+      "Bash(cp index.html index-legacy.html)",
+      "Bash(mkdir -p src/lib src/contexts src/pages src/components supabase)",
+      "Bash(npx vite:*)"
     ]
   }
 }
