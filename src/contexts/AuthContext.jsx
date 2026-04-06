@@ -85,6 +85,16 @@ export function AuthProvider({ children }) {
     if (error) throw error
   }
 
+  async function resetPassword(email) {
+    if (isDemoMode) {
+      throw new Error('Recuperacao de senha nao disponivel em modo demo')
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/'
+    })
+    if (error) throw error
+  }
+
   async function signOut() {
     if (isDemoMode) {
       localStorage.removeItem('orion_demo_session')
@@ -142,7 +152,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, profile, loading, isAdmin, canEdit,
-      signIn, signUp, signOut, updateProfile,
+      signIn, signUp, signOut, resetPassword, updateProfile,
       inviteUser, getInvites, getUsers
     }}>
       {children}
