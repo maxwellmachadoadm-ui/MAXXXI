@@ -95,6 +95,7 @@ export default function Layout({ children }) {
             </div>
             <div className={isActive('/crm')} onClick={() => { navigate('/crm'); setSidebarOpen(false) }}>🎯 CRM</div>
             <div className={isActive('/financeiro')} onClick={() => { navigate('/financeiro'); setSidebarOpen(false) }}>💳 Financeiro</div>
+            <div className={isActive('/arquivo')} onClick={() => { navigate('/arquivo'); setSidebarOpen(false) }}>📁 Arquivo Digital</div>
             <div className={isActive('/ceo')} onClick={() => { navigate('/ceo'); setSidebarOpen(false) }}>📈 Visão CEO</div>
           </div>
           <div className="sb-div"></div>
@@ -124,6 +125,7 @@ export default function Layout({ children }) {
               <div className="sb-section">
                 <div className="sb-lbl">Administração</div>
                 <div className={isActive('/admin')} onClick={() => { navigate('/admin'); setSidebarOpen(false) }}>⚙ Painel Admin</div>
+                <div className={isActive('/classificacoes')} onClick={() => { navigate('/classificacoes'); setSidebarOpen(false) }}>🏷 Classificações</div>
                 <div className="sb-item" onClick={() => setInviteOpen(true)}>👥 Convidar usuário</div>
               </div>
             </>

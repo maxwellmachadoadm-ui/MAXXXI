@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useData } from '../contexts/DataContext'
+import { useNavigate } from 'react-router-dom'
 
 // ── Log do MAXXXI ──
 function logMaxxxiAction(userId, userName, message, mode, tokens) {
@@ -11,42 +12,42 @@ function logMaxxxiAction(userId, userName, message, mode, tokens) {
   } catch (_) {}
 }
 
-// ── RAG simples: lê arquivos do localStorage ──
-function getDocumentContext() {
-  const keys = Object.keys(localStorage).filter(k => k.startsWith('orion_files_'))
-  const docs = []
-  keys.forEach(key => {
-    try {
-      const files = JSON.parse(localStorage.getItem(key) || '[]')
-      const empId = key.replace('orion_files_', '')
-      files.slice(0, 5).forEach(f => {
-        if (f.name && (f.name.endsWith('.txt') || f.name.endsWith('.csv'))) {
-          docs.push(`[Arquivo: ${f.name} — empresa ${empId}]`)
-        } else {
-          docs.push(`[Arquivo: ${f.name} — ${(f.size / 1024).toFixed(1)}KB — empresa ${empId}]`)
-        }
-      })
-    } catch (_) {}
-  })
-  return docs.length > 0 ? `\nArquivos carregados: ${docs.join('; ')}` : ''
+// ── RAG de arquivos do DataContext/localStorage ──
+function getArquivosContext(arquivos) {
+  if (!arquivos?.length) return ''
+  const summary = arquivos.slice(0, 20).map(a =>
+    `- ${a.nome} (${(a.empresa_id || '').toUpperCase()}, ${a.mes_competencia || 'sem data'}, ${a.categoria || 'não classificado'})`
+  ).join('\n')
+  return `\nARQUIVOS CARREGADOS NO SISTEMA:\n${summary}\n`
 }
 
 // ── Classificação automática de despesas ──
+function autoClassify(text) {
+  const t = text.toLowerCase()
+  if (t.includes('salário') || t.includes('folha') || t.includes('holerite')) return { categoria: 'PESSOAL', subcategoria: 'Salários' }
+  if (t.includes('pró-labore') || t.includes('pro labore')) return { categoria: 'PESSOAL', subcategoria: 'Pró-labore' }
+  if (t.includes('aluguel') || t.includes('locação')) return { categoria: 'ESCRITÓRIO', subcategoria: 'Aluguel' }
+  if (t.includes('internet') || t.includes('telefone') || t.includes('tim ') || t.includes('vivo') || t.includes('claro')) return { categoria: 'ESCRITÓRIO', subcategoria: 'Internet / Telefone' }
+  if (t.includes('material') && t.includes('limpeza')) return { categoria: 'ESCRITÓRIO', subcategoria: 'Material de Limpeza' }
+  if (t.includes('material') && t.includes('consumo')) return { categoria: 'ESCRITÓRIO', subcategoria: 'Material de Consumo' }
+  if (t.includes('instagram') || t.includes('facebook') || t.includes('tráfego') || t.includes('ads')) return { categoria: 'MARKETING', subcategoria: 'Redes Sociais' }
+  if (t.includes('imposto') || t.includes('simples') || t.includes('das')) return { categoria: 'IMPOSTOS', subcategoria: 'Simples Nacional' }
+  if (t.includes('tarifa') || t.includes('ted') || t.includes('doc')) return { categoria: 'FINANCEIRO', subcategoria: 'Tarifas Bancárias' }
+  if (t.includes('honorário') || t.includes('mensalidade') || t.includes('contabilidade')) return { categoria: 'RECEITAS', subcategoria: 'Honorários / Mensalidades' }
+  return null
+}
+
+// mantido para compatibilidade
 function classifyExpense(text) {
-  const lower = text.toLowerCase()
-  if (lower.includes('salário') || lower.includes('folha') || lower.includes('remuneração')) return 'Folha de Pagamento'
-  if (lower.includes('aluguel') || lower.includes('locação')) return 'Aluguel'
-  if (lower.includes('luz') || lower.includes('energia') || lower.includes('água') || lower.includes('internet')) return 'Serviços'
-  if (lower.includes('marketing') || lower.includes('publicidade') || lower.includes('anúncio')) return 'Marketing'
-  if (lower.includes('imposto') || lower.includes('das') || lower.includes('inss') || lower.includes('fgts')) return 'Impostos'
-  if (lower.includes('software') || lower.includes('sistema') || lower.includes('assinatura') || lower.includes('cloud')) return 'Tecnologia'
-  if (lower.includes('fornecedor') || lower.includes('compra') || lower.includes('insumo')) return 'Fornecedores'
-  return 'Outros'
+  const result = autoClassify(text)
+  return result ? `${result.categoria} / ${result.subcategoria}` : 'Outros'
 }
 
 export default function Maxxxi() {
   const { profile, user } = useAuth()
-  const { empresas, tarefas, fmt, generateAlerts, getKpis } = useData()
+  const { empresas, tarefas, fmt, generateAlerts, getKpis, arquivos, getResumoFinanceiro } = useData()
+  const navigate = useNavigate()
+  const [showEmpSelect, setShowEmpSelect] = useState(false)
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState([
@@ -72,12 +73,13 @@ export default function Maxxxi() {
     }).join('\n')
 
     const lancamentos = (() => {
-      try { return JSON.parse(localStorage.getItem('orion_lancamentos') || '[]') } catch { return [] }
+      try { return JSON.parse(localStorage.getItem('orion_lancamentos_v4') || '[]') } catch { return [] }
     })()
-    const lancMes = lancamentos.filter(l => l.mes === new Date().getMonth() + 1)
-    const totalGastos = lancMes.reduce((s, l) => s + (l.valor || 0), 0)
-
-    const docContext = getDocumentContext()
+    const mesAtual = new Date().toISOString().slice(0, 7)
+    const lancMes = lancamentos.filter(l => l.mes === mesAtual && l.status === 'aprovado')
+    const totalReceitas = lancMes.filter(l => l.tipo === 'receita').reduce((s, l) => s + l.valor, 0)
+    const totalDespesas = lancMes.filter(l => l.tipo === 'despesa').reduce((s, l) => s + l.valor, 0)
+    const docContext = getArquivosContext(arquivos)
 
     return `Você é MAXXXI — Agente Executivo IA da plataforma ORION de ${profile?.name || 'Maxwell'}.
 
@@ -89,7 +91,8 @@ ${taskList}
 
 ALERTAS ATIVOS: ${generateAlerts().map(a => a.text).join('; ') || 'Nenhum'}
 
-FINANCEIRO (mês atual): ${lancMes.length} lançamentos, total ${fmt(totalGastos)}
+FINANCEIRO (mês atual ${mesAtual}): ${lancMes.length} lançamentos aprovados
+  Receitas: ${fmt(totalReceitas)} | Despesas: ${fmt(totalDespesas)} | Resultado: ${fmt(totalReceitas - totalDespesas)}
 ${docContext}
 
 CAPACIDADES:
@@ -102,14 +105,40 @@ CAPACIDADES:
 Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo 3-4 parágrafos salvo pedido específico.`
   }
 
+  function generateRelatorioEmpresa(empresaId) {
+    const emp = empresas.find(e => e.id === empresaId)
+    if (!emp) return 'Empresa não encontrada.'
+    try {
+      const resumo = getResumoFinanceiro(empresaId)
+      return `**Resumo Financeiro — ${emp.nome}**\n\n` +
+        `Receitas: ${fmt(resumo.receitas)}\n` +
+        `Despesas: ${fmt(resumo.despesas)}\n` +
+        `Resultado: ${fmt(resumo.resultado)}\n` +
+        `Margem: ${resumo.margem}%\n\n` +
+        `Score: ${emp.score}/100 · Faturamento: ${fmt(emp.faturamento)} · Crescimento: ${emp.crescimento}%`
+    } catch { return `Dados para ${emp.nome}: Score ${emp.score}, Faturamento ${fmt(emp.faturamento)}` }
+  }
+
   function getLocalResponse(txt) {
     const lower = txt.toLowerCase()
 
     // Classificação de despesa
-    if (lower.startsWith('classificar:') || lower.includes('classific') && lower.includes('despesa')) {
+    if (lower.startsWith('classificar:') || (lower.includes('classific') && lower.includes('despesa'))) {
       const desc = txt.replace(/classificar:/i, '').trim()
-      const categoria = classifyExpense(desc)
-      return `🏷 **Classificação automática:** "${desc}" → **${categoria}**\n\nBaseado nos padrões do sistema ORION. Confirme no módulo Financeiro.`
+      const result = autoClassify(desc)
+      if (result) {
+        return `🏷 **Classificação automática:** "${desc}"\n→ **${result.categoria}** / ${result.subcategoria}\n\nBaseado nos padrões ORION. Confirme no Arquivo Digital.`
+      }
+      return `🏷 **"${desc}"** — Classificação: **Outros / Despesas Diversas**\n\nNão encontrei padrão específico. Acesse o Arquivo Digital para classificar manualmente.`
+    }
+
+    // Relatório financeiro por empresa
+    if (lower.includes('relatório') || lower.includes('resumo') || lower.includes('quanto')) {
+      for (const emp of empresas) {
+        if (lower.includes(emp.nome.toLowerCase()) || lower.includes(emp.sigla.toLowerCase())) {
+          return generateRelatorioEmpresa(emp.id)
+        }
+      }
     }
 
     if (lower.includes('prioridade') || lower.includes('atenção') || lower.includes('critico'))
@@ -136,19 +165,22 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
     return 'Configure a API Claude no Vercel para respostas avançadas. Posso ajudar com: prioridades, briefings, tarefas, classificar despesas, análise por empresa.'
   }
 
-  async function send() {
-    if (!input.trim() || loading) return
-    const txt = input.trim()
+  async function send(overrideTxt) {
+    const txt = (overrideTxt || input).trim()
+    if (!txt || loading) return
     setInput('')
+    setShowEmpSelect(false)
     const newMsgs = [...messages, { role: 'user', content: txt }]
     setMessages(newMsgs)
+
+    // Sempre loga
+    logMaxxxiAction(user?.id, profile?.name, txt, serverApi ? 'server' : 'local', null)
 
     if (!serverApi) {
       setLoading(true)
       setTimeout(() => {
         const reply = getLocalResponse(txt)
         setMessages(prev => [...prev, { role: 'assistant', content: reply }])
-        logMaxxxiAction(user?.id, profile?.name, txt, 'local', null)
         setLoading(false)
       }, 600)
       return
@@ -181,6 +213,10 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
     'Plano de ação desta semana',
     'Classificar: aluguel escritório',
   ]
+
+  function handleResumoFinanceiro() {
+    setShowEmpSelect(true)
+  }
 
   function formatMsg(text) {
     return text
@@ -249,18 +285,32 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
 
               <div className="mx-quick">
                 {quickActions.map(q => (
-                  <button key={q} className="qbtn" onClick={() => { setInput(q); setTimeout(send, 50) }}>{q}</button>
+                  <button key={q} className="qbtn" onClick={() => { setInput(q); setTimeout(() => send(q), 50) }}>{q}</button>
                 ))}
+                <button className="qbtn" onClick={handleResumoFinanceiro}>📊 Resumo Financeiro</button>
               </div>
+
+              {showEmpSelect && (
+                <div style={{ padding:'6px 14px 0', display:'flex', flexWrap:'wrap', gap:6 }}>
+                  <div style={{ width:'100%', fontSize:11, color:'var(--tx3)', marginBottom:4 }}>Qual empresa?</div>
+                  {empresas.map(emp => (
+                    <button key={emp.id} className="qbtn"
+                      style={{ borderColor: emp.cor + '55', color: emp.cor }}
+                      onClick={() => { send(`Relatório financeiro da empresa ${emp.nome}`); setShowEmpSelect(false) }}>
+                      {emp.sigla}
+                    </button>
+                  ))}
+                </div>
+              )}
 
               <div className="mx-input">
                 <input
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && send()}
-                  placeholder="Consulte o MAXXXI... (classificar: despesa | briefing | tarefas)"
+                  placeholder="Consulte o MAXXXI... (classificar: despesa | relatório DW | briefing)"
                 />
-                <button className="mx-send" onClick={send}>→</button>
+                <button className="mx-send" onClick={() => send()}>→</button>
               </div>
             </>
           )}

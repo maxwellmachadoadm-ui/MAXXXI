@@ -5,12 +5,12 @@ const AuthContext = createContext(null)
 export const useAuth = () => useContext(AuthContext)
 
 export const ROLES = {
-  admin:       { label: 'Administrador', level: 5 },
-  gestor:      { label: 'Gestor',        level: 4 },
-  colaborador: { label: 'Colaborador',   level: 3 },
-  contador:    { label: 'Contador',      level: 3 },
-  assistente:  { label: 'Assistente',    level: 2 },
-  pendente:    { label: 'Pendente',      level: 0 },
+  admin:       { label: 'Administrador', level: 5, permissions: ['all'] },
+  gestor:      { label: 'Gestor',        level: 4, permissions: ['view', 'attach', 'classify', 'report'] },
+  colaborador: { label: 'Colaborador',   level: 3, permissions: ['view', 'attach'] },
+  contador:    { label: 'Contador',      level: 3, permissions: ['view', 'attach', 'classify', 'report'] },
+  assistente:  { label: 'Assistente',    level: 2, permissions: ['view'] },
+  pendente:    { label: 'Pendente',      level: 0, permissions: [] },
 }
 
 export function logAudit(action, details, userId, userName) {
@@ -168,10 +168,17 @@ export function AuthProvider({ children }) {
     setProfile(prev => ({ ...prev, ...updates }))
   }
 
-  async function inviteUser(email, role = 'pendente') {
+  async function inviteUser(email, role = 'pendente', companiesAccess = null, permissions = null) {
     if (isDemoMode) {
       const invites = JSON.parse(localStorage.getItem('orion_invites') || '[]')
-      invites.push({ id: Date.now(), email, role, accepted: false, token: Math.random().toString(36).slice(2), created_at: new Date().toISOString() })
+      invites.push({
+        id: Date.now(), email, role,
+        companies_access: companiesAccess,
+        custom_permissions: permissions,
+        accepted: false,
+        token: Math.random().toString(36).slice(2),
+        created_at: new Date().toISOString()
+      })
       localStorage.setItem('orion_invites', JSON.stringify(invites))
       logAudit('CONVITE_ENVIADO', `${email} — papel: ${role}`, user?.id, profile?.name)
       return
@@ -179,6 +186,20 @@ export function AuthProvider({ children }) {
     const { error } = await supabase.from('invites').insert({ email, role, invited_by: user.id })
     if (error) throw error
     await fetch('/api/invite', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, role }) }).catch(() => {})
+  }
+
+  async function updateUserPermissions(userId, permissions) {
+    if (isDemoMode) {
+      const users = JSON.parse(localStorage.getItem('orion_users') || '[]')
+      const idx = users.findIndex(u => u.id === userId)
+      if (idx >= 0) {
+        users[idx].custom_permissions = permissions || null
+        localStorage.setItem('orion_users', JSON.stringify(users))
+      }
+      logAudit('PERMISSOES_ATUALIZADAS', `Usuário ${userId} — perms: ${(permissions || []).join(',')}`, user?.id, profile?.name)
+      return
+    }
+    await supabase.from('profiles').update({ custom_permissions: permissions }).eq('id', userId)
   }
 
   async function getInvites() {
@@ -234,13 +255,25 @@ export function AuthProvider({ children }) {
   const isAdmin    = profile?.role === 'admin'
   const isGestor   = ['admin', 'gestor'].includes(profile?.role)
   const canEdit    = ['admin', 'gestor', 'contador'].includes(profile?.role)
+  const canDelete  = profile?.role === 'admin'
   const userCompanies = profile?.companies_access || null
+
+  function hasPermission(perm) {
+    if (!profile) return false
+    if (profile.role === 'admin') return true
+    if (profile.custom_permissions && Array.isArray(profile.custom_permissions)) {
+      return profile.custom_permissions.includes(perm)
+    }
+    const rolePerms = ROLES[profile.role]?.permissions || []
+    return rolePerms.includes('all') || rolePerms.includes(perm)
+  }
 
   return (
     <AuthContext.Provider value={{
-      user, profile, loading, isAdmin, isGestor, canEdit, userCompanies,
+      user, profile, loading, isAdmin, isGestor, canEdit, canDelete, userCompanies,
       signIn, signUp, signOut, resetPassword, updateProfile,
       inviteUser, getInvites, getUsers, updateUserRole, updateUserAccess,
+      updateUserPermissions, hasPermission,
       getAuditLog, logAction,
     }}>
       {children}

@@ -11,6 +11,8 @@ import CRM from './pages/CRM'
 import Financeiro from './pages/Financeiro'
 import Admin from './pages/Admin'
 import OriginalFotografia from './pages/OriginalFotografia'
+import Arquivo from './pages/Arquivo'
+import Classificacoes from './pages/Classificacoes'
 
 export default function App() {
   const { user, loading } = useAuth()
@@ -40,6 +42,8 @@ export default function App() {
         <Route path="/admin"              element={<Admin />} />
         <Route path="/of-projetos"        element={<OriginalFotografia />} />
         <Route path="/empresa/:id"        element={<Workspace />} />
+        <Route path="/arquivo"            element={<Arquivo />} />
+        <Route path="/classificacoes"     element={<Classificacoes />} />
         <Route path="*"                   element={<Navigate to="/" />} />
       </Routes>
     </Layout>

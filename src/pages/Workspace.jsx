@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useData } from '../contexts/DataContext'
+import { useAuth } from '../contexts/AuthContext'
 
 const BASE_TABS = ['KPIs', 'OKRs', 'Tarefas', 'Contratos', 'Riscos', 'Decisões', 'CRM', 'Arquivos']
 
@@ -109,8 +110,10 @@ export default function Workspace() {
   const navigate = useNavigate()
   const {
     empresas, getEmpresa, getKpis, getOkrs, getTarefas, getContratos,
-    getRiscos, getDecisoes, getCrmLeads, fmt, loaded, updateTask
+    getRiscos, getDecisoes, getCrmLeads, fmt, loaded, updateTask,
+    arquivos, addArquivo, deleteArquivo,
   } = useData()
+  const { canDelete, profile } = useAuth()
 
   const [tab, setTab] = useState('KPIs')
   const [files, setFiles] = useState([])
@@ -311,15 +314,72 @@ export default function Workspace() {
           </div>
         )
 
-      case 'Arquivos':
+      case 'Arquivos': {
+        // Arquivos do DataContext para esta empresa
+        const ctxFiles = (arquivos || []).filter(a => a.empresa_id === id)
+        // Drive folders
+        const driveFolders = [
+          { label: 'Extratos',       icon: '📂', path: 'Extratos' },
+          { label: 'Contratos',      icon: '📄', path: 'Contratos' },
+          { label: 'Notas Fiscais',  icon: '🧾', path: 'Notas Fiscais' },
+          { label: 'Relatórios',     icon: '📊', path: 'Relatorios' },
+        ]
         return (
           <div className="files-section">
-            <div className="file-upload">
-              <label className="btn btn-primary upload-btn">
+            {/* Google Drive */}
+            <div style={{ marginBottom:20 }}>
+              <div className="section-title-v4">Google Drive — Pastas da Empresa</div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:10 }}>
+                {driveFolders.map(f => (
+                  <a
+                    key={f.path}
+                    href={emp.drive_url || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="drive-folder"
+                    title={`Abrir pasta ${f.label} no Drive`}
+                  >
+                    <div className="drive-folder-icon">{f.icon}</div>
+                    <span style={{ fontSize:13, fontWeight:600, color:'var(--tx)' }}>{f.label}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Upload */}
+            <div className="file-upload" style={{ marginBottom:12 }}>
+              <label className="btn btn-primary upload-btn" title={!canDelete ? 'Somente o administrador pode excluir arquivos' : undefined}>
                 📎 Enviar Arquivo
                 <input type="file" multiple onChange={handleFileUpload} style={{ display: 'none' }} />
               </label>
             </div>
+
+            {/* Lista combinada (localStorage + DataContext) */}
+            {ctxFiles.length > 0 && (
+              <div style={{ marginBottom:8 }}>
+                <div style={{ fontSize:10, fontWeight:700, color:'var(--tx3)', letterSpacing:'.1em', textTransform:'uppercase', marginBottom:8 }}>Arquivo Digital</div>
+                {ctxFiles.map(arq => (
+                  <div key={arq.id} className="file-item-v4">
+                    <div className="file-icon-v4">📄</div>
+                    <div className="file-meta-v4">
+                      <div className="file-name-v4">{arq.nome}</div>
+                      <div className="file-size-v4">{arq.mes_competencia || ''} · {arq.categoria || 'não classificado'}</div>
+                    </div>
+                    <span className={`status-badge ${arq.status === 'aprovado' ? 'success' : 'warning'}`}>{arq.status}</span>
+                    {canDelete && (
+                      <button className="btn btn-icon" style={{ color:'var(--red)', fontSize:13 }}
+                        title="Excluir arquivo" onClick={() => deleteArquivo(arq.id)}>🗑</button>
+                    )}
+                    {!canDelete && (
+                      <button className="btn btn-icon" style={{ color:'var(--tx3)', fontSize:13, cursor:'default' }}
+                        title="Somente o administrador pode excluir arquivos" disabled>🔒</button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Arquivos locais (localStorage antigo) */}
             <div className="file-list">
               {files.map(f => (
                 <div key={f.id} className="card file-card">
@@ -332,14 +392,18 @@ export default function Workspace() {
                   </div>
                   <div className="file-actions">
                     <a href={f.data} download={f.name} className="btn btn-sm btn-doing">⬇ Baixar</a>
-                    <button className="btn btn-sm btn-del" onClick={() => removeFile(f.id)}>🗑</button>
+                    {canDelete
+                      ? <button className="btn btn-sm btn-del" onClick={() => removeFile(f.id)}>🗑</button>
+                      : <button className="btn btn-sm" style={{ color:'var(--tx3)', cursor:'default' }} title="Somente o administrador pode excluir arquivos" disabled>🔒</button>
+                    }
                   </div>
                 </div>
               ))}
-              {files.length === 0 && <p className="empty">Nenhum arquivo enviado para esta empresa.</p>}
+              {files.length === 0 && ctxFiles.length === 0 && <p className="empty">Nenhum arquivo enviado para esta empresa.</p>}
             </div>
           </div>
         )
+      }
 
       case 'Decisões':
         return (

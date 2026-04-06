@@ -19,7 +19,7 @@ function RolePill({ role }) {
 }
 
 export default function Admin() {
-  const { isAdmin, getUsers, updateUserRole, updateUserAccess, getAuditLog, profile } = useAuth()
+  const { isAdmin, getUsers, updateUserRole, updateUserAccess, updateUserPermissions, getAuditLog, profile } = useAuth()
   const { empresas } = useData()
   const [tab, setTab] = useState('usuarios')
   const [users, setUsers] = useState([])
@@ -29,7 +29,15 @@ export default function Admin() {
   const [editRole, setEditRole] = useState('')
   const [editCompanies, setEditCompanies] = useState([])
   const [editExpires, setEditExpires] = useState('')
+  const [editPermissions, setEditPermissions] = useState([])
   const [searchAudit, setSearchAudit] = useState('')
+
+  const ALL_PERMISSIONS = [
+    { key: 'view',     label: 'Somente visualizar' },
+    { key: 'attach',   label: 'Anexar arquivos' },
+    { key: 'classify', label: 'Classificar despesas' },
+    { key: 'report',   label: 'Emitir relatórios' },
+  ]
 
   useEffect(() => {
     loadUsers()
@@ -47,14 +55,20 @@ export default function Admin() {
     setEditRole(u.role || 'pendente')
     setEditCompanies(u.companies_access || [])
     setEditExpires(u.access_expires ? u.access_expires.slice(0, 10) : '')
+    setEditPermissions(u.custom_permissions || [])
   }
 
   async function saveUserEdit() {
     if (!editingUser) return
     await updateUserRole(editingUser.id, editRole)
     await updateUserAccess(editingUser.id, editCompanies.length === 0 ? null : editCompanies, editExpires || null)
+    await updateUserPermissions(editingUser.id, editPermissions.length === 0 ? null : editPermissions)
     await loadUsers()
     setEditingUser(null)
+  }
+
+  function togglePermission(key) {
+    setEditPermissions(prev => prev.includes(key) ? prev.filter(x => x !== key) : [...prev, key])
   }
 
   function toggleCompany(id) {
@@ -270,6 +284,31 @@ export default function Admin() {
             <div className="form-group">
               <label className="form-label">Acesso expira em (opcional)</label>
               <input type="date" className="inp" value={editExpires} onChange={e => setEditExpires(e.target.value)} />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Permissões Customizadas</label>
+              <div style={{ fontSize:11, color:'var(--tx3)', marginBottom:8 }}>
+                Deixe vazio para usar as permissões padrão do papel selecionado.
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', gap:8, padding:'10px 0' }}>
+                {ALL_PERMISSIONS.map(p => (
+                  <label key={p.key} style={{ display:'flex', alignItems:'center', gap:10, cursor:'pointer', fontSize:13, color:'var(--tx2)' }}>
+                    <input
+                      type="checkbox"
+                      checked={editPermissions.includes(p.key)}
+                      onChange={() => togglePermission(p.key)}
+                      style={{ width:15, height:15, cursor:'pointer' }}
+                    />
+                    {p.label}
+                  </label>
+                ))}
+              </div>
+              <div style={{ fontSize:11, color:'var(--tx3)', marginTop:4 }}>
+                {editPermissions.length === 0
+                  ? '✓ Usando permissões padrão do papel'
+                  : `Permissões customizadas: ${editPermissions.join(', ')}`}
+              </div>
             </div>
 
             <div style={{ display: 'flex', gap: 8 }}>

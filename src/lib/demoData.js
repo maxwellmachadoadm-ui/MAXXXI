@@ -1,11 +1,11 @@
 // Demo data — used when Supabase is not configured
 export const DEMO_DATA = {
   empresas: [
-    { id:'dw', nome:'Doctor Wealth', sigla:'DW', descricao:'Ecossistema Financeiro Medico', cor:'#3b82f6', rgb:'59,130,246', score:80, status:'Crescimento', status_cor:'#10b981', faturamento:48500, meta:60000, resultado:22000, crescimento:18.4 },
-    { id:'of', nome:'Original Fotografia', sigla:'OF', descricao:'Estudio & Eventos Visuais', cor:'#f59e0b', rgb:'245,158,11', score:52, status:'Turnaround', status_cor:'#f59e0b', faturamento:28000, meta:35000, resultado:4200, crescimento:-4.2 },
-    { id:'fs', nome:'Forme Seguro', sigla:'FS', descricao:'Fundos de Formatura Premium', cor:'#8b5cf6', rgb:'139,92,246', score:65, status:'Lancamento', status_cor:'#06b6d4', faturamento:15000, meta:50000, resultado:8500, crescimento:50 },
-    { id:'cdl', nome:'CDL ITAPERUNA', sigla:'CDL', descricao:'Câmara de Dirigentes Lojistas Itaperuna', cor:'#10b981', rgb:'16,185,129', score:88, status:'Estável', status_cor:'#10b981', faturamento:35000, meta:40000, resultado:12000, crescimento:5.3 },
-    { id:'gp', nome:'Gestao Pessoal', sigla:'GP', descricao:'Patrimonio & Financas Pessoais', cor:'#ec4899', rgb:'236,72,153', score:75, status:'Saudavel', status_cor:'#10b981', faturamento:0, meta:0, resultado:0, crescimento:0 },
+    { id:'dw', nome:'Doctor Wealth', sigla:'DW', descricao:'Ecossistema Financeiro Medico', cor:'#3b82f6', rgb:'59,130,246', score:80, status:'Crescimento', status_cor:'#10b981', faturamento:48500, meta:60000, resultado:22000, crescimento:18.4, drive_url:'https://drive.google.com/drive/folders/dw-orion' },
+    { id:'of', nome:'Original Fotografia', sigla:'OF', descricao:'Estudio & Eventos Visuais', cor:'#f59e0b', rgb:'245,158,11', score:52, status:'Turnaround', status_cor:'#f59e0b', faturamento:28000, meta:35000, resultado:4200, crescimento:-4.2, drive_url:'https://drive.google.com/drive/folders/of-orion' },
+    { id:'fs', nome:'Forme Seguro', sigla:'FS', descricao:'Fundos de Formatura Premium', cor:'#8b5cf6', rgb:'139,92,246', score:65, status:'Lancamento', status_cor:'#06b6d4', faturamento:15000, meta:50000, resultado:8500, crescimento:50, drive_url:'https://drive.google.com/drive/folders/fs-orion' },
+    { id:'cdl', nome:'CDL ITAPERUNA', sigla:'CDL', descricao:'Câmara de Dirigentes Lojistas Itaperuna', cor:'#10b981', rgb:'16,185,129', score:88, status:'Estável', status_cor:'#10b981', faturamento:35000, meta:40000, resultado:12000, crescimento:5.3, drive_url:'https://drive.google.com/drive/folders/cdl-orion' },
+    { id:'gp', nome:'Gestao Pessoal', sigla:'GP', descricao:'Patrimonio & Financas Pessoais', cor:'#ec4899', rgb:'236,72,153', score:75, status:'Saudavel', status_cor:'#10b981', faturamento:0, meta:0, resultado:0, crescimento:0, drive_url:'https://drive.google.com/drive/folders/gp-orion' },
   ],
   kpis: [
     { empresa_id:'dw', icone:'👥', label:'Clientes Ativos', valor:'47 / 60', ordem:1 },
