@@ -45,53 +45,61 @@ export function AuthProvider({ children }) {
     }
 
     // ── MODO SUPABASE ──
-    // Flag de sessão ativa na sessionStorage.
-    // sessionStorage é por-aba: nova aba/janela = sem flag = login obrigatório.
-    // Refresh na mesma aba: flag presente = sessão restaurada (comportamento esperado).
-    const sessionFlag = sessionStorage.getItem('orion_session_active')
-
     let cancelled = false
 
-    // Se não há flag de sessão ativa nesta aba → força logout e redireciona para login.
-    if (!sessionFlag) {
-      supabase.auth.signOut().catch(() => {})
-      if (!cancelled) setLoading(false)
-      return
-    }
-
-    const sessionPromise = supabase.auth.getSession()
-    const timeoutPromise = new Promise(resolve =>
-      setTimeout(() => resolve({ data: { session: null }, _timedOut: true }), 5000)
-    )
-
-    Promise.race([sessionPromise, timeoutPromise]).then(async (result) => {
+    // O listener DEVE ser registrado ANTES de qualquer verificação de flag,
+    // para capturar eventos SIGNED_IN disparados após o formulário de login.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (cancelled) return
-      const session = result?.data?.session
+
       if (session?.user) {
+        // Novo login ou recovery (reset de senha): sempre aceitar e gravar flag
+        if (event === 'SIGNED_IN' || event === 'RECOVERY' || event === 'TOKEN_REFRESHED') {
+          sessionStorage.setItem('orion_session_active', '1')
+        }
         setUser(session.user)
-        // fetchProfileSilent também tem timeout interno de 3s
         await fetchProfileSilent(session.user.id)
+        setLoading(false)
       } else {
-        // Token expirado ou inválido — remove flag
+        // Logout ou sessão expirada
         sessionStorage.removeItem('orion_session_active')
-      }
-      if (!cancelled) setLoading(false)
-    }).catch(() => {
-      if (!cancelled) setLoading(false)
-    })
-
-    // Listener para mudanças de sessão (login/logout/expiração)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (cancelled) return
-      if (session?.user) {
-        setUser(session.user)
-        await fetchProfileSilent(session.user.id)
-      } else {
-        // Sem sessão válida: limpa estado → App.jsx redireciona para Login
         setUser(null)
         setProfile(null)
+        setLoading(false)
       }
     })
+
+    // Flag de sessão ativa na sessionStorage (por-aba).
+    // Nova aba/janela = sem flag = força logout do Supabase → mostra login.
+    // Refresh na mesma aba = flag presente = tenta restaurar sessão.
+    const sessionFlag = sessionStorage.getItem('orion_session_active')
+
+    if (!sessionFlag) {
+      // Força logout do Supabase para invalidar qualquer token salvo em localStorage,
+      // garantindo que o usuário veja a tela de login.
+      // onAuthStateChange capturará o SIGNED_OUT e irá limpar o estado.
+      supabase.auth.signOut().catch(() => {})
+      if (!cancelled) setLoading(false)
+    } else {
+      // Tenta restaurar sessão existente nesta aba
+      const sessionPromise = supabase.auth.getSession()
+      const timeoutPromise = new Promise(resolve =>
+        setTimeout(() => resolve({ data: { session: null }, _timedOut: true }), 5000)
+      )
+      Promise.race([sessionPromise, timeoutPromise]).then(async (result) => {
+        if (cancelled) return
+        const session = result?.data?.session
+        if (session?.user) {
+          setUser(session.user)
+          await fetchProfileSilent(session.user.id)
+        } else {
+          sessionStorage.removeItem('orion_session_active')
+        }
+        if (!cancelled) setLoading(false)
+      }).catch(() => {
+        if (!cancelled) setLoading(false)
+      })
+    }
 
     return () => {
       cancelled = true
