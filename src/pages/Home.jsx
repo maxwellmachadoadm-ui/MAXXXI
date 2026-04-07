@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useData } from '../contexts/DataContext'
+import { useData, safeName } from '../contexts/DataContext'
 import { useApp } from '../contexts/AppContext'
 
 const BRIEFING_ITEMS = [
@@ -111,7 +111,7 @@ export default function Home() {
               <div className="emp-header">
                 <div className="flex aic gap12">
                   <div className="emp-sig">{e.sigla}</div>
-                  <div><div className="emp-name">{e.nome}</div><div className="emp-desc">{e.descricao}</div></div>
+                  <div><div className="emp-name">{safeName(e.nome)}</div><div className="emp-desc">{e.descricao}</div></div>
                 </div>
                 <span className="stag" style={{ color: e.status_cor, background: e.status_cor + '18' }}>{e.status}</span>
               </div>

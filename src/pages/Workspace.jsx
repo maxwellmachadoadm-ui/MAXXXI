@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useData } from '../contexts/DataContext'
+import { useData, safeName } from '../contexts/DataContext'
 import { useAuth } from '../contexts/AuthContext'
 import Biblioteca from './Biblioteca'
 import OriginalFotografia from './OriginalFotografia'
@@ -755,7 +755,7 @@ export default function Workspace() {
             style={{ borderBottom: e.id === id ? `3px solid ${e.cor}` : 'none' }}
             onClick={() => navigate(`/empresa/${e.id}`)}>
             <span className="emp-sigla-sm" style={{ background: e.cor }}>{e.sigla}</span>
-            {e.nome}
+            {safeName(e.nome)}
           </button>
         ))}
       </div>
@@ -764,7 +764,7 @@ export default function Workspace() {
         <div className="workspace-title">
           <span className="emp-sigla" style={{ background: emp.cor }}>{emp.sigla}</span>
           <div>
-            <h1>{emp.nome}</h1>
+            <h1>{safeName(emp.nome)}</h1>
             <p className="subtitle">{emp.descricao}</p>
           </div>
         </div>

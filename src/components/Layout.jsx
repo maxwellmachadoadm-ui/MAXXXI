@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth, ROLES } from '../contexts/AuthContext'
-import { useData } from '../contexts/DataContext'
+import { useData, safeName } from '../contexts/DataContext'
 import { useApp } from '../contexts/AppContext'
 import Maxxxi from './Maxxxi'
 import { OrionLogo } from './OrionLogo'
@@ -56,7 +56,7 @@ export default function Layout({ children }) {
 
   const searchResults = searchQuery.length >= 2 ? [
     ...empresas.filter(e => e.nome.toLowerCase().includes(searchQuery.toLowerCase()) || e.sigla.toLowerCase().includes(searchQuery.toLowerCase()))
-      .map(e => ({ title: e.nome, sub: e.descricao, icon: e.sigla, color: e.cor, action: () => { navigate(`/empresa/${e.id}`); setSearchOpen(false) } })),
+      .map(e => ({ title: safeName(e.nome), sub: e.descricao, icon: e.sigla, color: e.cor, action: () => { navigate(`/empresa/${e.id}`); setSearchOpen(false) } })),
     ...tarefas.filter(t => t.titulo.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5)
       .map(t => {
         const e = empresas.find(x => x.id === t.empresa_id)
@@ -212,7 +212,7 @@ export default function Layout({ children }) {
                       style={{ width: 16, height: 16, borderRadius: 3, objectFit: 'cover', flexShrink: 0 }} />
                   : <div className="sb-dot" style={{ background: e.cor }}></div>
                 }
-                <span style={{ flex: 1, fontSize: 13 }}>{e.nome}</span>
+                <span style={{ flex: 1, fontSize: 13 }}>{safeName(e.nome)}</span>
                 <span className={`sb-score ${e.score >= 75 ? 'good' : e.score >= 55 ? 'warn' : 'bad'}`}>{e.score}</span>
               </div>
             ))}
@@ -226,7 +226,7 @@ export default function Layout({ children }) {
                 className={location.pathname === `/empresa/${e.id}` ? 'sb-item active' : 'sb-item'}
                 onClick={() => { navigate(`/empresa/${e.id}`); setSidebarOpen(false) }}>
                 <div className="sb-dot" style={{ background: e.cor }}></div>
-                <span style={{ flex: 1, fontSize: 13 }}>💰 {e.nome}</span>
+                <span style={{ flex: 1, fontSize: 13 }}>💰 {safeName(e.nome)}</span>
                 {e.score > 0 && <span className={`sb-score ${e.score >= 75 ? 'good' : e.score >= 55 ? 'warn' : 'bad'}`}>{e.score}</span>}
               </div>
             ))}

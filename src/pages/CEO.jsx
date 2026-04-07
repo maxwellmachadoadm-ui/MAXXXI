@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useData } from '../contexts/DataContext'
+import { useData, safeName } from '../contexts/DataContext'
 import { useApp } from '../contexts/AppContext'
 
 export default function CEO() {
@@ -88,7 +88,7 @@ export default function CEO() {
           return (
             <div key={emp.id} className="health-bar-row" style={{ cursor: 'pointer' }} onClick={() => navigate(`/empresa/${emp.id}`)}>
               <span className="emp-sigla-sm" style={{ background: emp.cor, flexShrink: 0 }}>{emp.sigla}</span>
-              <span style={{ minWidth: 140, fontSize: 13 }}>{emp.nome}</span>
+              <span style={{ minWidth: 140, fontSize: 13 }}>{safeName(emp.nome)}</span>
               <div className="health-bar-track" style={{ flex: 1 }}>
                 <div className="health-bar-fill" style={{ width: `${emp.score}%`, background: hColor }} />
               </div>
@@ -201,7 +201,7 @@ export default function CEO() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span className="emp-sigla-sm" style={{ background: emp.cor }}>{emp.sigla}</span>
                         <div>
-                          <div style={{ fontSize: 13, fontWeight: 500 }}>{emp.nome}</div>
+                          <div style={{ fontSize: 13, fontWeight: 500 }}>{safeName(emp.nome)}</div>
                           <div style={{ fontSize: 10, color: 'var(--tx3)' }}>{pct}% da receita total</div>
                         </div>
                       </div>

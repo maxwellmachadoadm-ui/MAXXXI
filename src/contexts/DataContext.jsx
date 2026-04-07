@@ -111,6 +111,26 @@ const DEMO_AGENDA = [
   { id: '4', titulo: 'Revisão financeira mensal', data: '2026-04-14', hora: '08:00', tipo: 'financeiro', empresa: null },
 ]
 
+// ── SANITIZAR CDL — GARANTIA ABSOLUTA ──
+export function safeName(name) {
+  if (!name || typeof name !== 'string') return name
+  return name.replace(/CDL\s*Divin[oó]polis/gi, 'CDL ITAPERUNA')
+}
+
+function sanitizeCDL(empresasList) {
+  if (!Array.isArray(empresasList)) return empresasList
+  return empresasList.map(e => {
+    if (e.id === 'cdl' || (e.nome && /CDL/i.test(e.nome) && /Divin/i.test(e.nome))) {
+      return { ...e, nome: 'CDL ITAPERUNA', descricao: 'Câmara de Dirigentes Lojistas Itaperuna' }
+    }
+    // Catch any string field that mentions CDL Divinopolis
+    if (e.nome && /Divin[oó]polis/i.test(e.nome)) {
+      return { ...e, nome: e.nome.replace(/Divin[oó]polis/gi, 'ITAPERUNA') }
+    }
+    return e
+  })
+}
+
 const DataContext = createContext(null)
 export const useData = () => useContext(DataContext)
 
@@ -183,25 +203,24 @@ export function DataProvider({ children }) {
         }
       } catch (_) {}
 
-      setEmpresas(DEMO_DATA.empresas)
-      // Mesclar empresas customizadas
+      // Carregar empresas base + customizadas, SEMPRE sanitizando CDL
+      let baseEmps = [...DEMO_DATA.empresas]
       const customEmps = JSON.parse(localStorage.getItem('orion_custom_empresas') || '[]')
       if (customEmps.length > 0) {
-        setEmpresas(prev => {
-          const base = [...prev]
-          customEmps.forEach(c => {
-            // Garante que a CDL base NUNCA é sobrescrita com nome errado
-            if (c.id === 'cdl') {
-              c.nome = 'CDL ITAPERUNA'
-              c.descricao = c.descricao?.replace(/Divin[oó]polis/gi, 'Itaperuna') || 'Câmara de Dirigentes Lojistas Itaperuna'
-            }
-            const idx = base.findIndex(e => e.id === c.id)
-            if (idx >= 0) base[idx] = c
-            else base.push(c)
-          })
-          return base
+        customEmps.forEach(c => {
+          const idx = baseEmps.findIndex(e => e.id === c.id)
+          if (idx >= 0) baseEmps[idx] = { ...baseEmps[idx], ...c }
+          else baseEmps.push(c)
         })
       }
+      // SANITIZAR CDL — nunca permitir "Divinopolis"
+      baseEmps = sanitizeCDL(baseEmps)
+      // Persistir correção no localStorage
+      if (customEmps.length > 0) {
+        const fixed = sanitizeCDL(customEmps)
+        localStorage.setItem('orion_custom_empresas', JSON.stringify(fixed))
+      }
+      setEmpresas(baseEmps)
       setKpis(DEMO_DATA.kpis)
       setOkrs(DEMO_DATA.okrs)
       setContratos(DEMO_DATA.contratos)
@@ -225,7 +244,7 @@ export function DataProvider({ children }) {
       supabase.from('decisoes').select('*'),
       supabase.from('crm_leads').select('*')
     ])
-    setEmpresas(e.data || [])
+    setEmpresas(sanitizeCDL(e.data || []))
     setTarefas(t.data || [])
     setKpis(k.data || [])
     setOkrs(o.data || [])
