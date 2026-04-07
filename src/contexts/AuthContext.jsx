@@ -47,21 +47,32 @@ export function AuthProvider({ children }) {
     // ── MODO SUPABASE ──
     let cancelled = false
 
-    // O listener DEVE ser registrado ANTES de qualquer verificação de flag,
-    // para capturar eventos SIGNED_IN disparados após o formulário de login.
+    // Detecta se a URL atual tem token de recovery (link do email de reset de senha).
+    // Nesse caso NÃO pode chamar signOut — o token seria destruído antes de ser processado.
+    const hashParams = new URLSearchParams(window.location.hash.slice(1))
+    const isRecoveryUrl = hashParams.get('type') === 'recovery'
+
+    // O listener DEVE ser registrado ANTES de qualquer verificação de flag.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (cancelled) return
 
+      // Fluxo de reset de senha: redireciona para página dedicada
+      if (event === 'PASSWORD_RECOVERY') {
+        sessionStorage.setItem('orion_recovery_session', '1')
+        setLoading(false)
+        window.location.replace('/reset-password')
+        return
+      }
+
       if (session?.user) {
-        // Novo login ou recovery (reset de senha): sempre aceitar e gravar flag
-        if (event === 'SIGNED_IN' || event === 'RECOVERY' || event === 'TOKEN_REFRESHED') {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           sessionStorage.setItem('orion_session_active', '1')
+          sessionStorage.removeItem('orion_recovery_session')
         }
         setUser(session.user)
         await fetchProfileSilent(session.user.id)
         setLoading(false)
       } else {
-        // Logout ou sessão expirada
         sessionStorage.removeItem('orion_session_active')
         setUser(null)
         setProfile(null)
@@ -69,15 +80,16 @@ export function AuthProvider({ children }) {
       }
     })
 
-    // Flag de sessão ativa na sessionStorage (por-aba).
-    // Nova aba/janela = sem flag = força logout do Supabase → mostra login.
-    // Refresh na mesma aba = flag presente = tenta restaurar sessão.
     const sessionFlag = sessionStorage.getItem('orion_session_active')
+    const recoveryFlag = sessionStorage.getItem('orion_recovery_session')
 
-    if (!sessionFlag) {
-      // Força logout do Supabase para invalidar qualquer token salvo em localStorage,
-      // garantindo que o usuário veja a tela de login.
-      // onAuthStateChange capturará o SIGNED_OUT e irá limpar o estado.
+    // Durante recovery, não forçar logout — aguardar evento PASSWORD_RECOVERY
+    if (isRecoveryUrl || recoveryFlag) {
+      // Supabase vai processar o token e disparar PASSWORD_RECOVERY via onAuthStateChange
+      // Apenas garantir que loading seja liberado após timeout de segurança
+      setTimeout(() => { if (!cancelled) setLoading(false) }, 3000)
+    } else if (!sessionFlag) {
+      // Sem flag e sem recovery: força logout e mostra login
       supabase.auth.signOut().catch(() => {})
       if (!cancelled) setLoading(false)
     } else {
@@ -170,9 +182,18 @@ export function AuthProvider({ children }) {
   async function resetPassword(email) {
     if (isDemoMode) throw new Error('Recuperação de senha não disponível em modo demo')
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/',
+      redirectTo: window.location.origin + '/auth/callback',
     })
     if (error) throw error
+  }
+
+  async function updatePassword(newPassword) {
+    if (!newPassword || newPassword.length < 6) throw new Error('A senha deve ter pelo menos 6 caracteres')
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) throw error
+    // Após mudar senha: limpa flags de recovery e ativa sessão normal
+    sessionStorage.removeItem('orion_recovery_session')
+    sessionStorage.setItem('orion_session_active', '1')
   }
 
   async function signOut() {
@@ -338,7 +359,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, profile, loading, isAdmin, isGestor, canEdit, canDelete, userCompanies,
-      signIn, signUp, signOut, resetPassword, updateProfile, uploadAvatar,
+      signIn, signUp, signOut, resetPassword, updatePassword, updateProfile, uploadAvatar,
       inviteUser, getInvites, getUsers, updateUserRole, updateUserAccess,
       updateUserPermissions, hasPermission,
       getAuditLog, logAction,

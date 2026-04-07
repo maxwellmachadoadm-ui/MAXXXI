@@ -16,6 +16,8 @@ import Arquivo from './pages/Arquivo'
 import Classificacoes from './pages/Classificacoes'
 import Biblioteca from './pages/Biblioteca'
 import Compromissos from './pages/Compromissos'
+import AuthCallback from './pages/AuthCallback'
+import ResetPassword from './pages/ResetPassword'
 
 // Tela de loading com fallback automático após 8 segundos
 function LoadingScreen() {
@@ -81,6 +83,11 @@ export default function App() {
   const { user, loading } = useAuth()
 
   if (loading) return <LoadingScreen />
+
+  // Rotas públicas — acessíveis sem login
+  const path = window.location.pathname
+  if (path === '/auth/callback') return <AuthCallback />
+  if (path === '/reset-password') return <ResetPassword />
 
   if (!user) return <Login />
 
