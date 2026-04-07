@@ -403,8 +403,8 @@ const STATUS_LABELS = { todo: 'A Fazer', doing: 'Em Andamento', done: 'Concluíd
 const STATUS_COLORS = { todo: '#ef4444', doing: '#f59e0b', done: '#10b981' }
 const CONTRATO_STATUS = { ativo: '#10b981', inadim: '#ef4444', negoc: '#f59e0b' }
 const RISCO_COLORS = { alto: '#ef4444', medio: '#f59e0b', baixo: '#3b82f6' }
-const CRM_FASES = ['Lead', 'Proposta', 'Negociacao', 'Fechado']
-const CRM_COLORS = { Lead: '#3b82f6', Proposta: '#f59e0b', Negociacao: '#8b5cf6', Fechado: '#10b981' }
+const CRM_FASES = ['Lead', 'Proposta', 'Negociacao', 'Fechado', 'Perdido']
+const CRM_COLORS = { Lead: '#3b82f6', Proposta: '#f59e0b', Negociacao: '#8b5cf6', Fechado: '#10b981', Perdido: '#ef4444' }
 
 export default function Workspace() {
   const { id } = useParams()

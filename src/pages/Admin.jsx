@@ -53,6 +53,7 @@ export default function Admin() {
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [deleteConfirm2, setDeleteConfirm2] = useState(false)
   const [newEmp, setNewEmp] = useState({ nome: '', sigla: '', descricao: '', cor: '#3b82f6', rgb: '59,130,246' })
+  const [newEmpMods, setNewEmpMods] = useState({})
   const [logoUploading, setLogoUploading] = useState(null)
   const [modulosModal, setModulosModal] = useState(null)
   const [modulosEdit, setModulosEdit] = useState([])
@@ -170,9 +171,14 @@ export default function Admin() {
   async function handleAddEmpresa(e) {
     e.preventDefault()
     if (!newEmp.nome || !newEmp.sigla) return
+    const empId = newEmp.sigla.toLowerCase().replace(/[^a-z0-9]/g, '')
     await addEmpresa(newEmp)
+    // Salvar módulos selecionados
+    const activeMods = ALL_MODULOS.filter(m => newEmpMods[m] !== false)
+    setEmpresaModulos(empId, activeMods)
     setNewEmpModal(false)
     setNewEmp({ nome: '', sigla: '', descricao: '', cor: '#3b82f6', rgb: '59,130,246' })
+    setNewEmpMods({})
   }
 
   async function handleDeleteEmpresa() {
@@ -437,7 +443,21 @@ export default function Admin() {
                     <label className="form-label">Descrição</label>
                     <input className="inp" placeholder="Ex: Consultoria especializada em..." value={newEmp.descricao} onChange={e => setNewEmp(p => ({ ...p, descricao: e.target.value }))} />
                   </div>
-                  <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                  <div style={{ marginTop: 16 }}>
+                    <p style={{ color: '#94a3b8', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>MÓDULOS DESTA EMPRESA</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                      {ALL_MODULOS.map(mod => (
+                        <label key={mod} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                          <input type="checkbox"
+                            checked={newEmpMods[mod] !== false}
+                            onChange={e => setNewEmpMods(prev => ({ ...prev, [mod]: e.target.checked }))}
+                          />
+                          <span style={{ color: '#f1f5f9', fontSize: 13 }}>{mod}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
                     <button type="button" className="btn btn-secondary" onClick={() => setNewEmpModal(false)}>Cancelar</button>
                     <button type="submit" className="btn btn-primary">Criar Empresa</button>
                   </div>
