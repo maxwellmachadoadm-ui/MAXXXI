@@ -20,8 +20,8 @@ function pct(a, total) {
 }
 
 export default function Financeiro() {
-  const { empresas, lancamentos, addLancamento, deleteLancamento, BANKS, REVENUE_ORIGINS } = useData()
-  const { canDelete, logAction } = useAuth()
+  const { empresas, lancamentos, addLancamento, deleteLancamento, updateLancamento, BANKS, REVENUE_ORIGINS } = useData()
+  const { canDelete, canEdit, logAction } = useAuth()
 
   const [activeTab, setActiveTab] = useState('resumo')
   const [filtroEmp, setFiltroEmp] = useState('all')
@@ -34,8 +34,9 @@ export default function Financeiro() {
   const [form, setForm] = useState({
     empresa_id: 'dw', tipo: 'despesa', categoria: 'PESSOAL', subcategoria: 'Salários',
     banco: 'Nubank', origem: 'PIX', valor: '', mes: new Date().toISOString().slice(0, 7),
-    descricao: '', status: 'aprovado'
+    descricao: '', status: 'rascunho'
   })
+  const [editingLanc, setEditingLanc] = useState(null)
 
   // Meses anteriores para comparativo
   function prevMonths(mes, n) {
@@ -130,16 +131,62 @@ export default function Financeiro() {
   const ytdRec = ytdItems.filter(l => l.tipo === 'receita').reduce((s, l) => s + l.valor, 0)
   const ytdDesp = ytdItems.filter(l => l.tipo === 'despesa').reduce((s, l) => s + l.valor, 0)
 
-  function saveLancamento() {
+  // Status de lançamento: rascunho → gravado → editado / cancelado
+  const STATUS_LANC = {
+    rascunho:  { label: 'Rascunho',  color: 'var(--text3)',  bg: 'rgba(100,116,139,0.15)' },
+    gravado:   { label: 'Gravado',   color: 'var(--green)',  bg: 'rgba(16,185,129,0.15)'  },
+    editado:   { label: 'Editado',   color: 'var(--gold)',   bg: 'rgba(245,158,11,0.15)'  },
+    cancelado: { label: 'Cancelado', color: 'var(--red)',    bg: 'rgba(239,68,68,0.15)'   },
+    aprovado:  { label: 'Aprovado',  color: 'var(--green)',  bg: 'rgba(16,185,129,0.15)'  }, // legado
+    pendente:  { label: 'Pendente',  color: 'var(--gold)',   bg: 'rgba(245,158,11,0.15)'  }, // legado
+  }
+
+  function saveLancamento(statusOverride) {
     if (!form.descricao || !form.valor) return
-    addLancamento({
-      ...form,
-      valor: parseFloat(form.valor),
-      data: new Date().toISOString().slice(0, 10),
-    })
-    logAction('LANCAMENTO_FINANCEIRO', `${form.descricao} — ${fmtVal(parseFloat(form.valor))}`)
+    const statusFinal = statusOverride || form.status
+    if (editingLanc) {
+      // Edição — marca como "editado" a menos que seja gravação final
+      updateLancamento(editingLanc.id, {
+        ...form,
+        valor: parseFloat(form.valor),
+        status: statusFinal,
+        edited_at: new Date().toISOString(),
+      })
+      logAction('LANCAMENTO_EDITADO', `${form.descricao} — status: ${statusFinal}`)
+      setEditingLanc(null)
+    } else {
+      addLancamento({
+        ...form,
+        valor: parseFloat(form.valor),
+        data: new Date().toISOString().slice(0, 10),
+        status: statusFinal,
+      })
+      logAction('LANCAMENTO_FINANCEIRO', `${form.descricao} — ${fmtVal(parseFloat(form.valor))} — ${statusFinal}`)
+    }
     setModalOpen(false)
-    setForm(f => ({ ...f, descricao: '', valor: '' }))
+    setForm(f => ({ ...f, descricao: '', valor: '', status: 'rascunho' }))
+  }
+
+  function openEdit(l) {
+    setForm({
+      empresa_id: l.empresa_id || 'dw',
+      tipo: l.tipo || 'despesa',
+      categoria: l.categoria || 'PESSOAL',
+      subcategoria: l.subcategoria || '',
+      banco: l.banco || 'Nubank',
+      origem: l.origem || 'PIX',
+      valor: String(l.valor || ''),
+      mes: l.mes || new Date().toISOString().slice(0, 7),
+      descricao: l.descricao || '',
+      status: l.status === 'gravado' ? 'editado' : (l.status || 'rascunho'),
+    })
+    setEditingLanc(l)
+    setModalOpen(true)
+  }
+
+  function cancelarLancamento(id) {
+    updateLancamento(id, { status: 'cancelado' })
+    logAction('LANCAMENTO_CANCELADO', `ID: ${id}`)
   }
 
   const maxBarComp = Math.max(...compData.map(m => Math.max(m.receitas, m.despesas)), 1)
@@ -355,8 +402,12 @@ export default function Financeiro() {
               </select>
               <select className="inp" style={{ width:'auto', padding:'5px 10px', fontSize:12 }} value={filtroStatus} onChange={e => setFiltroStatus(e.target.value)}>
                 <option value="all">Todos status</option>
-                <option value="aprovado">Aprovado</option>
-                <option value="pendente">Pendente</option>
+                <option value="gravado">Gravado</option>
+                <option value="rascunho">Rascunho</option>
+                <option value="editado">Editado</option>
+                <option value="cancelado">Cancelado</option>
+                <option value="aprovado">Aprovado (legado)</option>
+                <option value="pendente">Pendente (legado)</option>
               </select>
             </div>
           </div>
@@ -365,29 +416,55 @@ export default function Financeiro() {
               <tr>
                 <th>Data</th><th>Descrição</th><th>Empresa</th><th>Categoria</th>
                 <th>Banco</th><th>Tipo</th><th>Valor</th><th>Status</th>
-                {canDelete && <th></th>}
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
               {lancBase.sort((a, b) => (b.data || b.mes || '').localeCompare(a.data || a.mes || '')).map(l => {
                 const emp = empresas.find(e => e.id === l.empresa_id)
+                const st = STATUS_LANC[l.status] || STATUS_LANC.rascunho
+                const isCancelado = l.status === 'cancelado'
                 return (
-                  <tr key={l.id}>
+                  <tr key={l.id} style={{ opacity: isCancelado ? 0.5 : 1 }}>
                     <td style={{ color:'var(--tx3)', fontSize:11, whiteSpace:'nowrap' }}>{l.data ? new Date(l.data).toLocaleDateString('pt-BR') : l.mes}</td>
-                    <td style={{ fontWeight:500, color:'var(--tx)' }}>{l.descricao}</td>
+                    <td style={{ fontWeight:500, color:'var(--tx)', textDecoration: isCancelado ? 'line-through' : 'none' }}>{l.descricao}</td>
                     <td>{emp ? <span className="pill pill-blue" style={{ fontSize:10 }}>{emp.sigla}</span> : '—'}</td>
                     <td style={{ fontSize:12 }}>{l.categoria}{l.subcategoria ? ` / ${l.subcategoria}` : ''}</td>
                     <td style={{ fontSize:12, color:'var(--tx3)' }}>{l.banco || '—'}</td>
                     <td><span className={`status-badge ${l.tipo === 'receita' ? 'success' : 'danger'}`} style={{ fontSize:9 }}>{l.tipo}</span></td>
-                    <td style={{ fontFamily:"'Syne',sans-serif", fontWeight:700, color: l.tipo === 'receita' ? 'var(--green)' : 'var(--red)' }}>
+                    <td style={{ fontFamily:"'DM Mono',monospace", fontWeight:700, color: l.tipo === 'receita' ? 'var(--green)' : 'var(--red)' }}>
                       {l.tipo === 'receita' ? '+' : '-'}{fmtVal(l.valor)}
                     </td>
-                    <td><span className={`status-badge ${l.status === 'aprovado' ? 'success' : 'warning'}`} style={{ fontSize:9 }}>{l.status}</span></td>
-                    {canDelete && (
-                      <td>
-                        <button className="btn btn-icon" style={{ color:'var(--red)', fontSize:13 }} onClick={() => deleteLancamento(l.id)} title="Excluir">🗑</button>
-                      </td>
-                    )}
+                    <td>
+                      <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:99, color: st.color, background: st.bg, fontFamily:"'DM Mono',monospace", textTransform:'uppercase', letterSpacing:1 }}>
+                        {st.label}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display:'flex', gap:4 }}>
+                        {/* Gravar rascunho */}
+                        {l.status === 'rascunho' && canEdit && (
+                          <button
+                            className="btn btn-icon"
+                            style={{ color:'var(--green)', fontSize:11, padding:'2px 6px', border:'1px solid rgba(16,185,129,0.3)', borderRadius:4 }}
+                            onClick={() => { updateLancamento(l.id, { status: 'gravado' }); logAction('LANCAMENTO_GRAVADO', l.descricao) }}
+                            title="Gravar lançamento"
+                          >✓ Gravar</button>
+                        )}
+                        {/* Editar */}
+                        {!isCancelado && canEdit && (
+                          <button className="btn btn-icon" style={{ color:'var(--gold)', fontSize:13 }} onClick={() => openEdit(l)} title="Editar">✏</button>
+                        )}
+                        {/* Cancelar */}
+                        {!isCancelado && canEdit && (
+                          <button className="btn btn-icon" style={{ color:'var(--text3)', fontSize:13 }} onClick={() => cancelarLancamento(l.id)} title="Cancelar">⊘</button>
+                        )}
+                        {/* Excluir (só admin) */}
+                        {canDelete && (
+                          <button className="btn btn-icon" style={{ color:'var(--red)', fontSize:13 }} onClick={() => deleteLancamento(l.id)} title="Excluir">🗑</button>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 )
               })}
@@ -475,11 +552,11 @@ export default function Financeiro() {
 
       {/* MODAL NOVO LANÇAMENTO */}
       {modalOpen && (
-        <div className="modal-overlay show" onClick={e => e.target === e.currentTarget && setModalOpen(false)}>
+        <div className="modal-overlay show" onClick={e => e.target === e.currentTarget && (setModalOpen(false), setEditingLanc(null))}>
           <div className="modal" style={{ width:520 }}>
             <div className="modal-title">
-              <span>💳 Novo Lançamento</span>
-              <button className="modal-close" onClick={() => setModalOpen(false)}>×</button>
+              <span>{editingLanc ? '✏ Editar Lançamento' : '💳 Novo Lançamento'}</span>
+              <button className="modal-close" onClick={() => { setModalOpen(false); setEditingLanc(null) }}>×</button>
             </div>
 
             <div className="form-row-v4 cols-2" style={{ marginBottom:12 }}>
@@ -547,7 +624,19 @@ export default function Financeiro() {
               </div>
             </div>
 
-            <button className="btn-primary" style={{ marginTop:16 }} onClick={saveLancamento}>Registrar Lançamento</button>
+            {/* Status info */}
+            <div style={{ marginTop:12, padding:'8px 12px', borderRadius:8, background:'rgba(245,158,11,0.08)', border:'1px solid rgba(245,158,11,0.2)', fontSize:12, color:'var(--text2)' }}>
+              <strong style={{ color:'var(--gold)' }}>Fluxo de status:</strong>{' '}
+              Rascunho → Gravar → (Editar / Cancelar)
+            </div>
+            <div style={{ display:'flex', gap:10, marginTop:14 }}>
+              <button className="btn btn-secondary" style={{ flex:1 }} onClick={() => saveLancamento('rascunho')}>
+                📝 Salvar Rascunho
+              </button>
+              <button className="btn btn-primary" style={{ flex:1 }} onClick={() => saveLancamento('gravado')}>
+                ✓ {editingLanc ? 'Atualizar e Gravar' : 'Gravar Lançamento'}
+              </button>
+            </div>
           </div>
         </div>
       )}

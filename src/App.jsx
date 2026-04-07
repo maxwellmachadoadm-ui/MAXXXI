@@ -14,6 +14,8 @@ import Admin from './pages/Admin'
 import OriginalFotografia from './pages/OriginalFotografia'
 import Arquivo from './pages/Arquivo'
 import Classificacoes from './pages/Classificacoes'
+import Biblioteca from './pages/Biblioteca'
+import Compromissos from './pages/Compromissos'
 
 // Tela de loading com fallback automático após 8 segundos
 function LoadingScreen() {
@@ -96,6 +98,8 @@ export default function App() {
         <Route path="/empresa/:id"        element={<Workspace />} />
         <Route path="/arquivo"            element={<Arquivo />} />
         <Route path="/classificacoes"     element={<Classificacoes />} />
+        <Route path="/biblioteca"         element={<Biblioteca />} />
+        <Route path="/compromissos"       element={<Compromissos />} />
         <Route path="*"                   element={<Navigate to="/" />} />
       </Routes>
     </Layout>

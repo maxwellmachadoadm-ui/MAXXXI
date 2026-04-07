@@ -197,6 +197,8 @@ export default function Layout({ children }) {
             <div className={isActive('/crm')} onClick={() => { navigate('/crm'); setSidebarOpen(false) }}>🎯 CRM</div>
             <div className={isActive('/financeiro')} onClick={() => { navigate('/financeiro'); setSidebarOpen(false) }}>💳 Financeiro</div>
             <div className={isActive('/arquivo')} onClick={() => { navigate('/arquivo'); setSidebarOpen(false) }}>📁 Arquivo Digital</div>
+            <div className={isActive('/biblioteca')} onClick={() => { navigate('/biblioteca'); setSidebarOpen(false) }}>📚 Biblioteca</div>
+            <div className={isActive('/compromissos')} onClick={() => { navigate('/compromissos'); setSidebarOpen(false) }}>📅 Compromissos</div>
             <div className={isActive('/ceo')} onClick={() => { navigate('/ceo'); setSidebarOpen(false) }}>📈 Visão CEO</div>
           </div>
           <div className="sb-div"></div>

@@ -293,6 +293,12 @@ export function DataProvider({ children }) {
     localStorage.setItem('orion_lancamentos_v4', JSON.stringify(next))
   }
 
+  function updateLancamento(id, updates) {
+    const next = lancamentos.map(l => l.id === id ? { ...l, ...updates } : l)
+    setLancamentos(next)
+    localStorage.setItem('orion_lancamentos_v4', JSON.stringify(next))
+  }
+
   function getLancamentosByEmpresa(empresaId, mes) {
     return lancamentos.filter(l => {
       const empOk = !empresaId || empresaId === 'all' || l.empresa_id === empresaId
@@ -820,7 +826,7 @@ export function DataProvider({ children }) {
       // Financeiro v4
       CLASSIFICATION_BANK, REVENUE_ORIGINS, BANKS,
       lancamentos, pendingClassifications,
-      addLancamento, approveLancamento, deleteLancamento,
+      addLancamento, approveLancamento, deleteLancamento, updateLancamento,
       getLancamentosByEmpresa, getResumoFinanceiro,
       // Arquivos
       arquivos, addArquivo, deleteArquivo,
