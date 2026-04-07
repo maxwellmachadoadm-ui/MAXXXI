@@ -3,13 +3,17 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { ROLES } from '../contexts/AuthContext'
 import { useData } from '../contexts/DataContext'
+import { useApp } from '../contexts/AppContext'
 import Maxxxi from './Maxxxi'
 import { OrionLogo } from './OrionLogo'
 import { PDFExportButton } from './PDFExport'
 
+const TIPO_ICON = { contrato: '📋', meta: '🎯', inadimplencia: '💳', fluxo: '💰', tarefa: '☑' }
+
 export default function Layout({ children }) {
   const { profile, signOut, isAdmin, inviteUser, getInvites, getUsers } = useAuth()
-  const { empresas, tarefas, generateAlerts } = useData()
+  const { empresas, tarefas, generateAlerts, generateAlertsV5 } = useData()
+  const { presentationMode, togglePresentation } = useApp()
   const navigate = useNavigate()
   const location = useLocation()
   const [searchOpen, setSearchOpen] = useState(false)
@@ -22,7 +26,7 @@ export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const pending = tarefas.filter(t => t.status !== 'done').length
-  const alerts = generateAlerts()
+  const alerts = generateAlertsV5 ? generateAlertsV5() : generateAlerts()
   const isActive = (path) => location.pathname === path ? 'sb-item active' : 'sb-item'
 
   useEffect(() => {
@@ -56,7 +60,7 @@ export default function Layout({ children }) {
   const initials = profile?.name?.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?'
 
   return (
-    <div className="app">
+    <div className={`app ${presentationMode ? 'presentation-mode' : ''}`}>
       {/* TOPBAR */}
       <header className="topbar">
         <div className="flex aic gap12">
@@ -75,6 +79,14 @@ export default function Layout({ children }) {
             🔔{alerts.length > 0 && <span className="notif-dot"></span>}
           </button>
           <PDFExportButton />
+          <button
+            className={`tb-btn ${presentationMode ? 'btn-active-mode' : ''}`}
+            onClick={togglePresentation}
+            title={presentationMode ? 'Sair do Modo Apresentação' : 'Modo Apresentação'}
+            style={{ color: presentationMode ? 'var(--gold)' : undefined }}
+          >
+            {presentationMode ? '🔒 Modo Exec' : '📊 Apresentar'}
+          </button>
           <button className="tb-btn" id="api-indicator" title="API Claude" style={{ color: 'var(--green)', borderColor: 'rgba(16,185,129,0.3)' }}>⚡ API</button>
           <button className="user-btn" onClick={() => { setUserMenuOpen(!userMenuOpen); setAlertsOpen(false) }}>
             <div className="avatar">{initials}</div>
@@ -170,10 +182,15 @@ export default function Layout({ children }) {
           {alerts.length === 0 ? <div style={{ padding: 20, textAlign: 'center', color: '#64748b', fontSize: 13 }}>Nenhum alerta ativo</div> :
             alerts.map((a, i) => (
               <div key={i} className="alert-item" onClick={() => { navigate(`/empresa/${a.emp}`); setAlertsOpen(false) }}>
-                <div className="alert-dot" style={{ background: a.level === 'critico' ? 'var(--red)' : 'var(--amber)' }}></div>
-                <div>
+                <div style={{ fontSize: 16, flexShrink: 0 }}>
+                  {a.level === 'critico' ? '🔴' : '🟡'}
+                </div>
+                <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 2 }}>{a.text}</div>
-                  <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.5px' }}>{a.level === 'critico' ? 'Critico' : 'Atencao'}</div>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.5px' }}>{a.level === 'critico' ? 'Crítico' : 'Atenção'}</div>
+                    {a.tipo && <div style={{ fontSize: 10, color: '#64748b' }}>{TIPO_ICON[a.tipo] || ''} {a.tipo}</div>}
+                  </div>
                 </div>
               </div>
             ))}

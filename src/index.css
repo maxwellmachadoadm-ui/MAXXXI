@@ -789,3 +789,99 @@ select.inp-v4 { cursor:pointer; appearance:none; background-image:url("data:imag
 @media(max-width:480px) {
   .kpi-grid-v4 { grid-template-columns:1fr; }
 }
+
+/* ── ORION v5 — NOVOS ESTILOS ── */
+
+/* PRESENTATION MODE */
+.presentation-mode .sensitive-value::after { content: '••••'; }
+.presentation-mode .sensitive-value { color: transparent !important; text-shadow: 0 0 12px rgba(255,255,255,0.3); user-select: none; }
+.presentation-banner {
+  background: linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.08));
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: var(--r2); padding: 8px 16px; margin-bottom: 16px;
+  font-size: 12px; color: var(--gold, #d4af37); font-weight: 600; letter-spacing: .05em;
+  display: flex; align-items: center; gap: 8px;
+}
+.btn-active-mode { border-color: rgba(212,175,55,0.4) !important; color: var(--gold, #d4af37) !important; background: rgba(212,175,55,0.08) !important; }
+
+/* HEALTH SCORE RING */
+.score-ring {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%; border: 2px solid currentColor;
+  font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 900;
+  flex-shrink: 0;
+}
+.score-ring.good  { color: var(--green); }
+.score-ring.warn  { color: var(--amber); }
+.score-ring.bad   { color: var(--red); }
+
+/* HISTORY CHART */
+.mini-chart { display: flex; align-items: flex-end; gap: 4px; height: 60px; }
+.mini-bar { flex: 1; border-radius: 3px 3px 0 0; min-width: 8px; transition: height .3s; }
+
+/* DRE */
+.dre-row { display: flex; align-items: center; padding: 7px 0; }
+.dre-label { flex: 1; font-size: 13px; }
+.dre-value { font-family: 'Syne', sans-serif; font-weight: 700; min-width: 100px; text-align: right; font-size: 13px; }
+.dre-value.positive { color: var(--green); }
+.dre-value.negative { color: var(--red); }
+.dre-row.subtotal { background: rgba(255,255,255,0.03); border-radius: var(--r2); padding: 8px 10px; }
+.dre-row.total { background: rgba(59,130,246,0.08); border-radius: var(--r2); padding: 10px 12px; border: 1px solid rgba(59,130,246,0.15); }
+
+/* PIPELINE FUNNEL */
+.pipeline-funnel { display: flex; flex-direction: column; gap: 8px; }
+.funnel-stage { display: flex; align-items: center; gap: 12px; }
+.funnel-bar { height: 32px; border-radius: 0 4px 4px 0; display: flex; align-items: center; padding: 0 12px; font-size: 12px; font-weight: 600; color: #fff; transition: width .5s; }
+
+/* CASH FLOW */
+.cf-week { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 32px; }
+.cf-bars { display: flex; align-items: flex-end; gap: 2px; height: 100px; }
+.cf-bar { width: 12px; border-radius: 3px 3px 0 0; }
+.cf-label { font-size: 9px; color: var(--tx3); text-align: center; white-space: nowrap; }
+.cf-saldo { font-size: 10px; font-weight: 700; }
+
+/* AGENDA MANUAL */
+.agenda-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--r2); border-left: 3px solid var(--blue); background: var(--s2); margin-bottom: 8px; }
+.agenda-badge-hoje { background: rgba(239,68,68,0.15); color: var(--red); padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 700; letter-spacing: .05em; }
+.agenda-badge-amanha { background: rgba(245,158,11,0.15); color: var(--amber); padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 700; }
+.agenda-badge-futuro { background: var(--s3); color: var(--tx3); padding: 2px 8px; border-radius: 99px; font-size: 10px; }
+
+/* PATRIMÔNIO */
+.patrimonio-card { background: var(--s2); border: 1px solid var(--br); border-radius: var(--r2); padding: 16px; }
+.patrimonio-bar { flex: 1; height: 6px; background: var(--s3); border-radius: 99px; overflow: hidden; }
+.patrimonio-fill { height: 100%; border-radius: 99px; }
+
+/* TIMELINE DECISÕES */
+.timeline { position: relative; padding-left: 28px; }
+.timeline::before { content: ''; position: absolute; left: 9px; top: 0; bottom: 0; width: 2px; background: var(--br); }
+.timeline-item { position: relative; margin-bottom: 14px; }
+.timeline-dot { position: absolute; left: -23px; top: 16px; width: 10px; height: 10px; border-radius: 50%; background: var(--blue); border: 2px solid var(--bg); }
+
+/* CEO DASHBOARD */
+.ceo-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+.health-bar-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.health-bar-row:last-child { border-bottom: none; }
+.health-bar-track { flex: 1; height: 8px; background: var(--s3); border-radius: 99px; overflow: hidden; }
+.health-bar-fill { height: 100%; border-radius: 99px; transition: width .5s; }
+
+/* BRIEFING */
+.briefing-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.briefing-item:last-child { border-bottom: none; }
+.briefing-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+.briefing-text { font-size: 13px; color: var(--tx2); line-height: 1.5; }
+
+/* RESPONSIVE CEO */
+@media (max-width: 1100px) {
+  .ceo-kpi-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .ceo-kpi-grid { grid-template-columns: 1fr; }
+}
+
+/* PROGRESS BAR (patrimônio) */
+.progress-bar { height: 6px; background: var(--s3); border-radius: 99px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 99px; }
+.stat-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.stat-row:last-child { border-bottom: none; }
+.stat-label { min-width: 110px; font-size: 13px; color: var(--tx2); }
+.stat-value { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; min-width: 70px; text-align: right; }

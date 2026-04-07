@@ -43,9 +43,35 @@ function classifyExpense(text) {
   return result ? `${result.categoria} / ${result.subcategoria}` : 'Outros'
 }
 
+function generateDailyBriefing(empresas, alerts, tarefas) {
+  const hoje = new Date()
+  const altasPend = tarefas.filter(t => t.prioridade === 'alta' && t.status !== 'done').length
+  const criticos = alerts.filter(a => a.level === 'critico').length
+
+  let briefing = `📋 **BRIEFING DIÁRIO — ${hoje.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}**\n\n`
+  briefing += `**Situação do Ecossistema:**\n`
+  empresas.filter(e => e.id !== 'gp').forEach(e => {
+    const status = e.score >= 70 ? '🟢' : e.score >= 40 ? '🟡' : '🔴'
+    const margem = e.faturamento > 0 ? ((e.resultado / e.faturamento) * 100).toFixed(0) : 0
+    briefing += `${status} **${e.nome}**: Score ${e.score} | Margem ${margem}%\n`
+  })
+  briefing += `\n**Alertas Ativos:** ${criticos} críticos\n`
+  briefing += `**Tarefas Urgentes:** ${altasPend} de alta prioridade\n\n`
+  briefing += `**Prioridades para Hoje:**\n`
+  const emAtencao = empresas.find(e => e.score < 60)
+  briefing += `1. Verificar inadimplência de ${emAtencao?.nome || 'empresas em atenção'}\n`
+  briefing += `2. Revisar ${altasPend} tarefas de alta prioridade\n`
+  briefing += `3. Acompanhar pipeline de receita futura\n`
+  return briefing
+}
+
+function buildCFOResponse(situation, risk, action, deadline) {
+  return `**📊 Análise CFO:**\n\n**Situação Atual:** ${situation}\n\n**Risco / Oportunidade:** ${risk}\n\n**Ação Recomendada:** ${action}\n\n**Prazo Sugerido:** ${deadline}`
+}
+
 export default function Maxxxi() {
   const { profile, user } = useAuth()
-  const { empresas, tarefas, fmt, generateAlerts, getKpis, arquivos, getResumoFinanceiro } = useData()
+  const { empresas, tarefas, fmt, generateAlerts, generateAlertsV5, getKpis, arquivos, getResumoFinanceiro, lancamentos, getCashFlow, getDRE, getPipeline } = useData()
   const navigate = useNavigate()
   const [showEmpSelect, setShowEmpSelect] = useState(false)
   const [open, setOpen] = useState(false)
@@ -81,7 +107,12 @@ export default function Maxxxi() {
     const totalDespesas = lancMes.filter(l => l.tipo === 'despesa').reduce((s, l) => s + l.valor, 0)
     const docContext = getArquivosContext(arquivos)
 
-    return `Você é MAXXXI — Agente Executivo IA da plataforma ORION de ${profile?.name || 'Maxwell'}.
+    const allAlerts = generateAlertsV5 ? generateAlertsV5() : generateAlerts()
+
+    return `Você é MAXXXI — CFO Virtual e Agente Executivo IA da plataforma ORION de ${profile?.name || 'Maxwell'}.
+Seu papel principal é ser o CFO virtual de Maxwell Oliveira Machado.
+Tome iniciativa — identifique riscos, oportunidades e anomalias proativamente.
+Estruture suas respostas: Situação Atual → Risco/Oportunidade → Ação Recomendada → Prazo.
 
 EMPRESAS DO ECOSSISTEMA:
 ${empresas.map(e => `- ${e.nome} (${e.sigla}): score ${e.score}, faturamento ${fmt(e.faturamento)}, crescimento ${e.crescimento}%`).join('\n')}
@@ -89,17 +120,19 @@ ${empresas.map(e => `- ${e.nome} (${e.sigla}): score ${e.score}, faturamento ${f
 TAREFAS PENDENTES (${pending.length} total):
 ${taskList}
 
-ALERTAS ATIVOS: ${generateAlerts().map(a => a.text).join('; ') || 'Nenhum'}
+ALERTAS ATIVOS: ${allAlerts.map(a => a.text).join('; ') || 'Nenhum'}
 
 FINANCEIRO (mês atual ${mesAtual}): ${lancMes.length} lançamentos aprovados
   Receitas: ${fmt(totalReceitas)} | Despesas: ${fmt(totalDespesas)} | Resultado: ${fmt(totalReceitas - totalDespesas)}
 ${docContext}
 
 CAPACIDADES:
+- CFO Virtual: análise financeira estruturada, DRE, fluxo de caixa, pipeline
+- Briefing diário executivo
 - Analisar empresas e gerar briefings executivos
 - Classificar despesas automaticamente (diga "classificar: descrição da despesa")
 - Gerar relatórios por linguagem natural
-- Dar prioridades, alertas e recomendações
+- Dar prioridades, alertas e recomendações proativas
 - Registrar todas as ações no log do MAXXXI
 
 Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo 3-4 parágrafos salvo pedido específico.`
@@ -121,6 +154,8 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
 
   function getLocalResponse(txt) {
     const lower = txt.toLowerCase()
+    const hora = new Date().getHours()
+    const allAlerts = generateAlertsV5 ? generateAlertsV5() : generateAlerts()
 
     // Classificação de despesa
     if (lower.startsWith('classificar:') || (lower.includes('classific') && lower.includes('despesa'))) {
@@ -130,6 +165,55 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
         return `🏷 **Classificação automática:** "${desc}"\n→ **${result.categoria}** / ${result.subcategoria}\n\nBaseado nos padrões ORION. Confirme no Arquivo Digital.`
       }
       return `🏷 **"${desc}"** — Classificação: **Outros / Despesas Diversas**\n\nNão encontrei padrão específico. Acesse o Arquivo Digital para classificar manualmente.`
+    }
+
+    // Briefing diário
+    if (lower.includes('briefing') || lower.includes('dia') || (hora < 10 && (lower.includes('oi') || lower.includes('olá')))) {
+      return generateDailyBriefing(empresas, allAlerts, tarefas)
+    }
+
+    // Fluxo de caixa
+    if (getCashFlow && (lower.includes('fluxo') || lower.includes('caixa') || lower.includes('projeção'))) {
+      const empEncontrado = empresas.find(e => lower.includes(e.nome.toLowerCase()) || lower.includes(e.sigla.toLowerCase()))
+      const empId = empEncontrado?.id || 'dw'
+      const cf = getCashFlow(empId, 30)
+      const empNome = empresas.find(e => e.id === empId)?.nome || 'Doctor Wealth'
+      return buildCFOResponse(
+        `Saldo projetado para ${empNome} nos próximos 30 dias: ${fmt(cf.semanas[cf.semanas.length - 1]?.saldo || 0)}`,
+        cf.alertaNegativo ? '⚠️ Risco de saldo NEGATIVO detectado!' : 'Fluxo de caixa positivo projetado.',
+        cf.alertaNegativo ? 'Revisar despesas e antecipar receitas imediatamente.' : 'Manter ritmo atual de receita e controle de despesas.',
+        cf.alertaNegativo ? 'Esta semana' : 'Monitoramento mensal'
+      )
+    }
+
+    // DRE
+    if (getDRE && (lower.includes('dre') || lower.includes('resultado') || (lower.includes('margem') && lower.includes('empresa')))) {
+      const empEncontrado = empresas.find(e => lower.includes(e.nome.toLowerCase()) || lower.includes(e.sigla.toLowerCase()))
+      const empId = empEncontrado?.id || null
+      const dre = getDRE(empId, new Date().toISOString().slice(0, 7))
+      const empNome = empId ? empresas.find(e => e.id === empId)?.nome : 'Ecossistema'
+      return `📊 **DRE — ${empNome}:**\n\n` +
+        `Receita Bruta: ${fmt(dre.receitaBruta)}\n` +
+        `(-) Impostos: ${fmt(dre.deducoes)}\n` +
+        `(=) Receita Líquida: ${fmt(dre.receitaLiquida)}\n` +
+        `(-) Pessoal: ${fmt(dre.custosDirectos)}\n` +
+        `(=) Margem Bruta: ${fmt(dre.margemBruta)} (${dre.margemBrutaPct}%)\n` +
+        `(-) Despesas Op.: ${fmt(dre.despesasOp)}\n` +
+        `(=) EBITDA: ${fmt(dre.ebitda)}\n` +
+        `(=) **Resultado Líquido: ${fmt(dre.resultadoLiquido)} (${dre.margemLiquidaPct}%)**`
+    }
+
+    // Pipeline
+    if (getPipeline && (lower.includes('pipeline') || lower.includes('receita futura') || lower.includes('funil'))) {
+      const empEncontrado = empresas.find(e => lower.includes(e.nome.toLowerCase()) || lower.includes(e.sigla.toLowerCase()))
+      const empId = empEncontrado?.id || 'dw'
+      const p = getPipeline(empId)
+      const empNome = empresas.find(e => e.id === empId)?.nome || 'Doctor Wealth'
+      return `🎯 **Pipeline — ${empNome}:**\n\n` +
+        `✅ Garantida (contratos): ${fmt(p.garantida)}\n` +
+        `🟡 Provável (em negociação, 70%): ${fmt(p.provavel)}\n` +
+        `🔵 Possível (em proposta, 40%): ${fmt(p.possivel)}\n` +
+        `**Total Pipeline: ${fmt(p.total)}**`
     }
 
     // Relatório financeiro por empresa
@@ -144,17 +228,17 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
     if (lower.includes('prioridade') || lower.includes('atenção') || lower.includes('critico'))
       return `**Prioridades do ecossistema:**\n\n• Original Fotografia: inadimplência em 8,7% — requer ação imediata\n• Forme Seguro: meta mensal apenas 30% atingida — acelerar captação\n• CDL ITAPERUNA e Doctor Wealth estão saudáveis (scores 88 e 80)\n\n**Recomendação:** Foque hoje em OF e FS.`
 
-    if (lower.includes('briefing') || lower.includes('ecossistema') || lower.includes('resumo'))
+    if (lower.includes('ecossistema'))
       return `**Briefing Executivo ORION — ${new Date().toLocaleDateString('pt-BR')}**\n\nFaturamento consolidado: ${fmt(empresas.reduce((s, e) => s + e.faturamento, 0))}\nHealth Score médio: ${Math.round(empresas.reduce((s, e) => s + e.score, 0) / empresas.length)}/100\n\nDestaques: CDL ITAPERUNA lidera em score (88). Forme Seguro tem maior crescimento (+50%). OF precisa de turnaround urgente.`
 
     if (lower.includes('tarefa') || lower.includes('pendente'))
       return `**Status de Tarefas:**\n\n${tarefas.length} tarefas cadastradas\n${tarefas.filter(t => t.status !== 'done').length} pendentes\n${tarefas.filter(t => t.prioridade === 'alta' && t.status !== 'done').length} de alta prioridade\n\nTop urgência: ${tarefas.filter(t => t.prioridade === 'alta' && t.status !== 'done').slice(0, 3).map(t => t.titulo).join(', ')}`
 
     if (lower.includes('financeiro') || lower.includes('gasto') || lower.includes('despesa'))
-      return `Para relatórios financeiros detalhados, acesse o módulo **Financeiro** na sidebar. Posso classificar despesas automaticamente: diga "classificar: [descrição da despesa]"`
+      return `Para relatórios financeiros detalhados, acesse o módulo **Financeiro** na sidebar. Posso classificar despesas automaticamente: diga "classificar: [descrição da despesa]"\n\nOu experimente: "DRE Doctor Wealth", "Fluxo de caixa FS", "Pipeline DW"`
 
     if (lower.includes('original fotografia') || lower.includes(' of ') || lower.includes('fotografia'))
-      return `**Original Fotografia:** Score 52/100, em turnaround.\n\nInadvimplência 8,7% (crítico), crescimento -4,2%. Recomendo: revisar carteira de clientes inadimplentes, definir nicho (corporativo ou social) e reestruturar precificação.`
+      return `**Original Fotografia:** Score 52/100, em turnaround.\n\nInadimplência 8,7% (crítico), crescimento -4,2%. Recomendo: revisar carteira de clientes inadimplentes, definir nicho (corporativo ou social) e reestruturar precificação.`
 
     if (lower.includes('forme seguro') || lower.includes(' fs ') || lower.includes('formatura'))
       return `**Forme Seguro:** Score 65/100, em crescimento acelerado (+50%).\n\nCapital gerenciado: R$ 420k, 3 turmas ativas. Pipeline: 5 turmas. Ação prioritária: fechar UNIFENAS Medicina 2026 e contratar comercial dedicado.`
@@ -162,7 +246,7 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
     if (lower.includes('doctor wealth') || lower.includes(' dw '))
       return `**Doctor Wealth:** Score 80/100, crescendo 18,4%.\n\n47 clientes médicos, recorrência R$ 38k/mês. Inadimplência controlada (3,2%). Próximo objetivo: atingir 60 clientes e lançar DW Academy.`
 
-    return 'Configure a API Claude no Vercel para respostas avançadas. Posso ajudar com: prioridades, briefings, tarefas, classificar despesas, análise por empresa.'
+    return 'Configure a API Claude no Vercel para respostas avançadas. Posso ajudar com: briefing do dia, fluxo de caixa, DRE, pipeline, prioridades, classificar despesas, análise por empresa.'
   }
 
   async function send(overrideTxt) {
@@ -207,10 +291,11 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
   }
 
   const quickActions = [
-    'Briefing executivo',
+    '📋 Briefing do Dia',
+    '💰 Fluxo de Caixa DW',
+    '📊 DRE Doctor Wealth',
+    '🎯 Pipeline DW',
     'Qual empresa precisa de atenção?',
-    'Analise minhas tarefas',
-    'Plano de ação desta semana',
     'Classificar: aluguel escritório',
   ]
 

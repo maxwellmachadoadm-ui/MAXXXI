@@ -36,6 +36,42 @@ const DEMO_LANCAMENTOS_V4 = [
   { id:'l15', empresa_id:'dw', tipo:'despesa',  categoria:'IMPOSTOS',   subcategoria:'Simples Nacional',          banco:'Nubank',         origem:null,            valor:4100,  mes:'2026-02', descricao:'DAS Simples Nacional fev',        data:'2026-02-20', status:'aprovado', anexo_nome:null, criado_por:'admin', criado_em:'2026-02-20T08:00:00Z' },
 ]
 
+// ── CALCULATE HEALTH SCORE ──
+export function calculateHealthScore(emp, lancamentos = []) {
+  if (!emp) return 0
+  let score = 50 // base
+
+  // Margem líquida (peso 25): ideal > 20%
+  const margem = emp.faturamento > 0 ? (emp.resultado / emp.faturamento) * 100 : 0
+  if (margem >= 20) score += 25
+  else if (margem >= 10) score += 15
+  else if (margem >= 0) score += 5
+  else score -= 15
+
+  // % meta atingida (peso 20): ideal > 80%
+  const pctMeta = emp.meta > 0 ? (emp.faturamento / emp.meta) * 100 : 75
+  if (pctMeta >= 80) score += 20
+  else if (pctMeta >= 60) score += 10
+  else if (pctMeta >= 40) score += 0
+  else score -= 10
+
+  // Crescimento (peso 15): ideal > 10%
+  if (emp.crescimento >= 10) score += 15
+  else if (emp.crescimento >= 0) score += 8
+  else if (emp.crescimento >= -10) score -= 5
+  else score -= 15
+
+  return Math.max(0, Math.min(100, Math.round(score)))
+}
+
+// ── DEMO AGENDA ──
+const DEMO_AGENDA = [
+  { id: '1', titulo: 'Reunião CDL — Assembleia', data: '2026-04-08', hora: '09:00', tipo: 'reuniao', empresa: 'cdl' },
+  { id: '2', titulo: 'Consultoria Doctor Wealth', data: '2026-04-09', hora: '14:00', tipo: 'consultoria', empresa: 'dw' },
+  { id: '3', titulo: 'Reunião com investidor FS', data: '2026-04-10', hora: '10:30', tipo: 'reuniao', empresa: 'fs' },
+  { id: '4', titulo: 'Revisão financeira mensal', data: '2026-04-14', hora: '08:00', tipo: 'financeiro', empresa: null },
+]
+
 const DataContext = createContext(null)
 export const useData = () => useContext(DataContext)
 
@@ -51,6 +87,11 @@ export function DataProvider({ children }) {
   const [crmLeads, setCrmLeads] = useState([])
   const [checkin, setCheckin] = useState({ prioridade: '', decisao: '', resultado: '' })
   const [loaded, setLoaded] = useState(false)
+
+  // ── AGENDA ──
+  const [agenda, setAgenda] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('orion_agenda') || 'null') || DEMO_AGENDA } catch { return DEMO_AGENDA }
+  })
 
   // ── LANÇAMENTOS FINANCEIROS ──
   const [lancamentos, setLancamentos] = useState(() => {
@@ -310,6 +351,195 @@ export function DataProvider({ children }) {
     return 'R$ ' + Number(v).toLocaleString('pt-BR')
   }
 
+  // ── SCORE HISTORY ──
+  function getScoreHistory(empresaId) {
+    const saved = JSON.parse(localStorage.getItem(`orion_score_hist_${empresaId}`) || 'null')
+    if (saved) return saved
+    const emp = empresas.find(e => e.id === empresaId)
+    if (!emp) return []
+    const baseScore = emp.score || 50
+    const months = ['Out', 'Nov', 'Dez', 'Jan', 'Fev', 'Mar']
+    return months.map((m, i) => ({
+      mes: m,
+      score: Math.max(20, Math.min(100, baseScore - 15 + Math.round(Math.random() * 10) + i * 2))
+    }))
+  }
+
+  // ── CASH FLOW ──
+  function getCashFlow(empresaId, dias = 90) {
+    const emp = empresas.find(e => e.id === empresaId)
+    if (!emp) return { semanas: [], saldoAtual: 0, alertaNegativo: false }
+
+    const lancEmp = lancamentos.filter(l => l.empresa_id === empresaId && l.status === 'aprovado')
+    const receitaMes = lancEmp.filter(l => l.tipo === 'receita').reduce((s, l) => s + l.valor, 0) || emp.faturamento || 0
+    const despesaMes = lancEmp.filter(l => l.tipo === 'despesa').reduce((s, l) => s + l.valor, 0) || (receitaMes * 0.7)
+
+    const semanas = Math.ceil(dias / 7)
+    const receitaSemana = receitaMes / 4
+    const despesaSemana = despesaMes / 4
+
+    let saldo = receitaMes * 0.5
+    const resultado = []
+    let alertaNegativo = false
+
+    for (let i = 0; i < semanas; i++) {
+      const semLabel = `S${i + 1}`
+      const varEntrada = 0.85 + (Math.sin(i * 1.3) * 0.2)
+      const varSaida = 0.90 + (Math.cos(i * 1.1) * 0.15)
+      const entrada = Math.round(receitaSemana * varEntrada)
+      const saida = Math.round(despesaSemana * varSaida)
+      saldo += entrada - saida
+      if (saldo < 0) alertaNegativo = true
+      resultado.push({ semana: semLabel, entrada, saida, saldo: Math.round(saldo) })
+    }
+
+    return { semanas: resultado.slice(0, semanas), saldoAtual: Math.round(receitaMes * 0.5), alertaNegativo }
+  }
+
+  // ── DRE ──
+  function getDRE(empresaId, mes) {
+    const itens = lancamentos.filter(l =>
+      l.status === 'aprovado' &&
+      (!empresaId || empresaId === 'all' || l.empresa_id === empresaId) &&
+      (!mes || l.mes === mes)
+    )
+
+    const receitaBruta = itens.filter(l => l.tipo === 'receita').reduce((s, l) => s + l.valor, 0)
+    const deducoes = itens.filter(l => l.tipo === 'despesa' && l.categoria === 'IMPOSTOS').reduce((s, l) => s + l.valor, 0)
+    const receitaLiquida = receitaBruta - deducoes
+    const custosDirectos = itens.filter(l => l.tipo === 'despesa' && l.categoria === 'PESSOAL').reduce((s, l) => s + l.valor, 0)
+    const margemBruta = receitaLiquida - custosDirectos
+    const despesasOp = itens.filter(l => l.tipo === 'despesa' && !['IMPOSTOS','PESSOAL'].includes(l.categoria)).reduce((s, l) => s + l.valor, 0)
+    const ebitda = margemBruta - despesasOp
+    const resultadoLiquido = ebitda
+
+    const margemBrutaPct = receitaLiquida > 0 ? ((margemBruta / receitaLiquida) * 100).toFixed(1) : 0
+    const margemLiquidaPct = receitaBruta > 0 ? ((resultadoLiquido / receitaBruta) * 100).toFixed(1) : 0
+
+    return {
+      receitaBruta, deducoes, receitaLiquida, custosDirectos, margemBruta,
+      despesasOp, ebitda, resultadoLiquido, margemBrutaPct, margemLiquidaPct
+    }
+  }
+
+  // ── PIPELINE ──
+  function getPipeline(empresaId) {
+    const contratoEmp = contratos.filter(c => c.empresa_id === empresaId && c.status === 'ativo')
+    const leadsEmp = crmLeads.filter(l => l.empresa_id === empresaId)
+
+    const garantida = contratoEmp.reduce((s, c) => {
+      const val = parseFloat((c.valor || '0').replace(/[^\d.]/g, '')) || 0
+      return s + val
+    }, 0)
+
+    const provavel = leadsEmp.filter(l => l.fase === 'Negociacao' || l.fase === 'Negociação').reduce((s, l) => {
+      const val = parseFloat((l.valor_estimado || '5000').replace(/[^\d.]/g, '')) || 5000
+      return s + val * 0.7
+    }, 0)
+
+    const possivel = leadsEmp.filter(l => l.fase === 'Proposta').reduce((s, l) => {
+      const val = parseFloat((l.valor_estimado || '5000').replace(/[^\d.]/g, '')) || 5000
+      return s + val * 0.4
+    }, 0)
+
+    const total = garantida + provavel + possivel
+
+    const meses = [0, 1, 2].map(i => {
+      const d = new Date()
+      d.setMonth(d.getMonth() + i)
+      return {
+        mes: d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }),
+        garantida: Math.round(garantida * (1 - i * 0.05)),
+        provavel: Math.round(provavel * (1 + i * 0.1)),
+        possivel: Math.round(possivel * (1 + i * 0.15)),
+      }
+    })
+
+    return { garantida, provavel, possivel, total, meses }
+  }
+
+  // ── PATRIMÔNIO ──
+  function getPatrimonio() {
+    const saved = localStorage.getItem('orion_patrimonio')
+    if (saved) return JSON.parse(saved)
+    return {
+      imoveis: 650000,
+      investimentos: 380000,
+      participacoes: 200000,
+      veiculos: 85000,
+      previdencia: 120000,
+      dividas: 45000,
+      historico: [
+        { mes: 'Out/25', total: 1320000 },
+        { mes: 'Nov/25', total: 1350000 },
+        { mes: 'Dez/25', total: 1370000 },
+        { mes: 'Jan/26', total: 1390000 },
+        { mes: 'Fev/26', total: 1410000 },
+        { mes: 'Mar/26', total: 1430000 },
+      ]
+    }
+  }
+
+  function savePatrimonio(data) {
+    localStorage.setItem('orion_patrimonio', JSON.stringify(data))
+  }
+
+  // ── AGENDA ──
+  function addAgendaItem(item) {
+    const next = [...agenda, { ...item, id: Date.now().toString() }]
+    setAgenda(next)
+    localStorage.setItem('orion_agenda', JSON.stringify(next))
+  }
+
+  function removeAgendaItem(itemId) {
+    const next = agenda.filter(a => a.id !== itemId)
+    setAgenda(next)
+    localStorage.setItem('orion_agenda', JSON.stringify(next))
+  }
+
+  // ── ALERTAS V5 ──
+  function generateAlertsV5() {
+    const alerts = []
+    const now = new Date()
+
+    empresasVisiveis.filter(e => e.id !== 'gp').forEach(e => {
+      // 1. Inadimplência acima do limite
+      const inadKpi = getKpis(e.id).find(k => k.label?.toLowerCase().includes('inadim'))
+      if (inadKpi) {
+        const val = parseFloat(inadKpi.valor)
+        if (val > 5) alerts.push({ level: 'critico', tipo: 'inadimplencia', text: `${e.nome} — Inadimplência em ${inadKpi.valor} (limite: 5%)`, emp: e.id })
+        else if (val > 3) alerts.push({ level: 'atencao', tipo: 'inadimplencia', text: `${e.nome} — Inadimplência em ${inadKpi.valor} (atenção: acima de 3%)`, emp: e.id })
+      }
+
+      // 2. Meta em risco
+      const dia = now.getDate()
+      if (e.meta > 0) {
+        const pct = (e.faturamento / e.meta) * 100
+        if (pct < 60 && dia >= 20) alerts.push({ level: 'critico', tipo: 'meta', text: `${e.nome} — Meta em risco: ${pct.toFixed(0)}% atingida (dia ${dia}/30)`, emp: e.id })
+        else if (pct < 60) alerts.push({ level: 'atencao', tipo: 'meta', text: `${e.nome} — Meta mensal em ${pct.toFixed(0)}% — acompanhar`, emp: e.id })
+      }
+
+      // 3. Contratos vencendo em 30 dias
+      getContratos(e.id).forEach(c => {
+        if (!c.vencimento) return
+        const venc = new Date(c.vencimento)
+        const diff = Math.ceil((venc - now) / (1000 * 60 * 60 * 24))
+        if (diff <= 30 && diff > 0) alerts.push({ level: 'atencao', tipo: 'contrato', text: `${e.nome} — Contrato "${c.nome}" vence em ${diff} dias`, emp: e.id })
+        if (c.status === 'inadim') alerts.push({ level: 'critico', tipo: 'contrato', text: `${e.nome} — Contrato "${c.nome}" inadimplente`, emp: e.id })
+      })
+
+      // 4. Tarefas alta prioridade
+      const altaPend = getTarefas(e.id).filter(t => t.prioridade === 'alta' && t.status !== 'done')
+      if (altaPend.length >= 3) alerts.push({ level: 'atencao', tipo: 'tarefa', text: `${e.nome} — ${altaPend.length} tarefas de alta prioridade pendentes`, emp: e.id })
+
+      // 5. Saldo projetado negativo
+      const cf = getCashFlow(e.id, 30)
+      if (cf.alertaNegativo) alerts.push({ level: 'critico', tipo: 'fluxo', text: `${e.nome} — Saldo projetado NEGATIVO nos próximos 30 dias`, emp: e.id })
+    })
+
+    return alerts.sort((a, b) => (a.level === 'critico' ? -1 : 1))
+  }
+
   function generateAlerts() {
     const alerts = []
     // Alertas segmentados — apenas empresas visíveis ao usuário
@@ -350,6 +580,18 @@ export function DataProvider({ children }) {
       arquivos, addArquivo, deleteArquivo,
       // MAXXXI aprendizado
       maxxxi_learned, learnClassification, suggestClassification,
+      // v5 — novos
+      calculateHealthScore,
+      getScoreHistory,
+      getCashFlow,
+      getDRE,
+      getPipeline,
+      generateAlertsV5,
+      getPatrimonio,
+      savePatrimonio,
+      agenda,
+      addAgendaItem,
+      removeAgendaItem,
     }}>
       {children}
     </DataContext.Provider>
