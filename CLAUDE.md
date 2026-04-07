@@ -1,62 +1,203 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+# CLAUDE.md — ORION Gestão Executiva
 
 **Sempre responder em português.**
+**Sempre ler este arquivo COMPLETO antes de qualquer ação.**
 
-## Projeto ORION
+---
 
-Plataforma executiva de **Maxwell Oliveira Machado** — CEO, Contador, Presidente CDL Divinópolis/MG.
+## Identidade da Plataforma
 
-### Empresas do Ecossistema
+- **Nome oficial:** ORION Gestão Executiva
+- **Agente IA:** MAXXXI (chat flutuante CFO Virtual)
+- **Proprietário:** Maxwell Oliveira Machado — CEO, Contador, Presidente CDL ITAPERUNA/MG
+- **URL Produção:** https://orion-platform-wine.vercel.app
+- **GitHub:** https://github.com/maxwellmachadoadm-ui/ORION
+- **Título do browser:** ORION Gestão Executiva
 
-- **Doctor Wealth (DW)** — Contabilidade médica, 47 clientes, R$ 48,5k/mês
-- **Original Fotografia (OF)** — Estúdio, em turnaround
-- **Forme Seguro (FS)** — Fundos de formatura, R$ 420k gerenciados
-- **CDL Divinópolis (CDL)** — 1.100 associados
-- **Gestão Pessoal (GP)** — Patrimônio R$ 1,2M
+---
 
-### Stack
+## Ecossistema de Empresas
 
-- **Frontend**: React + Vite (atualmente standalone `index.html`, migração planejada)
-- **Deploy**: Vercel
-- **API**: Anthropic Claude (MAXXXI — agente executivo IA)
+| ID  | Nome                  | Sigla | Status       | Score |
+|-----|-----------------------|-------|--------------|-------|
+| dw  | Doctor Wealth         | DW    | Crescimento  | 80    |
+| of  | Original Fotografia   | OF    | Turnaround   | 52    |
+| fs  | Forme Seguro          | FS    | Lançamento   | 65    |
+| cdl | CDL ITAPERUNA         | CDL   | Estável      | 88    |
+| gp  | Gestão Pessoal        | GP    | Saudável     | 75    |
 
-## Development
+**IMPORTANTE:** CDL ITAPERUNA (nunca "CDL Divinópolis"). IDs base (dw, of, fs, cdl, gp) NÃO podem ser deletados.
 
-- **Run**: Open `index.html` directly in a browser. No server required.
-- **No build step, no tests, no linter.**
+---
 
-## Architecture
+## Stack Técnica
 
-The app is a vanilla JS SPA with these core sections, all rendered client-side:
+- **Frontend:** React 19 + Vite 6 (SPA)
+- **Roteamento:** React Router DOM v7
+- **Backend:** Supabase (PostgreSQL + Storage + Auth + RLS)
+- **Deploy:** Vercel (Serverless Functions + Cron Jobs)
+- **IA:** Anthropic Claude API (MAXXXI)
+- **Email:** Resend API (relatório semanal todo domingo)
+- **Fontes:** DM Sans + DM Mono (Google Fonts)
 
-- **Auth**: Login/register with localStorage persistence. Default user: `maxwell@orion.app` / `orion2026`.
-- **Home**: KPI cards, company grid, agenda, live market feed, daily check-in.
-- **Dashboard**: Revenue bar charts (CSS-based), donut chart (SVG), sparklines, health scores, performance vs meta.
-- **Tasks (Kanban)**: Full CRUD task module with Kanban board (todo/doing/done), filters by priority and company, localStorage persistence. Tasks are seeded from `EMPS` data on first load.
-- **CEO View**: Ranking and revenue distribution across companies.
-- **Workspace**: Per-company views with tabs (KPIs, OKRs, Tarefas, Contratos, Riscos, Decisoes, CRM, Arquivos).
-- **MAXXXI Chat**: AI assistant panel using Anthropic Claude API. Falls back to hardcoded local responses when no API key is configured.
+---
 
-### Key Data Structures
+## Arquitetura de Contextos
 
-- `EMPS` object: All company data (DW, OF, FS, CDL, GP) including KPIs, OKRs, tasks, contracts, risks, decisions, CRM pipelines.
-- Tasks stored in `localStorage` under key `orion_tasks`.
-- API key stored in `localStorage` under key `orion_api_key`.
-- All localStorage keys are prefixed with `orion_`.
+- **AuthContext** — Auth, ROLES (admin/gestor/colaborador/contador/assistente/pendente), permissões, `canDelete = profile?.role === 'admin'`, `inviteUser(email, role, companiesAccess, permissions)`
+- **DataContext** — Dados das empresas, `calculateHealthScore`, `getCashFlow`, `getDRE`, `getPipeline`, `generateAlertsV5`, `addEmpresa`, `removeEmpresa`, `uploadLogoEmpresa`
+- **AppContext** — `presentationMode`, `togglePresentation()`
 
-### Navigation
+---
 
-Page switching is handled by `showPage(pg)` which toggles visibility of `page-home`, `page-dashboard`, `page-tasks`, `page-ceo`, `page-ws` divs. Sidebar items call `goHome()`, `goDashboard()`, `goTasks()`, `goCEO()`, `openEmp(id)`.
+## Módulos Implementados
 
-### Claude API Integration
+### Páginas
+- **Home** — KPIs consolidados, health score rings, agenda manual, check-in diário, Briefing MAXXXI
+- **Dashboard** — Gráficos receita, donut SVG, sparklines, health scores, performance vs meta
+- **Tasks** — Kanban (todo/doing/done), filtros prioridade e empresa, CRUD completo
+- **CEO** — 7 seções: KPIs consolidados, health scores comparativos, fluxo de caixa 90d, pipeline, ranking, alertas, patrimônio
+- **Workspace** — 11 abas: KPIs, OKRs, Tarefas, Contratos, Riscos, Decisões, CRM, Pipeline, Fluxo de Caixa, DRE, Arquivos (+ Patrimônio para GP)
+- **Financeiro** — 5 abas: Resumo, Por Banco, Por Natureza, Lançamentos, Comparativo
+- **Arquivo Digital** — Upload drag & drop, classificação automática MAXXXI, fila de aprovação
+- **Classificações** — CLASSIFICATION_BANK com 7 grupos, padrões aprendidos
+- **Admin** — 4 abas: Usuários, Empresas (CRUD + logo), Auditoria, Log MAXXXI
+- **Login** — Auth com Supabase ou localStorage demo
 
-The MAXXXI chat calls `https://api.anthropic.com/v1/messages` directly from the browser using `anthropic-dangerous-direct-browser-access` header. API key and model are configured via a modal and stored in localStorage. The system prompt in `buildSystemPrompt()` includes live task data and company metrics.
+### Componentes
+- **Layout** — Topbar 52px (saudação compacta + data), sidebar 200px gradiente dourado
+- **OrionLogo** — SVG 32×32 constelação Orion com gradiente azul
+- **Maxxxi** — FAB dourado 42px, chat com 3 modelos (Haiku/Sonnet/Opus), quick actions, RAG de arquivos
+- **PDFExport** — Exportação executiva
 
-## Conventions
+### Iframes
+- `/forme-seguro-v2.html` — Gestão de Fundos FS (dark mode)
+- `/projecao-forme-seguro.html` — Projeções FS
 
-- Language: Brazilian Portuguese (pt-BR) for all UI text.
-- CSS uses custom properties defined in `:root` (color palette, border radius).
-- Font stack: Syne (headings), DM Sans (body) via Google Fonts.
-- No external JS dependencies.
+---
+
+## Design System v2
+
+```css
+--bg: #080c14        /* fundo global */
+--surface: #0d1424   /* cards */
+--surface2: #111827  /* inputs, rows */
+--border: #1e2a3d
+--border2: #2d3f5a
+--blue: #3b82f6
+--gold: #f59e0b      /* cor primária ORION */
+--gold-dark: #d97706
+--green: #10b981
+--red: #ef4444
+--text: #f1f5f9
+--text2: #94a3b8
+--text3: #64748b
+--text4: #475569
+```
+
+**Tipografia:**
+- Labels: 9px DM Mono uppercase letter-spacing 1.5px
+- KPI valor: 16-18px weight 700
+- Corpo: 12px DM Sans
+- Botão primário: gradient gold, color #0d1424, 10px uppercase
+
+---
+
+## Credenciais Demo
+
+- **Admin:** maxwell@orion.app / orion2026
+- **Usuário padrão:** Cria conta na tela de login
+
+---
+
+## LocalStorage Keys
+
+```
+orion_tasks_v2         — tarefas kanban
+orion_lancamentos_v4   — lançamentos financeiros
+orion_audit_log        — log de auditoria
+orion_maxxxi_log       — log do MAXXXI (max 500)
+orion_maxxxi_learned   — classificações aprendidas
+orion_maxxxi_model     — modelo Claude selecionado
+orion_pending_class    — fila de classificação
+orion_arquivos         — metadados de arquivos
+orion_custom_empresas  — empresas customizadas
+orion_agenda           — eventos da agenda
+orion_ci_[DATE]        — check-in diário por data
+```
+
+---
+
+## Supabase Schema
+
+```sql
+-- Tabelas principais
+empresas (id, nome, sigla, descricao, cor, rgb, score, status, status_cor, faturamento, meta, resultado, crescimento, drive_url, logo_url)
+kpis (empresa_id, icone, label, valor, ordem)
+okrs (empresa_id, objetivo, progresso)
+tarefas (titulo, empresa_id, prioridade, status)
+contratos (empresa_id, nome, valor, status, vencimento)
+riscos (empresa_id, descricao, nivel)
+decisoes (empresa_id, descricao, data)
+crm_leads (empresa_id, fase, nome, valor)
+profiles (id, email, name, role, companies_access, permissions, expires_at)
+user_empresa_access (user_id, empresa_id, granted_by, granted_at)
+```
+
+---
+
+## Convenções Obrigatórias
+
+1. **Nunca usar "CDL Divinópolis"** — sempre "CDL ITAPERUNA"
+2. **Nunca chamar o agente IA de outro nome** — sempre "MAXXXI"
+3. **Nunca usar "ORION" sem "Gestão Executiva"** no título/browser
+4. **canDelete** é exclusivo de admin (role === 'admin')
+5. **isDemoMode** = `!supabase` — toda lógica de fallback usa localStorage
+6. **Componentes com hooks** devem ser declarados FORA do componente pai (ex: FluxoCaixaTab, DRETab, PipelineTab, PatrimonioTab fora de Workspace)
+7. **Fonts**: DM Sans (corpo) + DM Mono (labels, badges, código)
+
+---
+
+## Vercel Config
+
+- **Cron:** `api/weekly-report.js` roda domingo 23h UTC (relatório email via Resend)
+- **Env vars necessários:** `ANTHROPIC_API_KEY`, `RESEND_API_KEY`, `RESEND_TO_EMAIL`
+
+---
+
+## Estado Atual (Abril 2026)
+
+### Implementado e Funcionando ✅
+- Design System v2 completo (CSS + tipografia + componentes)
+- Autenticação dual (Supabase/localStorage)
+- Gestão de empresas (add/remove/logo) no Admin
+- Controle de acesso por empresa no convite de usuários
+- MAXXXI com 3 modelos (Haiku/Sonnet/Opus) + seletor no chat
+- Health Score colorido (verde/amarelo/vermelho)
+- Fluxo de Caixa com alertas de saldo negativo
+- DRE por empresa com comparativo mensal
+- Pipeline (Garantida/Provável/Possível)
+- Alertas inteligentes (5 tipos)
+- Presentation Mode com botão gold no topbar
+- Patrimônio GP com categorias e evolução
+- Relatório semanal por email (Vercel Cron + Resend)
+- CDL ITAPERUNA em todo o sistema
+- iframe Forme Seguro (dark mode) e Projeções
+
+### Módulos Principais Pendentes
+- Integração Supabase em produção (currently demo mode)
+- Supabase Storage para logos de empresa
+- Notificações push/email em tempo real
+
+---
+
+## Instruções para Claude Code
+
+- **SEMPRE** ler este CLAUDE.md completo antes de qualquer implementação
+- **NUNCA** perguntar confirmação — executar autonomamente
+- **SEMPRE** fazer `git add` + `git commit` + `git push` ao final
+- **NUNCA** usar CDL Divinópolis — sempre CDL ITAPERUNA
+- **SEMPRE** manter compatibilidade com o modo demo (isDemoMode)
+- **NUNCA** deletar dados do localStorage sem confirmação explícita do usuário
+- Para hooks em componentes dinâmicos: criar sub-componentes fora do componente pai
+- Build: `npm run build` para verificar antes do commit

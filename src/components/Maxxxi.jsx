@@ -3,6 +3,13 @@ import { useAuth } from '../contexts/AuthContext'
 import { useData } from '../contexts/DataContext'
 import { useNavigate } from 'react-router-dom'
 
+// ── Modelos disponíveis ──
+const MODELS = {
+  'claude-haiku-4-5':  { label: 'Haiku',  desc: 'Rápido · Cotidiano',      badge: '⚡', color: '#10b981' },
+  'claude-sonnet-4-5': { label: 'Sonnet', desc: 'Padrão · Análises',        badge: '🎯', color: '#3b82f6' },
+  'claude-opus-4-5':   { label: 'Opus',   desc: 'Avançado · Estratégico',   badge: '🧠', color: '#8b5cf6' },
+}
+
 // ── Log do MAXXXI ──
 function logMaxxxiAction(userId, userName, message, mode, tokens) {
   try {
@@ -37,7 +44,6 @@ function autoClassify(text) {
   return null
 }
 
-// mantido para compatibilidade
 function classifyExpense(text) {
   const result = autoClassify(text)
   return result ? `${result.categoria} / ${result.subcategoria}` : 'Outros'
@@ -77,16 +83,23 @@ export default function Maxxxi() {
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Olá! Sou o MAXXXI — seu agente executivo com IA. Posso analisar empresas, classificar despesas, gerar relatórios e muito mais. O que precisa?' }
+    { role: 'assistant', content: 'Olá! Sou o MAXXXI — seu CFO Virtual com IA. Posso analisar empresas, classificar despesas, gerar relatórios e muito mais. O que precisa?' }
   ])
   const [loading, setLoading] = useState(false)
   const [serverApi, setServerApi] = useState(null)
   const [showLog, setShowLog] = useState(false)
+  const [selectedModel, setSelectedModel] = useState(() => {
+    return localStorage.getItem('orion_maxxxi_model') || 'claude-haiku-4-5'
+  })
   const msgsRef = useRef(null)
 
   useEffect(() => {
     fetch('/api/status').then(r => r.json()).then(d => setServerApi(d.api_configured)).catch(() => setServerApi(false))
   }, [])
+
+  useEffect(() => {
+    localStorage.setItem('orion_maxxxi_model', selectedModel)
+  }, [selectedModel])
 
   function scrollBottom() { if (msgsRef.current) msgsRef.current.scrollTop = msgsRef.current.scrollHeight }
   useEffect(scrollBottom, [messages])
@@ -109,8 +122,14 @@ export default function Maxxxi() {
 
     const allAlerts = generateAlertsV5 ? generateAlertsV5() : generateAlerts()
 
-    return `Você é MAXXXI — CFO Virtual e Agente Executivo IA da plataforma ORION de ${profile?.name || 'Maxwell'}.
-Seu papel principal é ser o CFO virtual de Maxwell Oliveira Machado.
+    const modelContext = selectedModel === 'claude-opus-4-5'
+      ? 'MODO AVANÇADO: Forneça análises estratégicas profundas, cenários e recomendações detalhadas.'
+      : selectedModel === 'claude-sonnet-4-5'
+      ? 'MODO PADRÃO: Forneça análises equilibradas com dados e ações concretas.'
+      : 'MODO RÁPIDO: Seja conciso e direto. Máximo 2 parágrafos curtos.'
+
+    return `Você é MAXXXI — CFO Virtual e Agente Executivo IA da plataforma ORION Gestão Executiva de ${profile?.name || 'Maxwell'}.
+${modelContext}
 Tome iniciativa — identifique riscos, oportunidades e anomalias proativamente.
 Estruture suas respostas: Situação Atual → Risco/Oportunidade → Ação Recomendada → Prazo.
 
@@ -129,13 +148,11 @@ ${docContext}
 CAPACIDADES:
 - CFO Virtual: análise financeira estruturada, DRE, fluxo de caixa, pipeline
 - Briefing diário executivo
-- Analisar empresas e gerar briefings executivos
 - Classificar despesas automaticamente (diga "classificar: descrição da despesa")
 - Gerar relatórios por linguagem natural
-- Dar prioridades, alertas e recomendações proativas
-- Registrar todas as ações no log do MAXXXI
+- Alertas proativos e recomendações
 
-Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo 3-4 parágrafos salvo pedido específico.`
+Responda em português brasileiro. Seja direto e executivo.`
   }
 
   function generateRelatorioEmpresa(empresaId) {
@@ -157,7 +174,6 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
     const hora = new Date().getHours()
     const allAlerts = generateAlertsV5 ? generateAlertsV5() : generateAlerts()
 
-    // Classificação de despesa
     if (lower.startsWith('classificar:') || (lower.includes('classific') && lower.includes('despesa'))) {
       const desc = txt.replace(/classificar:/i, '').trim()
       const result = autoClassify(desc)
@@ -167,12 +183,10 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
       return `🏷 **"${desc}"** — Classificação: **Outros / Despesas Diversas**\n\nNão encontrei padrão específico. Acesse o Arquivo Digital para classificar manualmente.`
     }
 
-    // Briefing diário
     if (lower.includes('briefing') || lower.includes('dia') || (hora < 10 && (lower.includes('oi') || lower.includes('olá')))) {
       return generateDailyBriefing(empresas, allAlerts, tarefas)
     }
 
-    // Fluxo de caixa
     if (getCashFlow && (lower.includes('fluxo') || lower.includes('caixa') || lower.includes('projeção'))) {
       const empEncontrado = empresas.find(e => lower.includes(e.nome.toLowerCase()) || lower.includes(e.sigla.toLowerCase()))
       const empId = empEncontrado?.id || 'dw'
@@ -186,7 +200,6 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
       )
     }
 
-    // DRE
     if (getDRE && (lower.includes('dre') || lower.includes('resultado') || (lower.includes('margem') && lower.includes('empresa')))) {
       const empEncontrado = empresas.find(e => lower.includes(e.nome.toLowerCase()) || lower.includes(e.sigla.toLowerCase()))
       const empId = empEncontrado?.id || null
@@ -203,7 +216,6 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
         `(=) **Resultado Líquido: ${fmt(dre.resultadoLiquido)} (${dre.margemLiquidaPct}%)**`
     }
 
-    // Pipeline
     if (getPipeline && (lower.includes('pipeline') || lower.includes('receita futura') || lower.includes('funil'))) {
       const empEncontrado = empresas.find(e => lower.includes(e.nome.toLowerCase()) || lower.includes(e.sigla.toLowerCase()))
       const empId = empEncontrado?.id || 'dw'
@@ -216,7 +228,6 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
         `**Total Pipeline: ${fmt(p.total)}**`
     }
 
-    // Relatório financeiro por empresa
     if (lower.includes('relatório') || lower.includes('resumo') || lower.includes('quanto')) {
       for (const emp of empresas) {
         if (lower.includes(emp.nome.toLowerCase()) || lower.includes(emp.sigla.toLowerCase())) {
@@ -246,7 +257,7 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
     if (lower.includes('doctor wealth') || lower.includes(' dw '))
       return `**Doctor Wealth:** Score 80/100, crescendo 18,4%.\n\n47 clientes médicos, recorrência R$ 38k/mês. Inadimplência controlada (3,2%). Próximo objetivo: atingir 60 clientes e lançar DW Academy.`
 
-    return 'Configure a API Claude no Vercel para respostas avançadas. Posso ajudar com: briefing do dia, fluxo de caixa, DRE, pipeline, prioridades, classificar despesas, análise por empresa.'
+    return `Configure a API Claude no Vercel para respostas avançadas com o modelo ${MODELS[selectedModel]?.label || 'selecionado'}. Posso ajudar com: briefing do dia, fluxo de caixa, DRE, pipeline, prioridades, classificar despesas, análise por empresa.`
   }
 
   async function send(overrideTxt) {
@@ -257,7 +268,6 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
     const newMsgs = [...messages, { role: 'user', content: txt }]
     setMessages(newMsgs)
 
-    // Sempre loga
     logMaxxxiAction(user?.id, profile?.name, txt, serverApi ? 'server' : 'local', null)
 
     if (!serverApi) {
@@ -273,10 +283,11 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
     setLoading(true)
     try {
       const apiMessages = newMsgs.filter(m => m.role === 'user' || m.role === 'assistant').slice(1).slice(-14)
+      const maxTokens = selectedModel === 'claude-opus-4-5' ? 2048 : 1024
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1024, system: buildSystemPrompt(), messages: apiMessages })
+        body: JSON.stringify({ model: selectedModel, max_tokens: maxTokens, system: buildSystemPrompt(), messages: apiMessages })
       })
       const data = await res.json()
       const reply = data.content?.[0]?.text || 'Sem resposta.'
@@ -310,38 +321,65 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
       .replace(/•\s/g, '&bull; ')
   }
 
+  const activeModel = MODELS[selectedModel] || MODELS['claude-haiku-4-5']
+
   return (
     <div className="mx-panel">
       {open && (
         <div className="mx-chat">
           <div className="mx-hdr">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+              <div style={{ minWidth: 0 }}>
                 <div className="mx-hname">🤖 MAXXXI</div>
-                <div className="mx-hsub">INTELIGÊNCIA EXECUTIVA ORION</div>
+                <div className="mx-hsub">{activeModel.desc.toUpperCase()}</div>
               </div>
               <span className={`mx-api-status ${serverApi ? 'ok' : 'off'}`}>
-                {serverApi ? 'API' : serverApi === false ? 'LOCAL' : '...'}
+                {serverApi ? 'SERVER' : serverApi === false ? 'LOCAL' : '...'}
               </span>
             </div>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <button onClick={() => setShowLog(!showLog)} style={{ background: 'none', border: '1px solid var(--br)', color: 'var(--tx3)', fontSize: 11, padding: '3px 8px', borderRadius: 6, cursor: 'pointer' }}>
+            <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+              {/* Model selector */}
+              {Object.entries(MODELS).map(([key, m]) => (
+                <button
+                  key={key}
+                  onClick={() => setSelectedModel(key)}
+                  title={m.desc}
+                  style={{
+                    background: selectedModel === key ? m.color + '22' : 'transparent',
+                    border: `1px solid ${selectedModel === key ? m.color : 'var(--border)'}`,
+                    color: selectedModel === key ? m.color : 'var(--text3)',
+                    fontSize: 9,
+                    fontFamily: "'DM Mono', monospace",
+                    fontWeight: 600,
+                    padding: '2px 5px',
+                    borderRadius: 4,
+                    cursor: 'pointer',
+                    letterSpacing: '0.3px',
+                    textTransform: 'uppercase',
+                    transition: 'all 0.15s',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {m.badge} {m.label}
+                </button>
+              ))}
+              <button onClick={() => setShowLog(!showLog)} style={{ background: 'none', border: '1px solid var(--border)', color: 'var(--text3)', fontSize: 11, padding: '3px 8px', borderRadius: 6, cursor: 'pointer', marginLeft: 2 }}>
                 Log
               </button>
-              <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--tx3)', fontSize: 20, cursor: 'pointer' }}>×</button>
+              <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text3)', fontSize: 20, cursor: 'pointer' }}>×</button>
             </div>
           </div>
 
           {showLog ? (
             <div style={{ flex: 1, overflow: 'auto', padding: 14 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: 'var(--tx3)', textTransform: 'uppercase', marginBottom: 10 }}>Histórico de Interações</div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: 'var(--text3)', textTransform: 'uppercase', marginBottom: 10 }}>Histórico de Interações</div>
               {(() => {
                 const log = JSON.parse(localStorage.getItem('orion_maxxxi_log') || '[]')
-                if (log.length === 0) return <div style={{ color: 'var(--tx3)', fontSize: 12 }}>Nenhuma interação registrada.</div>
+                if (log.length === 0) return <div style={{ color: 'var(--text3)', fontSize: 12 }}>Nenhuma interação registrada.</div>
                 return log.slice(0, 30).map((l, i) => (
-                  <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid var(--br)', fontSize: 12 }}>
-                    <div style={{ color: 'var(--tx3)', fontSize: 10 }}>{new Date(l.timestamp).toLocaleString('pt-BR')} · {l.mode}</div>
-                    <div style={{ color: 'var(--tx2)', marginTop: 2 }}>{l.message}</div>
+                  <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 12 }}>
+                    <div style={{ color: 'var(--text3)', fontSize: 10 }}>{new Date(l.timestamp).toLocaleString('pt-BR')} · {l.mode}</div>
+                    <div style={{ color: 'var(--text2)', marginTop: 2 }}>{l.message}</div>
                   </div>
                 ))
               })()}
@@ -377,7 +415,7 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
 
               {showEmpSelect && (
                 <div style={{ padding:'6px 14px 0', display:'flex', flexWrap:'wrap', gap:6 }}>
-                  <div style={{ width:'100%', fontSize:11, color:'var(--tx3)', marginBottom:4 }}>Qual empresa?</div>
+                  <div style={{ width:'100%', fontSize:11, color:'var(--text3)', marginBottom:4 }}>Qual empresa?</div>
                   {empresas.map(emp => (
                     <button key={emp.id} className="qbtn"
                       style={{ borderColor: emp.cor + '55', color: emp.cor }}
@@ -393,7 +431,7 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && send()}
-                  placeholder="Consulte o MAXXXI... (classificar: despesa | relatório DW | briefing)"
+                  placeholder={`MAXXXI ${activeModel.label} — análise, classificar despesa, briefing...`}
                 />
                 <button className="mx-send" onClick={() => send()}>→</button>
               </div>
@@ -402,7 +440,7 @@ Responda em português brasileiro. Seja direto, executivo e pragmático. Máximo
         </div>
       )}
 
-      <button className="maxxxi-fab" onClick={() => setOpen(!open)} title="MAXXXI — Agente IA">
+      <button className="maxxxi-fab" onClick={() => setOpen(!open)} title="MAXXXI — CFO Virtual IA">
         🤖
       </button>
     </div>
