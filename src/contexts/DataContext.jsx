@@ -63,15 +63,18 @@ export function safeVal(val, decimals = 1, suffix = '%') {
 
 // ── CALCULATE HEALTH SCORE ──
 export function calculateHealthScore(emp, lancamentos = []) {
-  if (!emp) return 0
+  if (!emp) return 50
   let score = 50 // base
 
   // Margem líquida (peso 25): ideal > 20%
-  const margem = emp.faturamento > 0 ? (emp.resultado / emp.faturamento) * 100 : 0
-  if (margem >= 20) score += 25
-  else if (margem >= 10) score += 15
-  else if (margem >= 0) score += 5
-  else score -= 15
+  const margem = emp.faturamento > 0 && emp.resultado != null
+    ? (emp.resultado / emp.faturamento) * 100 : null
+  if (margem != null && isFinite(margem)) {
+    if (margem >= 20) score += 25
+    else if (margem >= 10) score += 15
+    else if (margem >= 0) score += 5
+    else score -= 15
+  }
 
   // % meta atingida (peso 20): ideal > 80%
   const pctMeta = emp.meta > 0 ? (emp.faturamento / emp.meta) * 100 : 75
@@ -81,12 +84,22 @@ export function calculateHealthScore(emp, lancamentos = []) {
   else score -= 10
 
   // Crescimento (peso 15): ideal > 10%
-  if (emp.crescimento >= 10) score += 15
-  else if (emp.crescimento >= 0) score += 8
-  else if (emp.crescimento >= -10) score -= 5
+  const cresc = emp.crescimento != null && isFinite(emp.crescimento) ? emp.crescimento : 0
+  if (cresc >= 10) score += 15
+  else if (cresc >= 0) score += 8
+  else if (cresc >= -10) score -= 5
   else score -= 15
 
-  const result = Math.max(0, Math.min(100, Math.round(score)))
+  // Inadimplência (peso 10): ideal < 2%
+  const inad = emp.inadimplencia != null && isFinite(emp.inadimplencia) ? emp.inadimplencia : null
+  if (inad != null) {
+    if (inad <= 2) score += 10
+    else if (inad <= 5) score += 5
+    else if (inad <= 10) score -= 5
+    else score -= 10
+  }
+
+  const result = Math.max(5, Math.min(100, Math.round(score)))
   return isNaN(result) ? (emp.score || 50) : result
 }
 
@@ -342,7 +355,7 @@ export function DataProvider({ children }) {
     const receitas = items.filter(l => l.tipo === 'receita').reduce((s, l) => s + l.valor, 0)
     const despesas = items.filter(l => l.tipo === 'despesa').reduce((s, l) => s + l.valor, 0)
     const resultado = receitas - despesas
-    const margem = receitas > 0 ? ((resultado / receitas) * 100).toFixed(1) : 0
+    const margem = receitas > 0 && isFinite(resultado / receitas) ? ((resultado / receitas) * 100).toFixed(1) + '%' : '—'
 
     const porCategoria = {}
     items.forEach(l => {

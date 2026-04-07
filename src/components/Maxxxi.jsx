@@ -167,7 +167,7 @@ Responda em português brasileiro. Seja direto e executivo.`
         `Receitas: ${fmt(resumo.receitas)}\n` +
         `Despesas: ${fmt(resumo.despesas)}\n` +
         `Resultado: ${fmt(resumo.resultado)}\n` +
-        `Margem: ${resumo.margem}%\n\n` +
+        `Margem: ${resumo.margem}\n\n` +
         `Score: ${emp.score}/100 · Faturamento: ${fmt(emp.faturamento)} · Crescimento: ${emp.crescimento}%`
     } catch { return `Dados para ${emp.nome}: Score ${emp.score}, Faturamento ${fmt(emp.faturamento)}` }
   }
