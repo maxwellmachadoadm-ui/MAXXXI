@@ -3,9 +3,21 @@ import { useAuth, ROLES } from '../contexts/AuthContext'
 import { useData, DEFAULT_MODULOS } from '../contexts/DataContext'
 
 const ALL_MODULOS = [
-  'KPIs', 'OKRs', 'Tarefas', 'Contratos', 'Riscos', 'Decisões',
-  'Pipeline', 'Fluxo de Caixa', 'DRE', 'Arquivos',
-  'Biblioteca', 'Gestão de Fundos', 'Projeções', 'Projetos', 'Patrimônio'
+  { key: 'KPIs',             icon: '📊' },
+  { key: 'OKRs',             icon: '🎯' },
+  { key: 'Tarefas',          icon: '☑️' },
+  { key: 'Contratos',        icon: '📄' },
+  { key: 'Riscos',           icon: '⚠️' },
+  { key: 'Decisões',         icon: '⚡' },
+  { key: 'Pipeline',         icon: '📈' },
+  { key: 'Fluxo de Caixa',   icon: '💰' },
+  { key: 'DRE',              icon: '📋' },
+  { key: 'Arquivos',         icon: '📁' },
+  { key: 'Biblioteca',       icon: '📚' },
+  { key: 'Gestão de Fundos', icon: '🏦' },
+  { key: 'Projeções',        icon: '🔮' },
+  { key: 'Projetos',         icon: '🏗️' },
+  { key: 'Patrimônio',       icon: '🏠' },
 ]
 
 const ALL_INVITE_PERMISSIONS = [
@@ -174,7 +186,7 @@ export default function Admin() {
     const empId = newEmp.sigla.toLowerCase().replace(/[^a-z0-9]/g, '')
     await addEmpresa(newEmp)
     // Salvar módulos selecionados
-    const activeMods = ALL_MODULOS.filter(m => newEmpMods[m] !== false)
+    const activeMods = ALL_MODULOS.map(m => m.key).filter(m => newEmpMods[m] !== false)
     setEmpresaModulos(empId, activeMods)
     setNewEmpModal(false)
     setNewEmp({ nome: '', sigla: '', descricao: '', cor: '#3b82f6', rgb: '59,130,246' })
@@ -398,10 +410,15 @@ export default function Admin() {
                 </label>
 
                 {/* Módulos */}
-                <button className="btn btn-secondary btn-sm" onClick={() => {
-                  setModulosModal(emp)
-                  setModulosEdit(getEmpresaModulos(emp.id))
-                }}>⚙ Módulos</button>
+                {(() => {
+                  const mods = getEmpresaModulos(emp.id)
+                  return (
+                    <button className="btn btn-secondary btn-sm" onClick={() => {
+                      setModulosModal(emp)
+                      setModulosEdit(mods)
+                    }}>⚙ Módulos ({mods.length})</button>
+                  )
+                })()}
 
                 {/* Delete (não permite deletar empresas base) */}
                 {!['dw','of','fs','cdl','gp'].includes(emp.id) && (
@@ -447,12 +464,18 @@ export default function Admin() {
                     <p style={{ color: '#94a3b8', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>MÓDULOS DESTA EMPRESA</p>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                       {ALL_MODULOS.map(mod => (
-                        <label key={mod} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                        <label key={mod.key} style={{
+                          display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+                          padding: '5px 8px', borderRadius: 6,
+                          background: newEmpMods[mod.key] !== false ? 'rgba(59,130,246,.08)' : 'transparent',
+                          border: `1px solid ${newEmpMods[mod.key] !== false ? 'rgba(59,130,246,.2)' : 'var(--border)'}`,
+                        }}>
                           <input type="checkbox"
-                            checked={newEmpMods[mod] !== false}
-                            onChange={e => setNewEmpMods(prev => ({ ...prev, [mod]: e.target.checked }))}
+                            checked={newEmpMods[mod.key] !== false}
+                            onChange={e => setNewEmpMods(prev => ({ ...prev, [mod.key]: e.target.checked }))}
                           />
-                          <span style={{ color: '#f1f5f9', fontSize: 13 }}>{mod}</span>
+                          <span>{mod.icon}</span>
+                          <span style={{ color: '#f1f5f9', fontSize: 13 }}>{mod.key}</span>
                         </label>
                       ))}
                     </div>
@@ -477,17 +500,31 @@ export default function Admin() {
                 <p style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 16 }}>
                   Selecione os módulos visíveis no Workspace desta empresa.
                 </p>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                  <button className="btn btn-sm btn-secondary" onClick={() => setModulosEdit(ALL_MODULOS.map(m => m.key))}>Marcar Todos</button>
+                  <button className="btn btn-sm btn-secondary" onClick={() => setModulosEdit([])}>Desmarcar Todos</button>
+                  <span style={{ fontSize: 11, color: 'var(--text3)', marginLeft: 'auto', alignSelf: 'center' }}>{modulosEdit.length}/{ALL_MODULOS.length} ativos</span>
+                </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 20 }}>
                   {ALL_MODULOS.map(mod => (
-                    <label key={mod} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}>
+                    <label key={mod.key} style={{
+                      display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 13,
+                      color: modulosEdit.includes(mod.key) ? 'var(--text)' : 'var(--text4)',
+                      padding: '6px 10px', borderRadius: 8,
+                      background: modulosEdit.includes(mod.key) ? 'rgba(59,130,246,.08)' : 'transparent',
+                      border: `1px solid ${modulosEdit.includes(mod.key) ? 'rgba(59,130,246,.2)' : 'var(--border)'}`,
+                      transition: '.15s',
+                    }}>
                       <input
                         type="checkbox"
-                        checked={modulosEdit.includes(mod)}
+                        checked={modulosEdit.includes(mod.key)}
                         onChange={() => setModulosEdit(prev =>
-                          prev.includes(mod) ? prev.filter(m => m !== mod) : [...prev, mod]
+                          prev.includes(mod.key) ? prev.filter(m => m !== mod.key) : [...prev, mod.key]
                         )}
+                        style={{ width: 15, height: 15 }}
                       />
-                      {mod}
+                      <span>{mod.icon}</span>
+                      <span>{mod.key}</span>
                     </label>
                   ))}
                 </div>
