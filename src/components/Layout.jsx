@@ -67,26 +67,37 @@ export default function Layout({ children }) {
   // ── Invite handler ──
   async function handleInvite(e) {
     e.preventDefault()
-    if (!inviteEmail) return
+    const cleanEmail = (inviteEmail || '').trim().toLowerCase()
+    if (!cleanEmail) return
     setInviteLoading(true)
     setInviteFeedback(null)
     try {
+      // Chamar API serverless (envia email via Supabase Admin)
+      const res = await fetch('/api/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: cleanEmail,
+          role: inviteRole,
+          empresas: inviteCompanies.length > 0 ? inviteCompanies : []
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erro ao enviar convite')
+      // Salvar localmente
       await inviteUser(
-        inviteEmail,
+        cleanEmail,
         inviteRole,
         inviteCompanies.length > 0 ? inviteCompanies : null,
         invitePermissions.length > 0 ? invitePermissions : null
       )
-      setInviteFeedback({ type: 'ok', msg: `Convite enviado para ${inviteEmail}` })
+      setInviteFeedback({ type: 'ok', msg: `✅ Convite enviado para ${cleanEmail}` })
       setTimeout(() => {
-        setInviteEmail('')
-        setInviteRole('pendente')
-        setInviteCompanies([])
-        setInvitePermissions([])
-        setInviteExpiry('')
-        setInviteFeedback(null)
+        setInviteEmail(''); setInviteRole('pendente')
+        setInviteCompanies([]); setInvitePermissions([])
+        setInviteExpiry(''); setInviteFeedback(null)
         setInviteOpen(false)
-      }, 1800)
+      }, 2000)
     } catch (err) {
       setInviteFeedback({ type: 'err', msg: err.message })
     }

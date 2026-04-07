@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   }
 
   const RESEND_API_KEY = process.env.RESEND_API_KEY
-  const TO_EMAIL = process.env.REPORT_EMAIL || 'maxwell@orion.app'
+  const TO_EMAIL = process.env.RESEND_TO_EMAIL || process.env.REPORT_EMAIL || 'maxwell@orion.app'
 
   if (!RESEND_API_KEY) {
     console.log('[ORION Weekly Report] RESEND_API_KEY não configurado — modo simulação')
@@ -167,7 +167,7 @@ export default async function handler(req, res) {
   </div>
 
   <div style="text-align:center;margin:24px 0">
-    <a href="https://orion-app.vercel.app" class="cta-btn">Abrir Plataforma ORION →</a>
+    <a href="https://orion-platform-wine.vercel.app" class="cta-btn">Abrir Plataforma ORION →</a>
   </div>
 
   <div class="footer">

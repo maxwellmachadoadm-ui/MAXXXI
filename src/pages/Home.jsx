@@ -4,7 +4,7 @@ import { useData, safeName } from '../contexts/DataContext'
 import { useApp } from '../contexts/AppContext'
 
 export default function Home() {
-  const { empresas, tarefas, generateAlertsV5, generateAlerts, fmt, loaded } = useData()
+  const { empresas, tarefas, generateAlertsV5, generateAlerts, fmt, loaded, getPatrimonio } = useData()
   const { presentationMode } = useApp()
   const navigate = useNavigate()
 
@@ -30,12 +30,12 @@ export default function Home() {
         <div className="card">
           <div className="lbl">Faturamento do Ecossistema</div>
           <div className="val txt-blue">{presentationMode ? '••••' : fmt(fatTotal)}</div>
-          <div className="delta-up">&#9650; +8,2% vs mês anterior</div>
+          <div className="delta-neu">{empsAtivas.length} empresas ativas</div>
         </div>
         <div className="card">
           <div className="lbl">Resultado Líquido</div>
           <div className="val txt-green">{presentationMode ? '••••' : fmt(resTotal)}</div>
-          <div className="delta-up">&#9650; +12,1% vs mês anterior</div>
+          <div className={resTotal >= 0 ? 'delta-up' : 'delta-down'}>Margem {fatTotal > 0 ? ((resTotal / fatTotal) * 100).toFixed(1) + '%' : '—'}</div>
         </div>
         <div className="card">
           <div className="lbl">Health Score Médio</div>
@@ -84,9 +84,9 @@ export default function Home() {
                 </>
               ) : (
                 <div className="emp-nums">
-                  <div><div className="emp-nlbl">Patrimônio</div><div className="emp-nval" style={{ color: e.cor }}>{presentationMode ? '••••' : 'R$ 1,2M'}</div></div>
-                  <div><div className="emp-nlbl">Renda</div><div className="emp-nval">{presentationMode ? '••••' : 'R$ 52k/mês'}</div></div>
-                  <div><div className="emp-nlbl">Poupança</div><div className="emp-nval txt-green">42%</div></div>
+                  <div><div className="emp-nlbl">Patrimônio</div><div className="emp-nval" style={{ color: e.cor }}>{presentationMode ? '••••' : fmt((() => { const p = getPatrimonio ? getPatrimonio() : null; return p ? p.imoveis + p.investimentos + p.participacoes + p.veiculos + p.previdencia : 0 })())}</div></div>
+                  <div><div className="emp-nlbl">Investimentos</div><div className="emp-nval">{presentationMode ? '••••' : fmt(getPatrimonio ? (getPatrimonio()?.investimentos || 0) : 0)}</div></div>
+                  <div><div className="emp-nlbl">Dívidas</div><div className="emp-nval txt-red">{presentationMode ? '••••' : fmt(getPatrimonio ? (getPatrimonio()?.dividas || 0) : 0)}</div></div>
                 </div>
               )}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>

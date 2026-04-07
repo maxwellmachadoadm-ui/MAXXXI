@@ -135,7 +135,7 @@ const DataContext = createContext(null)
 export const useData = () => useContext(DataContext)
 
 export function DataProvider({ children }) {
-  const { user, userCompanies, isAdmin } = useAuth()
+  const { user, userCompanies, isAdmin, profile } = useAuth()
   const [empresas, setEmpresas] = useState([])
   const [tarefas, setTarefas] = useState([])
   const [kpis, setKpis] = useState([])

@@ -58,7 +58,7 @@ export default function CEO() {
         <div className="card">
           <div className="lbl">Receita Total do Ecossistema</div>
           <div className="val txt-blue">{presentationMode ? '••••' : fmt(fatTotal)}</div>
-          <div className="delta-up">&#9650; +8,2% vs mês anterior</div>
+          <div className="delta-neu">{empresas.filter(e => e.id !== 'gp').length} empresas ativas</div>
         </div>
         <div className="card">
           <div className="lbl">Resultado Líquido Total</div>
