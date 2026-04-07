@@ -628,9 +628,14 @@ export function DataProvider({ children }) {
     }
     const ext = file.name.split('.').pop()
     const path = `logos/${empresaId}.${ext}`
-    const { error: upErr } = await supabase.storage.from('orion-assets').upload(path, file, { upsert: true })
-    if (upErr) throw upErr
-    const { data: { publicUrl } } = supabase.storage.from('orion-assets').getPublicUrl(path)
+    const { error: upErr } = await supabase.storage.from('logos').upload(path, file, { upsert: true })
+    if (upErr) {
+      if (upErr.message?.includes('Bucket not found') || upErr.message?.includes('bucket') || upErr.statusCode === 400) {
+        throw new Error('Bucket de armazenamento não configurado. Execute o script supabase/create_buckets.sql no painel do Supabase.')
+      }
+      throw upErr
+    }
+    const { data: { publicUrl } } = supabase.storage.from('logos').getPublicUrl(path)
     await updateEmpresa(empresaId, { logo_url: publicUrl })
     return publicUrl
   }
@@ -684,9 +689,14 @@ export function DataProvider({ children }) {
       })
     }
     const path = `biblioteca/${empresaId}/${Date.now()}_${nomeArq}`
-    const { error: upErr } = await supabase.storage.from('orion-assets').upload(path, file, { upsert: false, contentType: tipo })
-    if (upErr) throw upErr
-    const { data: { publicUrl } } = supabase.storage.from('orion-assets').getPublicUrl(path)
+    const { error: upErr } = await supabase.storage.from('biblioteca').upload(path, file, { upsert: false, contentType: tipo })
+    if (upErr) {
+      if (upErr.message?.includes('Bucket not found') || upErr.message?.includes('bucket') || upErr.statusCode === 400) {
+        throw new Error('Bucket de armazenamento não configurado. Execute o script supabase/create_buckets.sql no painel do Supabase.')
+      }
+      throw upErr
+    }
+    const { data: { publicUrl } } = supabase.storage.from('biblioteca').getPublicUrl(path)
     return addBibliotecaItem({ empresa_id: empresaId, nome: nomeArq, tipo, tamanho, url: publicUrl, uploaded_by: user?.id, uploaded_name: uploadedName, descricao })
   }
 

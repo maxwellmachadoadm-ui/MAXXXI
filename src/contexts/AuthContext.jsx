@@ -232,10 +232,15 @@ export function AuthProvider({ children }) {
     const ext = file.name.split('.').pop().toLowerCase()
     const path = `avatars/${user.id}.${ext}`
     const { error: upErr } = await supabase.storage
-      .from('orion-assets')
+      .from('avatars')
       .upload(path, file, { upsert: true, contentType: file.type })
-    if (upErr) throw upErr
-    const { data: { publicUrl } } = supabase.storage.from('orion-assets').getPublicUrl(path)
+    if (upErr) {
+      if (upErr.message?.includes('Bucket not found') || upErr.message?.includes('bucket') || upErr.statusCode === 400) {
+        throw new Error('Bucket de armazenamento não configurado. Execute o script supabase/create_buckets.sql no painel do Supabase.')
+      }
+      throw upErr
+    }
+    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
     await updateProfile({ avatar_url: publicUrl })
     logAudit('AVATAR_ATUALIZADO', 'Foto de perfil alterada', user?.id, profile?.name)
     return publicUrl
@@ -257,23 +262,59 @@ export function AuthProvider({ children }) {
   }
 
   async function inviteUser(email, role = 'pendente', companiesAccess = null, permissions = null) {
+    const invite = {
+      id: Date.now(), email, role,
+      companies_access: companiesAccess,
+      custom_permissions: permissions,
+      accepted: false,
+      token: Math.random().toString(36).slice(2),
+      created_at: new Date().toISOString()
+    }
+
     if (isDemoMode) {
       const invites = JSON.parse(localStorage.getItem('orion_invites') || '[]')
-      invites.push({
-        id: Date.now(), email, role,
-        companies_access: companiesAccess,
-        custom_permissions: permissions,
-        accepted: false,
-        token: Math.random().toString(36).slice(2),
-        created_at: new Date().toISOString()
-      })
+      invites.push(invite)
       localStorage.setItem('orion_invites', JSON.stringify(invites))
       logAudit('CONVITE_ENVIADO', `${email} — papel: ${role}`, user?.id, profile?.name)
       return
     }
-    const { error } = await supabase.from('invites').insert({ email, role, invited_by: user.id })
-    if (error) throw error
-    await fetch('/api/invite', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, role }) }).catch(() => {})
+
+    // Modo Supabase: tenta inserir na tabela 'invites'
+    // Se a tabela não existir ou não tiver permissão (service role não disponível no frontend),
+    // faz fallback para localStorage e continua sem erro
+    try {
+      const { error } = await supabase.from('invites').insert({
+        email, role,
+        invited_by: user?.id,
+        companies_access: companiesAccess,
+        custom_permissions: permissions,
+      })
+      if (error && (error.code === '42P01' || error.message?.includes('does not exist') || error.message?.includes('permission denied'))) {
+        // Tabela não existe ou sem permissão — salva no localStorage como fallback
+        const invites = JSON.parse(localStorage.getItem('orion_invites') || '[]')
+        invites.push(invite)
+        localStorage.setItem('orion_invites', JSON.stringify(invites))
+      } else if (error) {
+        // Outro erro: salva no localStorage e não bloqueia o admin
+        const invites = JSON.parse(localStorage.getItem('orion_invites') || '[]')
+        invites.push(invite)
+        localStorage.setItem('orion_invites', JSON.stringify(invites))
+      }
+    } catch (_) {
+      // Qualquer exceção: salva no localStorage
+      const invites = JSON.parse(localStorage.getItem('orion_invites') || '[]')
+      invites.push(invite)
+      localStorage.setItem('orion_invites', JSON.stringify(invites))
+    }
+
+    // Tenta notificar via API (ignorar erros)
+    await fetch('/api/invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, role })
+    }).catch(() => {})
+
+    logAudit('CONVITE_ENVIADO', `${email} — papel: ${role}`, user?.id, profile?.name)
   }
 
   async function updateUserPermissions(userId, permissions) {

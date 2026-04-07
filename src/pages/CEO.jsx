@@ -186,7 +186,9 @@ export default function CEO() {
             <tbody>
               {ranked.map((emp, i) => {
                 const pct = fatTotal > 0 ? ((emp.faturamento / fatTotal) * 100).toFixed(1) : 0
-                const margem = emp.faturamento > 0 ? ((emp.resultado / emp.faturamento) * 100).toFixed(1) : 0
+                const margemRaw = emp.faturamento > 0 ? (emp.resultado / emp.faturamento) * 100 : null
+                const margem = (margemRaw != null && isFinite(margemRaw)) ? margemRaw.toFixed(1) : null
+                const crescRaw = (emp.crescimento != null && isFinite(emp.crescimento)) ? emp.crescimento : null
                 const pipe = getPipeline ? getPipeline(emp.id) : { total: 0 }
                 return (
                   <tr key={emp.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/empresa/${emp.id}`)}>
@@ -206,9 +208,9 @@ export default function CEO() {
                     </td>
                     <td style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700 }}>{presentationMode ? '••••' : fmt(emp.faturamento)}</td>
                     <td style={{ color: emp.resultado >= 0 ? 'var(--green)' : 'var(--red)' }}>{presentationMode ? '••••' : fmt(emp.resultado)}</td>
-                    <td>{margem}%</td>
-                    <td style={{ color: emp.crescimento >= 0 ? 'var(--green)' : 'var(--red)' }}>
-                      {emp.crescimento > 0 ? '+' : ''}{emp.crescimento}%
+                    <td>{margem != null ? `${margem}%` : '—'}</td>
+                    <td style={{ color: crescRaw != null ? (crescRaw >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--tx3)' }}>
+                      {crescRaw != null ? `${crescRaw > 0 ? '+' : ''}${crescRaw}%` : '—'}
                     </td>
                     <td>
                       <span style={{ color: emp.score >= 70 ? 'var(--green)' : emp.score >= 50 ? 'var(--amber)' : 'var(--red)', fontFamily: "'Syne',sans-serif", fontWeight: 700 }}>

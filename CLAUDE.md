@@ -207,9 +207,21 @@ empresa_modulos (empresa_id, modulo, ativo)
 - **OF Projetos dentro da empresa OF** — aba "Projetos" aparece apenas quando empresa.id === 'of'
 - **Sidebar reorganizada** — seções: Navegação / Portfólio / Pessoal / Administração (sem Biblioteca e OF Projetos avulsos)
 
+### Correções v8 (Abril 2026) ✅
+- **CDL ITAPERUNA definitivo** — verificado em todos os arquivos; única ocorrência de "Divinópolis" restante é em OriginalFotografia.jsx (regiões geográficas reais, não CDL)
+- **NaN% no CEO.jsx** — margem e crescimento agora protegidos com `isFinite` e exibem '—' quando nulos/inválidos
+- **inviteUser robusto** — modo Supabase agora tem fallback para localStorage se tabela 'invites' não existir ou sem permissão; não bloqueia o admin
+- **Convites pendentes visíveis** — seção "Convites Pendentes" exibida no Admin > Usuários listando todos os convites do orion_invites
+- **Uploads com erro gracioso** — uploadAvatar, uploadLogoEmpresa e uploadBibliotecaFile agora exibem mensagem clara "Bucket não configurado" ao invés de erro técnico; cada upload usa bucket dedicado (avatars/logos/biblioteca)
+- **create_buckets.sql** — script SQL criado em supabase/create_buckets.sql para criar os 3 buckets + políticas RLS no Supabase
+- **Login/Reset senha verificados** — fluxos corretos e sem regressão
+
+### LocalStorage Keys (adicionais v8)
+- `orion_invites` — convites registrados pelo admin (demo + fallback Supabase)
+
 ### Módulos Principais Pendentes
 - Integração Supabase em produção (currently demo mode)
-- Supabase Storage para logos de empresa e biblioteca
+- Supabase Storage: executar supabase/create_buckets.sql no painel do Supabase
 - Notificações push/email em tempo real
 
 ---

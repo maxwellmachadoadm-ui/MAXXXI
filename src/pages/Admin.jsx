@@ -221,6 +221,49 @@ export default function Admin() {
             </div>
           </div>
 
+          {/* Convites Pendentes */}
+          {(() => {
+            const pendInvites = (() => { try { return JSON.parse(localStorage.getItem('orion_invites') || '[]') } catch { return [] } })()
+            if (pendInvites.length === 0) return null
+            return (
+              <div className="module-card" style={{ marginBottom: 16 }}>
+                <div className="module-card-title">📨 Convites Pendentes ({pendInvites.length})</div>
+                <table className="exec-table">
+                  <thead>
+                    <tr>
+                      <th>E-mail</th>
+                      <th>Papel</th>
+                      <th>Empresas</th>
+                      <th>Data</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendInvites.map(inv => (
+                      <tr key={inv.id}>
+                        <td style={{ color: 'var(--text)', fontWeight: 500 }}>{inv.email}</td>
+                        <td><RolePill role={inv.role} /></td>
+                        <td style={{ fontSize: 12, color: 'var(--text3)' }}>
+                          {!inv.companies_access || inv.companies_access.length === 0
+                            ? <span style={{ color: 'var(--green)', fontSize: 11 }}>Todas</span>
+                            : inv.companies_access.join(', ')}
+                        </td>
+                        <td style={{ fontSize: 12, color: 'var(--text3)' }}>
+                          {inv.created_at ? new Date(inv.created_at).toLocaleDateString('pt-BR') : '—'}
+                        </td>
+                        <td>
+                          <span className="badge" style={{ background: inv.accepted ? 'rgba(16,185,129,.2)' : 'rgba(245,158,11,.2)', color: inv.accepted ? 'var(--green)' : 'var(--gold)' }}>
+                            {inv.accepted ? 'Aceito' : 'Pendente'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
+          })()}
+
           <div className="module-card">
             <div className="module-card-title">📋 Usuários Cadastrados</div>
             <table className="exec-table">
