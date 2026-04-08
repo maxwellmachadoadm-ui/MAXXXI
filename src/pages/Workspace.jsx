@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 import Biblioteca from './Biblioteca'
 import OriginalFotografia from './OriginalFotografia'
 import ExtratosIA from './ExtratosIA'
+import OFFinanceiro from './OFFinanceiro'
 
 const BASE_TABS = ['KPIs', 'OKRs', 'Tarefas', 'Contratos', 'Riscos', 'Decisões', 'Pipeline', 'Fluxo de Caixa', 'DRE', 'Arquivos', 'Biblioteca']
 
@@ -458,7 +459,10 @@ export default function Workspace() {
       if (modulosAtivos.includes('Gestão de Fundos')) extraTabs.push('Gestão de Fundos')
       if (modulosAtivos.includes('Projeções')) extraTabs.push('Projeções')
     }
-    if (id === 'of' && modulosAtivos.includes('Projetos')) extraTabs.push('Projetos')
+    if (id === 'of') {
+      if (modulosAtivos.includes('Projetos')) extraTabs.push('Projetos')
+      extraTabs.push('Financeiro OF')
+    }
     TABS = [...baseTabsFiltradas, ...extraTabs]
   }
 
@@ -808,6 +812,9 @@ export default function Workspace() {
 
       case 'Projetos':
         return <OriginalFotografia />
+
+      case 'Financeiro OF':
+        return <OFFinanceiro />
 
       case 'Gestão de Fundos':
         return (
