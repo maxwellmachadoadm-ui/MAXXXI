@@ -145,48 +145,107 @@ export default function ExtratosIA() {
     return []
   }
 
+  // ── Parsear valor brasileiro: "1.234,56" ou "-R$ 1.234,56" → number ──
+  function parseValorBR(str) {
+    if (!str) return NaN
+    let s = String(str).trim()
+    // Detectar sinal negativo
+    const negativo = s.startsWith('-') || s.includes('(') || s.toLowerCase().includes('deb') || s.toLowerCase().includes('saida')
+    // Remover tudo que não é dígito, vírgula, ponto ou sinal
+    s = s.replace(/[^0-9.,\-]/g, '')
+    // Se tem formato BR "1.234,56": remover pontos de milhar, trocar vírgula por ponto
+    if (s.includes(',')) {
+      s = s.replace(/\./g, '').replace(',', '.')
+    }
+    const num = parseFloat(s)
+    if (isNaN(num)) return NaN
+    return negativo && num > 0 ? -num : num
+  }
+
+  // ── Detectar separador do CSV ──
+  function detectarSeparador(texto) {
+    const primeiraLinha = texto.split('\n')[0] || ''
+    const semis = (primeiraLinha.match(/;/g) || []).length
+    const tabs = (primeiraLinha.match(/\t/g) || []).length
+    const commas = (primeiraLinha.match(/,/g) || []).length
+    if (semis >= 2) return ';'
+    if (tabs >= 2) return '\t'
+    return ','
+  }
+
   // ── Parsear CSV / texto ──
   function parsearTexto(texto, nomeArquivo) {
     const linhas = texto.split('\n').filter(l => l.trim())
+    if (linhas.length === 0) return []
+    const sep = detectarSeparador(texto)
     const novas = []
 
-    for (const linha of linhas) {
-      const parts = linha.split(/[;\t]/).map(p => p.trim())
-      if (parts.length < 2) {
-        // Tentar vírgula (cuidado com valores "1.234,56")
-        const combParts = linha.split(',').map(p => p.trim())
-        if (combParts.length >= 3) parts.splice(0, parts.length, ...combParts)
-        else continue
+    // Detectar se primeira linha é header
+    const primeiraLinha = linhas[0].toLowerCase()
+    const ehHeader = /^data|^date|^hist|^lanc|^descri/i.test(primeiraLinha)
+    const startIdx = ehHeader ? 1 : 0
+
+    // Detectar índices de colunas pelo header
+    let colData = 0, colDesc = 1, colValor = -1
+    if (ehHeader) {
+      const headers = linhas[0].split(sep).map(h => h.trim().toLowerCase())
+      colData = headers.findIndex(h => /^data|^date/.test(h))
+      colDesc = headers.findIndex(h => /descri|histor|lanc|memo|detalhe|titulo/.test(h))
+      colValor = headers.findIndex(h => /valor|value|amount|quantia|total/.test(h))
+      if (colData < 0) colData = 0
+      if (colDesc < 0) colDesc = 1
+      if (colValor < 0) colValor = headers.length - 1
+    }
+
+    for (let i = startIdx; i < linhas.length; i++) {
+      const linha = linhas[i]
+      let parts
+      if (sep === ',') {
+        // CSV com vírgula: cuidado com valores "1.234,56"
+        // Usar regex que respeita aspas
+        parts = linha.match(/(".*?"|[^,]+)/g)?.map(p => p.replace(/^"|"$/g, '').trim()) || []
+      } else {
+        parts = linha.split(sep).map(p => p.trim())
       }
+      if (parts.length < 2) continue
 
       let data = '', descricao = '', valor = 0
 
-      // Detectar data
-      const dateMatch = parts[0].match(/(\d{2}\/\d{2}\/\d{4}|\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{2})/)
-      if (dateMatch) {
-        data = dateMatch[1]
-        // Pegar descrição (tudo entre data e valor)
-        const valStr = parts[parts.length - 1].replace(/[R$\s.]/g, '').replace(',', '.')
-        valor = parseFloat(valStr)
-        if (isNaN(valor)) {
-          // Valor pode estar no penúltimo campo
-          const valStr2 = parts[parts.length - 2]?.replace(/[R$\s.]/g, '').replace(',', '.')
-          valor = parseFloat(valStr2) || 0
-          descricao = parts.slice(1, -2).join(' ').trim() || parts[1]
-        } else {
-          descricao = parts.slice(1, -1).join(' ').trim() || parts[1]
-        }
+      // Se temos índices de colunas do header
+      if (ehHeader && colValor >= 0) {
+        data = parts[colData] || ''
+        descricao = parts[colDesc] || ''
+        valor = parseValorBR(parts[colValor])
+        if (isNaN(valor)) valor = 0
       } else {
-        // Sem data — pegar descrição e valor
-        const valStr = parts[parts.length - 1].replace(/[R$\s.]/g, '').replace(',', '.')
-        valor = parseFloat(valStr) || 0
-        descricao = parts.slice(0, -1).join(' ').trim()
-        data = new Date().toLocaleDateString('pt-BR')
+        // Heurística: detectar data no primeiro campo
+        const dateMatch = parts[0].match(/(\d{2}\/\d{2}\/\d{4}|\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{2})/)
+        if (dateMatch) {
+          data = dateMatch[1]
+          // Tentar valor no último campo
+          valor = parseValorBR(parts[parts.length - 1])
+          if (isNaN(valor)) {
+            valor = parseValorBR(parts[parts.length - 2])
+            descricao = parts.slice(1, -2).join(' ').trim() || parts[1] || ''
+          } else {
+            descricao = parts.slice(1, -1).join(' ').trim() || parts[1] || ''
+          }
+          if (isNaN(valor)) valor = 0
+        } else {
+          // Sem data — descrição + valor
+          valor = parseValorBR(parts[parts.length - 1])
+          if (isNaN(valor)) valor = 0
+          descricao = parts.slice(0, -1).join(' ').trim()
+          data = new Date().toLocaleDateString('pt-BR')
+        }
       }
 
+      // Limpar data
+      if (!data) data = new Date().toLocaleDateString('pt-BR')
+      // Limpar descrição
+      descricao = descricao.replace(/"/g, '').trim()
       if (!descricao || descricao.length < 2) continue
-      // Ignorar headers
-      if (/^data$|^descri|^valor$|^hist|^lancamento/i.test(descricao)) continue
+      if (/^data$|^descri|^valor$|^hist|^lancamento|^saldo/i.test(descricao)) continue
 
       const classificacao = localClassify(descricao, valor)
       novas.push({
