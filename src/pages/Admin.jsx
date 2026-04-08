@@ -413,12 +413,12 @@ export default function Admin() {
                         onChange={e => e.target.files?.[0] && handleLogoUpload(emp.id, e.target.files[0])}
                       />
                     </label>
-                    {!['dw','of','fs','cdl','gp'].includes(emp.id) && (
+                    {!['of','fs','gp'].includes(emp.id) && (
                       <button className="btn btn-danger btn-sm" onClick={() => { setDeleteConfirm(emp); setDeleteConfirm2(false) }}>
                         🗑 Remover
                       </button>
                     )}
-                    {['dw','of','fs','cdl','gp'].includes(emp.id) && (
+                    {['of','fs','gp'].includes(emp.id) && (
                       <span style={{ fontSize: 10, color: 'var(--text4)' }}>Empresa base</span>
                     )}
                   </div>

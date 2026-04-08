@@ -218,7 +218,7 @@ Responda em português brasileiro. Seja direto e executivo.`
       const empEncontrado = empresas.find(e => lower.includes(e.nome.toLowerCase()) || lower.includes(e.sigla.toLowerCase()))
       const empId = empEncontrado?.id || 'dw'
       const cf = getCashFlow(empId, 30)
-      const empNome = empresas.find(e => e.id === empId)?.nome || 'Doctor Wealth'
+      const empNome = empresas.find(e => e.id === empId)?.nome || 'Original Fotografia'
       return buildCFOResponse(
         `Saldo projetado para ${empNome} nos próximos 30 dias: ${fmt(cf.semanas[cf.semanas.length - 1]?.saldo || 0)}`,
         cf.alertaNegativo ? '⚠️ Risco de saldo NEGATIVO detectado!' : 'Fluxo de caixa positivo projetado.',
@@ -247,7 +247,7 @@ Responda em português brasileiro. Seja direto e executivo.`
       const empEncontrado = empresas.find(e => lower.includes(e.nome.toLowerCase()) || lower.includes(e.sigla.toLowerCase()))
       const empId = empEncontrado?.id || 'dw'
       const p = getPipeline(empId)
-      const empNome = empresas.find(e => e.id === empId)?.nome || 'Doctor Wealth'
+      const empNome = empresas.find(e => e.id === empId)?.nome || 'Original Fotografia'
       return `🎯 **Pipeline — ${empNome}:**\n\n` +
         `✅ Garantida (contratos): ${fmt(p.garantida)}\n` +
         `🟡 Provável (em negociação, 70%): ${fmt(p.provavel)}\n` +
@@ -264,16 +264,16 @@ Responda em português brasileiro. Seja direto e executivo.`
     }
 
     if (lower.includes('prioridade') || lower.includes('atenção') || lower.includes('critico'))
-      return `**Prioridades do ecossistema:**\n\n• Original Fotografia: inadimplência em 8,7% — requer ação imediata\n• Forme Seguro: meta mensal apenas 30% atingida — acelerar captação\n• CDL ITAPERUNA e Doctor Wealth estão saudáveis (scores 88 e 80)\n\n**Recomendação:** Foque hoje em OF e FS.`
+      return `**Prioridades do ecossistema:**\n\n• Original Fotografia: inadimplência em 8,7% — requer ação imediata\n• Forme Seguro: meta mensal apenas 30% atingida — acelerar captação\n• Gestão Pessoal: acompanhar patrimônio e investimentos\n\n**Recomendação:** Foque hoje em OF e FS.`
 
     if (lower.includes('ecossistema'))
-      return `**Briefing Executivo ORION — ${new Date().toLocaleDateString('pt-BR')}**\n\nFaturamento consolidado: ${fmt(empresas.reduce((s, e) => s + e.faturamento, 0))}\nHealth Score médio: ${Math.round(empresas.reduce((s, e) => s + e.score, 0) / empresas.length)}/100\n\nDestaques: CDL ITAPERUNA lidera em score (88). Forme Seguro tem maior crescimento (+50%). OF precisa de turnaround urgente.`
+      return `**Briefing Executivo ORION — ${new Date().toLocaleDateString('pt-BR')}**\n\nFaturamento consolidado: ${fmt(empresas.reduce((s, e) => s + e.faturamento, 0))}\nHealth Score médio: ${Math.round(empresas.reduce((s, e) => s + e.score, 0) / empresas.length)}/100\n\nDestaques: Forme Seguro tem maior crescimento (+50%). OF precisa de turnaround urgente.`
 
     if (lower.includes('tarefa') || lower.includes('pendente'))
       return `**Status de Tarefas:**\n\n${tarefas.length} tarefas cadastradas\n${tarefas.filter(t => t.status !== 'done').length} pendentes\n${tarefas.filter(t => t.prioridade === 'alta' && t.status !== 'done').length} de alta prioridade\n\nTop urgência: ${tarefas.filter(t => t.prioridade === 'alta' && t.status !== 'done').slice(0, 3).map(t => t.titulo).join(', ')}`
 
     if (lower.includes('financeiro') || lower.includes('gasto') || lower.includes('despesa'))
-      return `Para relatórios financeiros detalhados, acesse o módulo **Financeiro** na sidebar. Posso classificar despesas automaticamente: diga "classificar: [descrição da despesa]"\n\nOu experimente: "DRE Doctor Wealth", "Fluxo de caixa FS", "Pipeline DW"`
+      return `Para relatórios financeiros detalhados, acesse o módulo **Financeiro** na sidebar. Posso classificar despesas automaticamente: diga "classificar: [descrição da despesa]"\n\nOu experimente: "DRE Original Fotografia", "Fluxo de caixa FS", "Pipeline OF"`
 
     if (lower.includes('original fotografia') || lower.includes(' of ') || lower.includes('fotografia'))
       return `**Original Fotografia:** Score 52/100, em turnaround.\n\nInadimplência 8,7% (crítico), crescimento -4,2%. Recomendo: revisar carteira de clientes inadimplentes, definir nicho (corporativo ou social) e reestruturar precificação.`
@@ -281,8 +281,6 @@ Responda em português brasileiro. Seja direto e executivo.`
     if (lower.includes('forme seguro') || lower.includes(' fs ') || lower.includes('formatura'))
       return `**Forme Seguro:** Score 65/100, em crescimento acelerado (+50%).\n\nCapital gerenciado: R$ 420k, 3 turmas ativas. Pipeline: 5 turmas. Ação prioritária: fechar UNIFENAS Medicina 2026 e contratar comercial dedicado.`
 
-    if (lower.includes('doctor wealth') || lower.includes(' dw '))
-      return `**Doctor Wealth:** Score 80/100, crescendo 18,4%.\n\n47 clientes médicos, recorrência R$ 38k/mês. Inadimplência controlada (3,2%). Próximo objetivo: atingir 60 clientes e lançar DW Academy.`
 
     return `Configure a API Claude no Vercel para respostas avançadas com o modelo ${MODELS[selectedModel]?.label || 'selecionado'}. Posso ajudar com: briefing do dia, fluxo de caixa, DRE, pipeline, prioridades, classificar despesas, análise por empresa.`
   }
@@ -382,9 +380,9 @@ Responda em português brasileiro. Seja direto e executivo.`
     '🎯 Meta de economia',
   ] : [
     '📋 Briefing do Dia',
-    '💰 Fluxo de Caixa DW',
-    '📊 DRE Doctor Wealth',
-    '🎯 Pipeline DW',
+    '💰 Fluxo de Caixa OF',
+    '📊 DRE Original Fotografia',
+    '📈 Pipeline Forme Seguro',
     'Qual empresa precisa de atenção?',
     'Classificar: aluguel escritório',
   ]

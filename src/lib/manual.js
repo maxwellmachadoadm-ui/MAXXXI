@@ -250,23 +250,6 @@ export const MANUAL = {
     },
   },
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // DOCTOR WEALTH
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  dw: {
-    titulo: 'Doctor Wealth — Ecossistema Financeiro Médico',
-    descricao: 'Gestão contábil e financeira para médicos. Foco em recorrência e crescimento de base.',
-    abas: {},
-  },
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // CDL ITAPERUNA
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  cdl: {
-    titulo: 'CDL ITAPERUNA — Câmara de Dirigentes Lojistas',
-    descricao: 'Gestão da associação com foco em associados, eventos e receita associativa.',
-    abas: {},
-  },
 }
 
 // ── Helper: buscar manual de uma aba específica ──

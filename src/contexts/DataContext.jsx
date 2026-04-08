@@ -19,18 +19,12 @@ export const BANKS = ['Nubank', 'C6 Bank', 'Caixa Econômica', 'Itaú', 'Bradesc
 
 // ── BIBLIOTECA DEMO ──
 const DEMO_BIBLIOTECA = [
-  { id:'b1', empresa_id:'dw', nome:'Contrato Social DW.pdf', tipo:'application/pdf', tamanho:245000, url:'#', uploaded_by:'admin', uploaded_name:'Maxwell', created_at:'2026-03-01T09:00:00Z', descricao:'Contrato social atualizado 2026' },
   { id:'b2', empresa_id:'of', nome:'Tabela de Preços 2026.pdf', tipo:'application/pdf', tamanho:180000, url:'#', uploaded_by:'admin', uploaded_name:'Maxwell', created_at:'2026-03-05T09:00:00Z', descricao:'Tabela oficial de preços Q1 2026' },
-  { id:'b3', empresa_id:'cdl', nome:'Ata Assembleia Mar26.pdf', tipo:'application/pdf', tamanho:320000, url:'#', uploaded_by:'admin', uploaded_name:'Maxwell', created_at:'2026-03-15T09:00:00Z', descricao:'Ata da assembleia geral ordinária' },
 ]
 
 // ── COMPROMISSOS DEMO ──
 const DEMO_COMPROMISSOS = [
-  { id:'c1', empresa_id:'dw', nome:'Aluguel Escritório Matriz', descricao:'Sala 501, Ed. Corporate', valor:3500, vencimento:'2026-04-01', frequencia:'mensal', tipo:'recorrente', categoria:'ESCRITÓRIO', banco:'Caixa Econômica', status:'a_vencer', pago_em:null, created_by:'admin', created_at:'2026-01-01T09:00:00Z' },
-  { id:'c2', empresa_id:'dw', nome:'DAS Simples Nacional', descricao:'Apuração mensal', valor:4200, vencimento:'2026-04-20', frequencia:'mensal', tipo:'recorrente', categoria:'IMPOSTOS', banco:'Nubank', status:'a_vencer', pago_em:null, created_by:'admin', created_at:'2026-01-01T09:00:00Z' },
   { id:'c3', empresa_id:'of', nome:'Adobe Creative Cloud', descricao:'Plano equipe 3 usuários', valor:890, vencimento:'2026-04-07', frequencia:'mensal', tipo:'recorrente', categoria:'ESCRITÓRIO', banco:'Nubank', status:'vencendo', pago_em:null, created_by:'admin', created_at:'2026-01-01T09:00:00Z' },
-  { id:'c4', empresa_id:'cdl', nome:'Manutenção predial', descricao:'Contrato manutenção preventiva', valor:2200, vencimento:'2026-03-15', frequencia:'mensal', tipo:'recorrente', categoria:'ESCRITÓRIO', banco:'Caixa Econômica', status:'atrasado', pago_em:null, created_by:'admin', created_at:'2026-01-01T09:00:00Z' },
-  { id:'c5', empresa_id:'dw', nome:'Servidor Cloud ORION', descricao:'Vercel Pro + Supabase', valor:390, vencimento:'2026-04-10', frequencia:'mensal', tipo:'recorrente', categoria:'ESCRITÓRIO', banco:'Nubank', status:'a_vencer', pago_em:null, created_by:'admin', created_at:'2026-01-01T09:00:00Z' },
 ]
 
 // ── MÓDULOS PADRÃO ──
@@ -38,21 +32,11 @@ export const DEFAULT_MODULOS = ['KPIs', 'OKRs', 'Tarefas', 'Contratos', 'Riscos'
 
 // ── LANÇAMENTOS DEMO ──
 const DEMO_LANCAMENTOS_V4 = [
-  { id:'l01', empresa_id:'dw', tipo:'receita',  categoria:'RECEITAS',   subcategoria:'Honorários / Mensalidades', banco:'Nubank',         origem:'PIX',           valor:38000, mes:'2026-03', descricao:'Mensalidades médicos março',       data:'2026-03-05', status:'aprovado', anexo_nome:null, criado_por:'admin', criado_em:'2026-03-05T09:00:00Z' },
-  { id:'l02', empresa_id:'dw', tipo:'despesa',  categoria:'PESSOAL',    subcategoria:'Salários',                  banco:'C6 Bank',         origem:null,            valor:12000, mes:'2026-03', descricao:'Salário equipe DW',               data:'2026-03-05', status:'aprovado', anexo_nome:'folha_mar26.pdf', criado_por:'admin', criado_em:'2026-03-05T10:00:00Z' },
-  { id:'l03', empresa_id:'dw', tipo:'despesa',  categoria:'IMPOSTOS',   subcategoria:'Simples Nacional',          banco:'Nubank',         origem:null,            valor:4200,  mes:'2026-03', descricao:'DAS Simples Nacional',             data:'2026-03-20', status:'aprovado', anexo_nome:'das_mar.pdf', criado_por:'admin', criado_em:'2026-03-20T08:00:00Z' },
-  { id:'l04', empresa_id:'dw', tipo:'despesa',  categoria:'ESCRITÓRIO', subcategoria:'Internet / Telefone',       banco:'Nubank',         origem:null,            valor:890,   mes:'2026-03', descricao:'Servidor cloud ORION',             data:'2026-03-10', status:'aprovado', anexo_nome:null, criado_por:'admin', criado_em:'2026-03-10T08:00:00Z' },
-  { id:'l05', empresa_id:'dw', tipo:'despesa',  categoria:'ESCRITÓRIO', subcategoria:'Aluguel',                   banco:'Caixa Econômica', origem:null,            valor:3500,  mes:'2026-03', descricao:'Aluguel escritório matriz',        data:'2026-03-01', status:'aprovado', anexo_nome:null, criado_por:'admin', criado_em:'2026-03-01T07:00:00Z' },
   { id:'l06', empresa_id:'of', tipo:'receita',  categoria:'RECEITAS',   subcategoria:'Serviços Avulsos',          banco:'C6 Bank',         origem:'Boleto',        valor:28000, mes:'2026-03', descricao:'Ensaios e eventos março',          data:'2026-03-08', status:'aprovado', anexo_nome:null, criado_por:'admin', criado_em:'2026-03-08T09:00:00Z' },
   { id:'l07', empresa_id:'of', tipo:'despesa',  categoria:'PESSOAL',    subcategoria:'Salários',                  banco:'C6 Bank',         origem:null,            valor:7500,  mes:'2026-03', descricao:'Salário equipe OF',               data:'2026-03-05', status:'aprovado', anexo_nome:null, criado_por:'admin', criado_em:'2026-03-05T09:30:00Z' },
   { id:'l08', empresa_id:'of', tipo:'despesa',  categoria:'MARKETING',  subcategoria:'Redes Sociais',             banco:'Nubank',         origem:null,            valor:1200,  mes:'2026-03', descricao:'Campanha Instagram OF',            data:'2026-03-12', status:'aprovado', anexo_nome:null, criado_por:'admin', criado_em:'2026-03-12T11:00:00Z' },
   { id:'l09', empresa_id:'fs', tipo:'receita',  categoria:'RECEITAS',   subcategoria:'Honorários / Mensalidades', banco:'BTG Pactual',     origem:'Transferência', valor:15000, mes:'2026-03', descricao:'Gestão fundos março',              data:'2026-03-03', status:'aprovado', anexo_nome:null, criado_por:'admin', criado_em:'2026-03-03T09:00:00Z' },
   { id:'l10', empresa_id:'fs', tipo:'despesa',  categoria:'MARKETING',  subcategoria:'Publicidade',               banco:'Nubank',         origem:null,            valor:1200,  mes:'2026-03', descricao:'Campanha captação turmas',         data:'2026-03-15', status:'aprovado', anexo_nome:null, criado_por:'admin', criado_em:'2026-03-15T10:00:00Z' },
-  { id:'l11', empresa_id:'cdl',tipo:'receita',  categoria:'RECEITAS',   subcategoria:'Honorários / Mensalidades', banco:'Caixa Econômica', origem:'Boleto',        valor:35000, mes:'2026-03', descricao:'Associatividade CDL março',        data:'2026-03-05', status:'aprovado', anexo_nome:null, criado_por:'admin', criado_em:'2026-03-05T08:00:00Z' },
-  { id:'l12', empresa_id:'cdl',tipo:'despesa',  categoria:'PESSOAL',    subcategoria:'Salários',                  banco:'Caixa Econômica', origem:null,            valor:9000,  mes:'2026-03', descricao:'Folha de pagamento CDL',          data:'2026-03-05', status:'aprovado', anexo_nome:null, criado_por:'admin', criado_em:'2026-03-05T09:00:00Z' },
-  { id:'l13', empresa_id:'dw', tipo:'receita',  categoria:'RECEITAS',   subcategoria:'Honorários / Mensalidades', banco:'Nubank',         origem:'PIX',           valor:36000, mes:'2026-02', descricao:'Mensalidades médicos fevereiro',  data:'2026-02-05', status:'aprovado', anexo_nome:null, criado_por:'admin', criado_em:'2026-02-05T09:00:00Z' },
-  { id:'l14', empresa_id:'dw', tipo:'despesa',  categoria:'PESSOAL',    subcategoria:'Salários',                  banco:'C6 Bank',         origem:null,            valor:12000, mes:'2026-02', descricao:'Salário equipe DW fev',           data:'2026-02-05', status:'aprovado', anexo_nome:null, criado_por:'admin', criado_em:'2026-02-05T10:00:00Z' },
-  { id:'l15', empresa_id:'dw', tipo:'despesa',  categoria:'IMPOSTOS',   subcategoria:'Simples Nacional',          banco:'Nubank',         origem:null,            valor:4100,  mes:'2026-02', descricao:'DAS Simples Nacional fev',        data:'2026-02-20', status:'aprovado', anexo_nome:null, criado_por:'admin', criado_em:'2026-02-20T08:00:00Z' },
 ]
 
 // ── UTILITÁRIO: valor seguro — retorna '—' se NaN/undefined/Infinity ──
@@ -105,8 +89,6 @@ export function calculateHealthScore(emp, lancamentos = []) {
 
 // ── DEMO AGENDA ──
 const DEMO_AGENDA = [
-  { id: '1', titulo: 'Reunião CDL — Assembleia', data: '2026-04-08', hora: '09:00', tipo: 'reuniao', empresa: 'cdl' },
-  { id: '2', titulo: 'Consultoria Doctor Wealth', data: '2026-04-09', hora: '14:00', tipo: 'consultoria', empresa: 'dw' },
   { id: '3', titulo: 'Reunião com investidor FS', data: '2026-04-10', hora: '10:30', tipo: 'reuniao', empresa: 'fs' },
   { id: '4', titulo: 'Revisão financeira mensal', data: '2026-04-14', hora: '08:00', tipo: 'financeiro', empresa: null },
 ]
