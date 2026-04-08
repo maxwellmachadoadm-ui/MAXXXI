@@ -36,10 +36,14 @@
 
 ## Remote e Deploy
 
-- **GitHub**: `maxwellmachadoadm-ui/MAXXXI`
-- **Vercel**: conectado ao repo, deploy automático em push para `main`
+- **GitHub (produção)**: `maxwellmachadoadm-ui/ORION` — este é o repo que o Vercel monitora
+- **GitHub (dev)**: `maxwellmachadoadm-ui/MAXXXI` — repo separado, NÃO vai ao Vercel
+- **Vercel**: conectado ao repo **ORION**, deploy automático em push para `main`
 - **URL produção**: https://orion-platform-wine.vercel.app
-- **Branch de desenvolvimento**: `claude/autonomous-mode-setup-WMj8y`
+- **Branch de desenvolvimento**: `claude/autonomous-mode-setup-WMj8y` (no repo MAXXXI)
+
+> **NUNCA** fazer push para MAXXXI esperando que chegue ao Vercel.
+> Para deployar: push para `main` do repo **ORION**.
 
 ## Empresas (5 ativas)
 
@@ -148,7 +152,7 @@
 
 ## Deploy (Vercel)
 
-1. Push para `main` no GitHub
+1. Push para `main` no repo **ORION** (`maxwellmachadoadm-ui/ORION`)
 2. Vercel detecta automaticamente e deploya
 3. `vercel.json` configura:
    - `index.html` como build estático
