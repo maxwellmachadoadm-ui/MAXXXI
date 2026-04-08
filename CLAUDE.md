@@ -19,7 +19,8 @@
 ├── README.md         # Descrição básica
 ├── CLAUDE.md         # Este arquivo
 └── supabase/
-    └── v16_company_id.sql  # Migration para futuro Supabase
+    ├── v16_company_id.sql  # Migration empresa_id
+    └── v17_financeiro.sql  # Migration financeiro: categorias, contas, DRE, views
 ```
 
 ## Empresas (5 ativas)
@@ -48,6 +49,8 @@
   - `orion_agenda` — agenda global
   - `orion_alerts` — alertas
   - `orion_ci_{date}` — check-in diário
+  - `orion_lanc_{id}` — lançamentos financeiros por empresa
+  - `orion_mx_briefing` — data do último briefing MAXXXI
 
 ## Diagnóstico v16
 
@@ -78,6 +81,16 @@ O app atual NÃO usa Supabase — tudo é localStorage. As tabelas abaixo são p
 - MAXXXI migrado de chat flutuante para drawer lateral
 - Badge de alertas no topbar
 - Sidebar com hierarquia visual clara
+
+### Engine Financeira v17
+- FMT utilities NaN-safe: `FMT.brl()`, `FMT.brlK()`, `FMT.pct()`, `FMT.pctVal()`, `FMT.score()`, `FMT.num()`
+- Lançamentos CRUD via localStorage (`orion_lanc_{empresaId}`)
+- DRE: receita, despesas por categoria, resultado operacional, margem
+- Fluxo de Caixa: 8 meses com entradas, saídas, saldo, acumulado
+- Categorias: 23 categorias pré-definidas (income/expense/transfer/investment)
+- Formulário de lançamento completo com validações inline
+- Aba "Financeiro" no workspace com DRE + Fluxo + Lista de lançamentos
+- Supabase migration v17: tabelas categorias, contas, views DRE/fluxo/resumo
 
 ## Variáveis de Ambiente
 

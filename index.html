@@ -309,6 +309,11 @@ a{color:inherit;text-decoration:none}
 .emp-section-title{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .emp-section-title::after{content:'';flex:1;height:1px;background:var(--br)}
 .emp-pessoal{margin-top:8px}
+/* DRE / FINANCEIRO */
+.dre-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--br)}
+.dre-row.total{font-weight:800;border-top:2px solid var(--br);padding-top:10px}
+.dre-row .dre-lbl{font-size:13px}.dre-row .dre-val{font-family:'Syne',sans-serif;font-size:14px;font-weight:800}
+.lanc-type-active{opacity:1!important;box-shadow:0 0 0 2px rgba(59,130,246,.4)}
 
 /* FILE UPLOAD */
 .file-zone{
@@ -843,6 +848,68 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
+<!-- MODAL LANCAMENTO -->
+<div class="overlay hidden" id="modal-lancamento" onclick="if(event.target===this)closeModal('modal-lancamento')">
+  <div class="modal" style="position:relative;width:520px">
+    <button class="modal-close" onclick="closeModal('modal-lancamento')">&times;</button>
+    <h2>Novo Lançamento</h2>
+
+    <div style="display:flex;gap:6px;margin-bottom:16px">
+      <button class="btn-sm" id="lt-income" onclick="setLancType('income')" style="flex:1;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:var(--green)">💰 Receita</button>
+      <button class="btn-sm" id="lt-expense" onclick="setLancType('expense')" style="flex:1;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:var(--red)">💸 Despesa</button>
+      <button class="btn-sm" id="lt-transfer" onclick="setLancType('transfer')" style="flex:1;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);color:var(--purple)">↔️ Transf.</button>
+      <button class="btn-sm" id="lt-investment" onclick="setLancType('investment')" style="flex:1;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);color:#a78bfa">📊 Invest.</button>
+    </div>
+    <input type="hidden" id="lanc-type" value="expense"/>
+
+    <div class="lbl">Valor *</div>
+    <input class="inp" id="lanc-valor" type="text" placeholder="R$ 0,00" inputmode="decimal"/>
+
+    <div class="lbl">Data *</div>
+    <input class="inp" id="lanc-data" type="date"/>
+
+    <div class="lbl">Descrição *</div>
+    <input class="inp" id="lanc-descricao" placeholder="Descrição do lançamento (mín. 3 chars)"/>
+
+    <div class="lbl">Categoria</div>
+    <select class="inp" id="lanc-categoria">
+      <option value="">Selecione...</option>
+    </select>
+
+    <div id="lanc-dest-row" style="display:none">
+      <div class="lbl">Conta Destino</div>
+      <input class="inp" id="lanc-conta-dest" placeholder="Nome da conta destino"/>
+    </div>
+
+    <div class="lbl">Status</div>
+    <select class="inp" id="lanc-status">
+      <option value="confirmado">Confirmado</option>
+      <option value="previsto">Previsto</option>
+      <option value="pago">Pago</option>
+    </select>
+
+    <div style="display:flex;align-items:center;gap:8px;margin:12px 0">
+      <input type="checkbox" id="lanc-recorrente" style="width:16px;height:16px"/>
+      <label for="lanc-recorrente" style="font-size:13px;color:var(--tx2);cursor:pointer">Lançamento recorrente</label>
+      <select class="inp" id="lanc-freq" style="width:auto;margin:0;padding:6px 10px;font-size:12px">
+        <option value="">Frequência</option>
+        <option value="diario">Diário</option>
+        <option value="semanal">Semanal</option>
+        <option value="mensal">Mensal</option>
+        <option value="anual">Anual</option>
+      </select>
+    </div>
+
+    <div class="lbl">Observação</div>
+    <textarea class="inp" id="lanc-obs" rows="2" placeholder="Observação opcional..." style="resize:vertical;min-height:50px"></textarea>
+
+    <div class="modal-actions">
+      <button class="btn-sm btn-ghost" onclick="closeModal('modal-lancamento')">Cancelar</button>
+      <button class="btn-sm btn-blue" onclick="saveLancamentoForm()">Salvar Lançamento</button>
+    </div>
+  </div>
+</div>
+
 </div><!-- /platform -->
 
 <script>
@@ -925,13 +992,190 @@ const NEWS = [
   'IPCA desacelera para 4,8% — inflação controlada beneficia planejamento financeiro',
 ];
 
-const fmt = v => {
-  if(!v && v!==0) return '—';
-  if(v===0) return 'R$ 0';
-  if(v>=1000000) return 'R$ '+(v/1000000).toFixed(1)+'M';
-  if(v>=1000) return 'R$ '+(v/1000).toFixed(0)+'k';
-  return 'R$ '+v.toLocaleString('pt-BR');
+// ── FMT UTILITIES (NaN-safe) ──────────────────────────────────────────
+const FMT = {
+  brl: (v) => {
+    const n = Number(v);
+    if (!v && v !== 0 || isNaN(n)) return 'R$ 0,00';
+    return new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' }).format(n);
+  },
+  brlK: (v) => {
+    const n = Number(v);
+    if (!n && n !== 0 || isNaN(n)) return 'R$ 0';
+    if (n === 0) return 'R$ 0';
+    if (Math.abs(n) >= 1000000) return 'R$ ' + (n/1000000).toFixed(1) + 'M';
+    if (Math.abs(n) >= 1000) return 'R$ ' + (n/1000).toFixed(0) + 'k';
+    return 'R$ ' + n.toLocaleString('pt-BR');
+  },
+  pct: (num, den) => {
+    const n = Number(num), d = Number(den);
+    if (!d || isNaN(n/d) || !isFinite(n/d)) return '0,0%';
+    return (n/d*100).toFixed(1).replace('.',',') + '%';
+  },
+  pctVal: (v) => {
+    const n = Number(v);
+    if (isNaN(n) || !isFinite(n)) return '0,0%';
+    return n.toFixed(1).replace('.',',') + '%';
+  },
+  score: (v) => {
+    const n = Number(v);
+    if (!n && n !== 0 || isNaN(n)) return 50;
+    return Math.min(100, Math.max(0, Math.round(n)));
+  },
+  num: (v) => {
+    const n = Number(v);
+    if (isNaN(n)) return 0;
+    return n;
+  }
 };
+const fmt = FMT.brlK;
+
+// ── CATEGORIAS ──────────────────────────────────────────────────────────
+const CATEGORIAS = [
+  {nome:'Salário',tipo:'income',icone:'💰',cor:'#10b981'},
+  {nome:'Freelance',tipo:'income',icone:'💼',cor:'#10b981'},
+  {nome:'Investimentos Rendimento',tipo:'income',icone:'📈',cor:'#10b981'},
+  {nome:'Outras Receitas',tipo:'income',icone:'➕',cor:'#10b981'},
+  {nome:'Distribuição de Lucros',tipo:'income',icone:'🏆',cor:'#10b981'},
+  {nome:'Alimentação',tipo:'expense',icone:'🍽️',cor:'#ef4444'},
+  {nome:'Moradia',tipo:'expense',icone:'🏠',cor:'#ef4444'},
+  {nome:'Transporte',tipo:'expense',icone:'🚗',cor:'#ef4444'},
+  {nome:'Saúde',tipo:'expense',icone:'🏥',cor:'#ef4444'},
+  {nome:'Salão e Barbearia',tipo:'expense',icone:'✂️',cor:'#ef4444'},
+  {nome:'Lazer e Entretenimento',tipo:'expense',icone:'🎭',cor:'#ef4444'},
+  {nome:'Educação',tipo:'expense',icone:'📚',cor:'#ef4444'},
+  {nome:'Vestuário',tipo:'expense',icone:'👕',cor:'#ef4444'},
+  {nome:'Impostos e Taxas',tipo:'expense',icone:'📋',cor:'#ef4444'},
+  {nome:'Financiamento',tipo:'expense',icone:'🏦',cor:'#ef4444'},
+  {nome:'Manutenção Veículo',tipo:'expense',icone:'🔧',cor:'#ef4444'},
+  {nome:'Manutenção Casa',tipo:'expense',icone:'🔨',cor:'#ef4444'},
+  {nome:'Assinaturas',tipo:'expense',icone:'📱',cor:'#ef4444'},
+  {nome:'Pró-labore Sócio',tipo:'expense',icone:'👔',cor:'#f59e0b'},
+  {nome:'Outras Despesas',tipo:'expense',icone:'➖',cor:'#ef4444'},
+  {nome:'Transferência Entre Contas',tipo:'transfer',icone:'↔️',cor:'#6366f1'},
+  {nome:'Aporte em Investimento',tipo:'investment',icone:'📊',cor:'#8b5cf6'},
+  {nome:'Resgate de Investimento',tipo:'investment',icone:'💹',cor:'#8b5cf6'},
+];
+
+// ── FINANCEIRO ENGINE ──────────────────────────────────────────────────
+function getLancamentos(empresaId){
+  return JSON.parse(localStorage.getItem('orion_lanc_'+empresaId)||'[]');
+}
+function saveLancamentos(empresaId, lancs){
+  localStorage.setItem('orion_lanc_'+empresaId, JSON.stringify(lancs));
+}
+function criarLancamento(dados){
+  if(!dados.empresa_id||!dados.type||!dados.data||!dados.descricao||!dados.valor) return false;
+  const lanc = {
+    id: Date.now()+'_'+Math.random().toString(36).slice(2,7),
+    empresa_id: dados.empresa_id,
+    type: dados.type,
+    descricao: dados.descricao,
+    valor: FMT.num(dados.valor),
+    data: dados.data,
+    categoria: dados.categoria||'',
+    status: dados.status||'confirmado',
+    recorrente: dados.recorrente||false,
+    frequencia: dados.frequencia||'',
+    observacao: dados.observacao||'',
+    impacta_resultado: !['transfer','investment'].includes(dados.type),
+    created_at: new Date().toISOString()
+  };
+  const lancs = getLancamentos(dados.empresa_id);
+  lancs.push(lanc);
+  saveLancamentos(dados.empresa_id, lancs);
+  return lanc;
+}
+function calcularDRE(empresaId, mes){
+  const lancs = getLancamentos(empresaId);
+  const filtered = lancs.filter(l => l.data && l.data.startsWith(mes));
+  let receita=0, despesa=0;
+  const despPorCat = {};
+  filtered.forEach(l => {
+    const v = FMT.num(l.valor);
+    if(l.type==='income'){
+      receita += v;
+    } else if(l.type==='expense' && l.impacta_resultado!==false){
+      despesa += v;
+      const cat = l.categoria || 'Outras Despesas';
+      despPorCat[cat] = (despPorCat[cat]||0) + v;
+    }
+  });
+  const resultado = receita - despesa;
+  const margem = receita > 0 ? (resultado / receita * 100) : 0;
+  return { receita, despesa, resultado, margem: isFinite(margem)?margem:0, despPorCat, total: filtered.length };
+}
+function calcularFluxoCaixa(empresaId, numMeses){
+  numMeses = numMeses || 8;
+  const lancs = getLancamentos(empresaId);
+  const e = EMPS[empresaId];
+  const now = new Date();
+  const months = [];
+  for(let i = numMeses-1; i >= -2; i--){
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      key: d.toISOString().slice(0,7),
+      label: d.toLocaleDateString('pt-BR',{month:'short'}).replace('.',''),
+      year: d.getFullYear()
+    });
+  }
+  let acumulado = 0;
+  return months.map(m => {
+    const ml = lancs.filter(l => l.data && l.data.startsWith(m.key));
+    let entradas = 0, saidas = 0;
+    ml.forEach(l => {
+      const v = FMT.num(l.valor);
+      if(l.type==='income') entradas += v;
+      else if(l.type==='expense') saidas += v;
+    });
+    if(entradas===0 && saidas===0 && e) {
+      const baseFat = FMT.num(e.fat) / (1 + Math.random()*0.15 - 0.075);
+      const baseDesp = baseFat - FMT.num(e.result) + (Math.random()*2000 - 1000);
+      entradas = Math.round(baseFat);
+      saidas = Math.round(Math.max(0, baseDesp));
+    }
+    const saldo = entradas - saidas;
+    acumulado += saldo;
+    return { mes: m.label, key: m.key, year: m.year, entradas, saidas, saldo, acumulado };
+  });
+}
+function calcularResumoCategorias(empresaId, mes){
+  const lancs = getLancamentos(empresaId).filter(l => l.data && l.data.startsWith(mes));
+  const byType = {income:{}, expense:{}};
+  lancs.forEach(l => {
+    if(l.type!=='income'&&l.type!=='expense') return;
+    const cat = l.categoria || (l.type==='income'?'Outras Receitas':'Outras Despesas');
+    const bucket = byType[l.type];
+    bucket[cat] = (bucket[cat]||0) + FMT.num(l.valor);
+  });
+  const toArr = obj => Object.entries(obj).map(([cat,total])=>{
+    const c = CATEGORIAS.find(x=>x.nome===cat);
+    return {cat, total, icone: c?c.icone:'📋', cor: c?c.cor:'#64748b'};
+  }).sort((a,b)=>b.total-a.total);
+  return { income: toArr(byType.income), expense: toArr(byType.expense) };
+}
+function calcularKPIsFinanceiro(empresaId){
+  const now = new Date();
+  const mesAtual = now.toISOString().slice(0,7);
+  const mesAnt = new Date(now.getFullYear(), now.getMonth()-1, 1).toISOString().slice(0,7);
+  const dreAtual = calcularDRE(empresaId, mesAtual);
+  const dreAnt = calcularDRE(empresaId, mesAnt);
+  const varReceita = dreAnt.receita > 0 ? ((dreAtual.receita - dreAnt.receita)/dreAnt.receita*100) : 0;
+  const varResultado = dreAnt.resultado > 0 ? ((dreAtual.resultado - dreAnt.resultado)/dreAnt.resultado*100) : 0;
+  let hs = 50;
+  if(dreAtual.margem > 20) hs += 20;
+  else if(dreAtual.margem > 10) hs += 10;
+  if(varReceita > 5) hs += 15;
+  else if(varReceita > 0) hs += 5;
+  if(dreAtual.resultado > 0) hs += 15;
+  return {
+    receita: dreAtual.receita, despesa: dreAtual.despesa,
+    resultado: dreAtual.resultado, margem: dreAtual.margem,
+    varReceita: isFinite(varReceita)?varReceita:0,
+    varResultado: isFinite(varResultado)?varResultado:0,
+    healthScore: FMT.score(hs)
+  };
+}
 
 // ── STATE ──────────────────────────────────────────────────────────────────
 let curEmp = null;
@@ -1198,7 +1442,7 @@ function addEmpresa(){openModal('modal-emp')}
 function openDrive(){window.open(curEmp?EMPS[curEmp]?.drive:'https://drive.google.com','_blank')}
 
 // ── WORKSPACE ──────────────────────────────────────────────────────────────
-const WS_TABS=['KPIs','OKRs','Tarefas','Contratos','Riscos','Decisões','CRM','Fluxo','Notas','Arquivos'];
+const WS_TABS=['KPIs','OKRs','Tarefas','Financeiro','Contratos','Riscos','Decisões','CRM','Notas','Arquivos'];
 
 function renderWS(){
   const e=EMPS[curEmp];
@@ -1335,36 +1579,8 @@ function renderTab(){
         <div style="padding:8px;border:1px dashed var(--br);border-radius:var(--r2);text-align:center;font-size:12px;color:var(--tx3);cursor:pointer" onclick="addCRMCard(${ci})">+ Adicionar</div>
       </div>`).join('')}</div>`;
   }
-  else if(curTab==='Fluxo'){
-    const months=['Jan','Fev','Mar','Abr','Mai','Jun'];
-    const entradas=[38,42,45,48,44,e.fat/1000];
-    const saidas=[22,25,28,26,30,(e.fat-e.result)/1000];
-    const maxV=Math.max(...entradas,...saidas);
-    c.innerHTML=`
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div class="slbl" style="margin:0">Fluxo de Caixa — ${e.nome}</div>
-      </div>
-      <div class="fc-bar" style="margin-bottom:20px">${months.map((m,i)=>`
-        <div style="flex:1;text-align:center">
-          <div style="display:flex;gap:2px;height:60px;align-items:flex-end;justify-content:center">
-            <div class="fc-b" style="width:12px;height:${(entradas[i]/maxV*100).toFixed(0)}%;background:var(--green);opacity:.7"></div>
-            <div class="fc-b" style="width:12px;height:${(saidas[i]/maxV*100).toFixed(0)}%;background:var(--red);opacity:.7"></div>
-          </div>
-          <div style="font-size:10px;color:var(--tx3);margin-top:4px">${m}</div>
-        </div>`).join('')}</div>
-      <div style="display:flex;gap:12px;margin-bottom:16px">
-        <span style="font-size:11px;color:var(--tx3)"><span style="display:inline-block;width:10px;height:10px;background:var(--green);border-radius:2px;margin-right:4px"></span>Entradas</span>
-        <span style="font-size:11px;color:var(--tx3)"><span style="display:inline-block;width:10px;height:10px;background:var(--red);border-radius:2px;margin-right:4px"></span>Saídas</span>
-      </div>
-      <table class="fc-table">
-        <thead><tr><th>Mês</th><th>Entradas</th><th>Saídas</th><th>Saldo</th></tr></thead>
-        <tbody>${months.map((m,i)=>`<tr>
-          <td>${m}</td>
-          <td style="color:var(--green)">R$ ${entradas[i].toFixed(0)}k</td>
-          <td style="color:var(--red)">R$ ${saidas[i].toFixed(0)}k</td>
-          <td style="color:${(entradas[i]-saidas[i])>=0?'var(--green)':'var(--red)'}">R$ ${(entradas[i]-saidas[i]).toFixed(0)}k</td>
-        </tr>`).join('')}</tbody>
-      </table>`;
+  else if(curTab==='Financeiro'){
+    renderFinanceiro(e, c);
   }
   else if(curTab==='Notas'){
     const notasKey='orion_notas_'+curEmp;
@@ -1402,6 +1618,210 @@ function handleFiles(ev){
   }
   localStorage.setItem('orion_'+key,JSON.stringify(existing));
   renderTab();
+}
+
+// ── FINANCEIRO TAB ──────────────────────────────────────────────────────
+function renderFinanceiro(e, c){
+  const now = new Date();
+  const mesAtual = now.toISOString().slice(0,7);
+  const dre = calcularDRE(curEmp, mesAtual);
+  const fluxo = calcularFluxoCaixa(curEmp, 6);
+  const cats = calcularResumoCategorias(curEmp, mesAtual);
+  const kpis = calcularKPIsFinanceiro(curEmp);
+  const mesLabel = now.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+
+  // Use empresa defaults when no lancamentos exist
+  const receitaShow = dre.receita || FMT.num(e.fat);
+  const despesaShow = dre.despesa || (FMT.num(e.fat) - FMT.num(e.result));
+  const resultadoShow = dre.resultado || FMT.num(e.result);
+  const margemShow = receitaShow > 0 ? (resultadoShow/receitaShow*100) : 0;
+
+  c.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div>
+        <div class="slbl" style="margin:0">Financeiro — ${e.nome}</div>
+        <div style="font-size:12px;color:var(--tx3);margin-top:2px">${mesLabel}</div>
+      </div>
+      <button class="btn-sm btn-blue" onclick="openModal('modal-lancamento')">+ Lançamento</button>
+    </div>
+
+    <!-- KPIs Financeiros -->
+    <div class="kpi-grid mb">
+      <div class="kpi-card">
+        <div class="kpi-icon">💰</div>
+        <div class="lbl">Receita</div>
+        <div class="val-sm txt-green">${FMT.brl(receitaShow)}</div>
+        <div class="${kpis.varReceita>=0?'delta-up':'delta-dn'}">${kpis.varReceita>=0?'▲':'▼'} ${FMT.pctVal(Math.abs(kpis.varReceita))} vs mês ant.</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">💸</div>
+        <div class="lbl">Despesas</div>
+        <div class="val-sm txt-red">${FMT.brl(despesaShow)}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">📊</div>
+        <div class="lbl">Resultado</div>
+        <div class="val-sm" style="color:${resultadoShow>=0?'var(--green)':'var(--red)'}">${FMT.brl(resultadoShow)}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon">📈</div>
+        <div class="lbl">Margem</div>
+        <div class="val-sm" style="color:${margemShow>=15?'var(--green)':margemShow>=5?'var(--amber)':'var(--red)'}">${FMT.pctVal(margemShow)}</div>
+      </div>
+    </div>
+
+    <!-- DRE -->
+    <div class="card mb">
+      <div class="slbl" style="margin-bottom:14px">DRE — Demonstrativo de Resultado</div>
+      <table class="fc-table">
+        <tbody>
+          <tr style="font-weight:700"><td>(+) Receita Bruta</td><td style="text-align:right;color:var(--green)">${FMT.brl(receitaShow)}</td></tr>
+          <tr><td style="color:var(--tx3)">(−) Impostos estimados</td><td style="text-align:right;color:var(--tx3)">${FMT.brl(receitaShow * 0.06)}</td></tr>
+          <tr style="font-weight:700;border-top:2px solid var(--br)"><td>(=) Receita Líquida</td><td style="text-align:right;color:var(--blue3)">${FMT.brl(receitaShow * 0.94)}</td></tr>
+          ${Object.entries(dre.despPorCat).length > 0 ?
+            Object.entries(dre.despPorCat).map(([cat,val])=>{
+              const ci = CATEGORIAS.find(x=>x.nome===cat);
+              return `<tr><td style="color:var(--tx2)">(−) ${ci?ci.icone:''} ${cat}</td><td style="text-align:right;color:var(--red)">${FMT.brl(val)}</td></tr>`;
+            }).join('') :
+            `<tr><td style="color:var(--tx2)">(−) Despesas Operacionais</td><td style="text-align:right;color:var(--red)">${FMT.brl(despesaShow)}</td></tr>`
+          }
+          <tr style="font-weight:900;border-top:2px solid var(--br);font-size:15px">
+            <td>(=) Resultado Operacional</td>
+            <td style="text-align:right;color:${resultadoShow>=0?'var(--green)':'var(--red)'}">${FMT.brl(resultadoShow)}</td>
+          </tr>
+          <tr><td style="color:var(--tx3)">Margem Operacional</td><td style="text-align:right;color:var(--tx2)">${FMT.pctVal(margemShow)}</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Fluxo de Caixa -->
+    <div class="card mb">
+      <div class="slbl" style="margin-bottom:14px">Fluxo de Caixa</div>
+      <div class="fc-bar" style="margin-bottom:16px">${fluxo.map(m=>{
+        const maxV = Math.max(...fluxo.map(x=>Math.max(x.entradas,x.saidas)),1);
+        return `<div style="flex:1;text-align:center">
+          <div style="display:flex;gap:2px;height:60px;align-items:flex-end;justify-content:center">
+            <div class="fc-b" style="width:10px;height:${Math.max(1,(m.entradas/maxV*100)).toFixed(0)}%;background:var(--green);opacity:.7"></div>
+            <div class="fc-b" style="width:10px;height:${Math.max(1,(m.saidas/maxV*100)).toFixed(0)}%;background:var(--red);opacity:.7"></div>
+          </div>
+          <div style="font-size:9px;color:var(--tx3);margin-top:3px">${m.mes}</div>
+        </div>`;
+      }).join('')}</div>
+      <div style="display:flex;gap:12px;margin-bottom:12px">
+        <span style="font-size:11px;color:var(--tx3)"><span style="display:inline-block;width:8px;height:8px;background:var(--green);border-radius:2px;margin-right:4px"></span>Entradas</span>
+        <span style="font-size:11px;color:var(--tx3)"><span style="display:inline-block;width:8px;height:8px;background:var(--red);border-radius:2px;margin-right:4px"></span>Saídas</span>
+      </div>
+      <table class="fc-table">
+        <thead><tr><th>Mês</th><th>Entradas</th><th>Saídas</th><th>Saldo</th><th>Acumulado</th></tr></thead>
+        <tbody>${fluxo.map(m=>`<tr>
+          <td>${m.mes}</td>
+          <td style="color:var(--green)">${FMT.brlK(m.entradas)}</td>
+          <td style="color:var(--red)">${FMT.brlK(m.saidas)}</td>
+          <td style="color:${m.saldo>=0?'var(--green)':'var(--red)'}">${FMT.brlK(m.saldo)}</td>
+          <td style="color:${m.acumulado>=0?'var(--blue3)':'var(--red)'}"><b>${FMT.brlK(m.acumulado)}</b></td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>
+
+    <!-- Lançamentos Recentes -->
+    <div class="card">
+      <div class="flex aic jsb" style="margin-bottom:14px">
+        <div class="slbl" style="margin:0">Lançamentos Recentes</div>
+        <button class="btn-sm btn-blue" onclick="openModal('modal-lancamento')">+ Novo</button>
+      </div>
+      <div id="lanc-list">${renderLancList(curEmp)}</div>
+    </div>`;
+}
+
+function renderLancList(empresaId){
+  const lancs = getLancamentos(empresaId).sort((a,b)=>b.data.localeCompare(a.data)).slice(0,20);
+  if(lancs.length===0) return '<div style="padding:16px;text-align:center;color:var(--tx3);font-size:13px">Nenhum lançamento registrado. Clique em "+ Lançamento" para começar.</div>';
+  return lancs.map(l=>{
+    const typeIcons = {income:'💰',expense:'💸',transfer:'↔️',investment:'📊'};
+    const typeColors = {income:'var(--green)',expense:'var(--red)',transfer:'var(--purple)',investment:'var(--blue3)'};
+    const dt = l.data ? new Date(l.data+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}) : '';
+    return `<div class="task-item" style="border-left-color:${typeColors[l.type]||'var(--tx3)'}">
+      <span style="font-size:16px">${typeIcons[l.type]||'📋'}</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500">${l.descricao}</div>
+        <div style="font-size:11px;color:var(--tx3)">${l.categoria||l.type} · ${dt}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${typeColors[l.type]}">${l.type==='income'?'+':'−'} ${FMT.brl(l.valor)}</div>
+        <div style="font-size:10px;color:var(--tx3)">${l.status||'confirmado'}</div>
+      </div>
+      <button class="task-del" onclick="deleteLancamento('${empresaId}','${l.id}')">🗑</button>
+    </div>`;
+  }).join('');
+}
+
+function deleteLancamento(empresaId, lancId){
+  const lancs = getLancamentos(empresaId).filter(l=>l.id!==lancId);
+  saveLancamentos(empresaId, lancs);
+  renderTab();
+}
+
+// ── LANCAMENTO FORM ──────────────────────────────────────────────────────
+function setLancType(tipo){
+  document.getElementById('lanc-type').value=tipo;
+  ['income','expense','transfer','investment'].forEach(t=>{
+    const btn=document.getElementById('lt-'+t);
+    if(btn) btn.style.opacity = t===tipo ? '1' : '0.4';
+  });
+  updateLancCategorias(tipo);
+}
+function openLancamentoForm(){
+  const sel = document.getElementById('lanc-type');
+  if(sel) updateLancCategorias(sel.value);
+  const dateField = document.getElementById('lanc-data');
+  if(dateField && !dateField.value) dateField.value = new Date().toISOString().slice(0,10);
+}
+function updateLancCategorias(tipo){
+  const sel = document.getElementById('lanc-categoria');
+  if(!sel) return;
+  const cats = CATEGORIAS.filter(c=>c.tipo===tipo);
+  sel.innerHTML = '<option value="">Selecione...</option>' + cats.map(c=>
+    `<option value="${c.nome}">${c.icone} ${c.nome}</option>`
+  ).join('');
+  const destRow = document.getElementById('lanc-dest-row');
+  if(destRow) destRow.style.display = tipo==='transfer' ? 'block' : 'none';
+}
+function saveLancamentoForm(){
+  const type = document.getElementById('lanc-type').value;
+  const valor = document.getElementById('lanc-valor').value.replace(/[^\d.,]/g,'').replace(',','.');
+  const data = document.getElementById('lanc-data').value;
+  const descricao = document.getElementById('lanc-descricao').value.trim();
+  const categoria = document.getElementById('lanc-categoria').value;
+  const status = document.getElementById('lanc-status').value;
+  const observacao = document.getElementById('lanc-obs').value.trim();
+  const recorrente = document.getElementById('lanc-recorrente').checked;
+  const frequencia = document.getElementById('lanc-freq').value;
+  // Validations
+  const errs = [];
+  if(FMT.num(valor) <= 0) errs.push('Valor deve ser maior que zero');
+  if(!data) errs.push('Data é obrigatória');
+  if(!descricao || descricao.length < 3) errs.push('Descrição mínimo 3 caracteres');
+  if(errs.length > 0){ alert(errs.join('\n')); return; }
+  const result = criarLancamento({
+    empresa_id: curEmp, type, valor: FMT.num(valor), data, descricao,
+    categoria, status, observacao, recorrente, frequencia
+  });
+  if(result){
+    closeModal('modal-lancamento');
+    document.getElementById('lanc-valor').value='';
+    document.getElementById('lanc-descricao').value='';
+    document.getElementById('lanc-obs').value='';
+    document.getElementById('lanc-recorrente').checked=false;
+    showToast('Lançamento criado com sucesso!');
+    if(curTab==='Financeiro') renderTab();
+  }
+}
+function showToast(msg){
+  const t = document.createElement('div');
+  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;animation:fadeIn .2s';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300)},2500);
 }
 
 // ── CHECKIN ──────────────────────────────────────────────────────────────
@@ -1629,7 +2049,10 @@ function autoSaveNotas(){
 }
 
 // ── MODALS ──────────────────────────────────────────────────────────────────
-function openModal(id){document.getElementById(id).classList.remove('hidden')}
+function openModal(id){
+  document.getElementById(id).classList.remove('hidden');
+  if(id==='modal-lancamento') setTimeout(()=>{setLancType('expense');openLancamentoForm()},50);
+}
 function closeModal(id){document.getElementById(id).classList.add('hidden')}
 
 // ── SIDEBAR MOBILE ──────────────────────────────────────────────────────────
