@@ -6,8 +6,9 @@
 - **Deploy**: Vercel (static build via `@vercel/static`)
 - **Framework**: Vanilla JS, CSS-in-file, no build tools
 - **Fontes**: DM Sans (body), Syne (headings/valores)
-- **Persistência**: localStorage (prefixo `orion_`)
+- **Persistência**: Supabase (primário) + localStorage (cache/fallback)
 - **IA**: Anthropic API (claude-sonnet-4-20250514) com fallback local
+- **Supabase**: CDN @supabase/supabase-js@2, credenciais em localStorage
 
 ## Estrutura de Arquivos
 
@@ -20,7 +21,8 @@
 ├── CLAUDE.md         # Este arquivo
 └── supabase/
     ├── v16_company_id.sql  # Migration empresa_id
-    └── v17_financeiro.sql  # Migration financeiro: categorias, contas, DRE, views
+    ├── v17_financeiro.sql  # Migration financeiro: categorias, contas, DRE, views
+    └── v19_full_schema.sql # Schema completo: todas as tabelas + seeds
 ```
 
 ## Empresas (5 ativas)
@@ -54,8 +56,14 @@
 
 ## Diagnóstico v16
 
-### Tabelas Supabase (planejadas, não conectadas)
-O app atual NÃO usa Supabase — tudo é localStorage. As tabelas abaixo são planejamento futuro:
+### Conexão Supabase v19
+O app usa Supabase como fonte primária de dados (quando conectado) com localStorage como cache/fallback.
+- Configuração via menu usuário → ⚙️ Supabase
+- Credenciais salvas em `orion_sb_url` e `orion_sb_key`
+- Sync bidirecional: startup puxa do Supabase → localStorage; writes vão para ambos
+- Todas as operações CRUD (lancamentos, tarefas, CRM, notas, agenda, alertas, checkins, empresas) sincronizam com Supabase
+
+### Tabelas Supabase (schema v19):
 
 | Tabela              | empresa_id | Status        |
 |---------------------|------------|---------------|
@@ -69,11 +77,17 @@ O app atual NÃO usa Supabase — tudo é localStorage. As tabelas abaixo são p
 | of_parcelas         | via projeto_id | Planejada |
 | maxxxi_alertas      | ✅ SIM     | Planejada     |
 | maxxxi_conversas    | ✅ SIM     | Planejada     |
+| empresas            | ✅ SIM     | Conectada     |
+| crm_itens           | ✅ SIM     | Conectada     |
+| notas               | ✅ SIM     | Conectada     |
+| agenda              | — global   | Conectada     |
+| alertas             | — global   | Conectada     |
+| checkins            | — global   | Conectada     |
+| categorias          | ✅ SIM     | Conectada     |
 
 ### Riscos Identificados
-1. Sem Supabase: dados vivem apenas no localStorage do browser
-2. Sem empresa_id enforcement: quando Supabase for conectado, todas queries precisarão filtrar
-3. API key do Anthropic armazenada em localStorage (risco de segurança)
+1. API key do Anthropic armazenada em localStorage (risco de segurança)
+2. Credenciais Supabase em localStorage (necessário para client-side app)
 
 ### Inconsistências Corrigidas na v16
 - empresaAtiva agora persiste em localStorage entre sessões
