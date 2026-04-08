@@ -295,7 +295,7 @@ Responda em português brasileiro. Seja direto e executivo.`
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: selectedModel, max_tokens: maxTokens, system: buildSystemPrompt(), messages: apiMessages }),
+        body: JSON.stringify({ model: selectedModel, max_tokens: maxTokens, system: buildSystemPrompt(), messages: apiMessages, empresa_id: empAtiva, empresa_nome: empresas.find(e => e.id === empAtiva)?.nome }),
         signal: controller.signal
       })
       clearTimeout(timeoutId)
@@ -327,7 +327,36 @@ Responda em português brasileiro. Seja direto e executivo.`
     setLoading(false)
   }
 
-  const quickActions = [
+  // ── Detectar empresa ativa pela URL ──
+  const empAtiva = (() => {
+    const path = window.location.pathname
+    const match = path.match(/\/empresa\/(\w+)/)
+    return match ? match[1] : null
+  })()
+
+  // ── Atalhos por empresa ──
+  const quickActions = empAtiva === 'of' ? [
+    '📊 DRE consolidada OF',
+    '🏆 Ranking projetos OF',
+    '💳 Parcelas vencidas OF',
+    '📉 Break-even projetos',
+    '🔄 Rateio do mês',
+    '🎯 Ticket médio por turma',
+  ] : empAtiva === 'fs' ? [
+    '📊 Briefing Forme Seguro',
+    '💰 Fluxo de caixa FS',
+    '⚠️ Inadimplência FS',
+    '📈 DRE Forme Seguro',
+    '🎯 Meta do mês FS',
+    '📝 Redigir cobrança',
+  ] : empAtiva === 'gp' ? [
+    '💰 Resumo financeiro pessoal',
+    '📊 Gastos do mês',
+    '🏦 Classificar extrato',
+    '📈 Patrimônio atual',
+    '⚠️ Compromissos vencendo',
+    '🎯 Meta de economia',
+  ] : [
     '📋 Briefing do Dia',
     '💰 Fluxo de Caixa DW',
     '📊 DRE Doctor Wealth',

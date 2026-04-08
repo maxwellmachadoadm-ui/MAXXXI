@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useData, safeName } from '../contexts/DataContext'
 import { useApp } from '../contexts/AppContext'
@@ -7,6 +7,35 @@ export default function Home() {
   const { empresas, tarefas, generateAlertsV5, generateAlerts, fmt, loaded, getPatrimonio } = useData()
   const { presentationMode } = useApp()
   const navigate = useNavigate()
+  const [monitorAlertas, setMonitorAlertas] = useState([])
+  const [monitorLoading, setMonitorLoading] = useState(false)
+  const [lastAnalysis, setLastAnalysis] = useState(null)
+
+  // Chamar monitor em background ao carregar
+  useEffect(() => {
+    if (!loaded) return
+    const cached = sessionStorage.getItem('orion_monitor_cache')
+    if (cached) {
+      try { const d = JSON.parse(cached); setMonitorAlertas(d.mensagens || []); setLastAnalysis(d.time) } catch {}
+      return
+    }
+    fetchMonitor()
+  }, [loaded])
+
+  async function fetchMonitor() {
+    setMonitorLoading(true)
+    try {
+      const r = await fetch('/api/monitor')
+      if (r.ok) {
+        const d = await r.json()
+        setMonitorAlertas(d.mensagens || [])
+        const time = new Date().toISOString()
+        setLastAnalysis(time)
+        sessionStorage.setItem('orion_monitor_cache', JSON.stringify({ mensagens: d.mensagens, time }))
+      }
+    } catch (_) {}
+    setMonitorLoading(false)
+  }
 
   if (!loaded) return null
 
@@ -101,9 +130,41 @@ export default function Home() {
         })}
       </div>
 
+      {/* MAXXXI Monitor */}
+      {(monitorAlertas.length > 0 || monitorLoading) && (
+        <div className="module-card mb">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 20 }}>🤖</span>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>MAXXXI — Análise Proativa</div>
+                <div style={{ fontSize: 10, color: 'var(--tx3)' }}>
+                  {monitorLoading ? 'Analisando...' : lastAnalysis ? `Última análise: ${new Date(lastAnalysis).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : ''}
+                </div>
+              </div>
+            </div>
+            <button className="btn btn-secondary btn-sm" onClick={fetchMonitor} disabled={monitorLoading}>
+              {monitorLoading ? '⏳' : '🔍 Analisar agora'}
+            </button>
+          </div>
+          {monitorAlertas.map((a, i) => (
+            <div key={i} style={{
+              padding: '10px 14px', borderRadius: 8, marginBottom: 8, fontSize: 13, lineHeight: 1.6,
+              background: a.nivel === 'critico' ? 'rgba(239,68,68,.08)' : a.nivel === 'atencao' ? 'rgba(245,158,11,.08)' : 'rgba(59,130,246,.08)',
+              borderLeft: `3px solid ${a.nivel === 'critico' ? 'var(--red)' : a.nivel === 'atencao' ? 'var(--gold)' : 'var(--blue)'}`,
+            }}>
+              <div style={{ fontSize: 10, color: 'var(--tx3)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>
+                {a.nivel === 'critico' ? '🔴' : a.nivel === 'atencao' ? '🟡' : 'ℹ️'} {a.empresa} — {a.tipo?.replace(/_/g, ' ')}
+              </div>
+              <div style={{ color: 'var(--text)', whiteSpace: 'pre-wrap' }}>{a.mensagem}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Alertas */}
       <div className="slbl">Central de Alertas</div>
-      {alerts.length === 0 && <div style={{ color: 'var(--green)', fontSize: 13, padding: 12 }}>Nenhum alerta ativo — ecossistema saudável</div>}
+      {alerts.length === 0 && monitorAlertas.length === 0 && <div style={{ color: 'var(--green)', fontSize: 13, padding: 12 }}>Nenhum alerta ativo — ecossistema saudável</div>}
       {alerts.map((a, i) => (
         <div key={i} className={a.level === 'critico' ? 'alert-r' : 'alert-a'} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }} onClick={() => navigate(`/empresa/${a.emp}`)}>
           {a.level === 'critico' ? '🔴' : '🟡'} {a.text}
