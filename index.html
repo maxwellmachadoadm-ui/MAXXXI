@@ -1844,7 +1844,7 @@ function renderWS(){
   const cresc=e.cresc;
   wh.innerHTML=`
     <div style="display:flex;align-items:center;gap:14px">
-      <div class="ws-sig" style="background:rgba(var(--emp-rgb),.12);color:${e.cor}" style="--emp-rgb:${e.rgb}">${e.sigla}</div>
+      <div class="ws-sig" style="--emp-rgb:${e.rgb};background:rgba(var(--emp-rgb),.12);color:${e.cor}">${e.sigla}</div>
       <div>
         <div class="ws-n">${e.nome}</div>
         <div class="ws-d">${e.desc}</div>
@@ -1875,6 +1875,7 @@ function switchTab(t){
 }
 
 function renderTab(){
+  if(!curEmp||!EMPS[curEmp]) return;
   const e=EMPS[curEmp];
   const c=document.getElementById('ws-content');
   const co=e.cor;
@@ -2013,10 +2014,10 @@ function renderFinanceiro(e, c){
   const kpis = calcularKPIsFinanceiro(curEmp);
   const mesLabel = now.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
 
-  // Use empresa defaults when no lancamentos exist
-  const receitaShow = dre.receita || FMT.num(e.fat);
-  const despesaShow = dre.despesa || (FMT.num(e.fat) - FMT.num(e.result));
-  const resultadoShow = dre.resultado || FMT.num(e.result);
+  // calcularDRE já aplica fallback via temLancamentos — usar direto
+  const receitaShow = dre.receita;
+  const despesaShow = dre.despesa;
+  const resultadoShow = dre.resultado;
   const margemShow = receitaShow > 0 ? (resultadoShow/receitaShow*100) : 0;
 
   c.innerHTML = `
