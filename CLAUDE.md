@@ -10,30 +10,46 @@
 - **IA**: Anthropic API (claude-sonnet-4-20250514) com fallback local
 - **Supabase**: CDN @supabase/supabase-js@2, credenciais em localStorage
 
+> **IMPORTANTE**: NÃO existe src/, NÃO existe React, NÃO existe npm.
+> Todo o código está em `index.html` (3172 linhas, ~169KB).
+> NÃO usar `npm run build` — o deploy é estático direto.
+
 ## Estrutura de Arquivos
 
 ```
 /
-├── index.html        # App inteiro (HTML + CSS + JS)
-├── vercel.json       # Config deploy Vercel (static + SPA routing)
-├── .env              # VITE_ANTHROPIC_KEY (não utilizado no runtime)
-├── README.md         # Descrição básica
-├── CLAUDE.md         # Este arquivo
+├── index.html              # App inteiro (HTML + CSS + JS)
+├── vercel.json             # Config deploy Vercel (static + SPA routing)
+├── .env                    # VITE_ANTHROPIC_KEY (não utilizado no runtime)
+├── README.md               # Descrição básica
+├── CLAUDE.md               # Este arquivo
+├── public/
+│   ├── manifest.json       # PWA manifest
+│   └── orion-logo.svg      # Logo constelação Orion (favicon + PWA)
 └── supabase/
-    ├── v16_company_id.sql  # Migration empresa_id
-    ├── v17_financeiro.sql  # Migration financeiro: categorias, contas, DRE, views
-    └── v19_full_schema.sql # Schema completo: todas as tabelas + seeds
+    ├── v15.sql             # Schema: lancamentos, tarefas, leads, invites, empresa_modulos
+    ├── v16_company_id.sql  # Migration: empresa_id + índices
+    ├── v17_financeiro.sql  # Migration: categorias, contas, DRE views
+    ├── v19_full_schema.sql # Schema completo: todas tabelas + seeds
+    └── create_buckets.sql  # Storage: avatars, logos, biblioteca
 ```
+
+## Remote e Deploy
+
+- **GitHub**: `maxwellmachadoadm-ui/MAXXXI`
+- **Vercel**: conectado ao repo, deploy automático em push para `main`
+- **URL produção**: https://orion-platform-wine.vercel.app
+- **Branch de desenvolvimento**: `claude/autonomous-mode-setup-WMj8y`
 
 ## Empresas (5 ativas)
 
-| ID   | Nome               | Sigla | Tipo           | Health Score |
-|------|--------------------|-------|----------------|--------------|
-| dw   | Doctor Wealth      | DW    | Portfólio      | 80           |
-| of   | Original Fotografia| OF    | Portfólio      | 52           |
-| fs   | Forme Seguro       | FS    | Portfólio      | 65           |
-| cdl  | CDL Divinópolis    | CDL   | Portfólio      | 88           |
-| gp   | Gestão Pessoal     | GP    | Pessoal        | 75           |
+| ID   | Nome               | Sigla | Tipo      | Fat    | Result | Score |
+|------|--------------------|-------|-----------|--------|--------|-------|
+| dw   | Doctor Wealth      | DW    | Portfólio | 48.500 | 22.000 | 80    |
+| of   | Original Fotografia| OF    | Portfólio | 28.000 | 4.200  | 52    |
+| fs   | Forme Seguro       | FS    | Portfólio | 15.000 | 8.500  | 65    |
+| cdl  | CDL Divinópolis    | CDL   | Portfólio | 35.000 | 12.000 | 88    |
+| gp   | Gestão Pessoal     | GP    | Pessoal   | 0      | 0      | 75    |
 
 ## Estado Global
 
@@ -48,84 +64,111 @@
   - `orion_tasks_{id}` — tarefas por empresa
   - `orion_crm_{id}` — CRM por empresa
   - `orion_notas_{id}` — notas por empresa
+  - `orion_lanc_{id}` — lançamentos financeiros por empresa
+  - `orion_modulos_{id}` — módulos ativos por empresa
   - `orion_agenda` — agenda global
   - `orion_alerts` — alertas
   - `orion_ci_{date}` — check-in diário
-  - `orion_lanc_{id}` — lançamentos financeiros por empresa
+  - `orion_invites` — convites de usuário
+  - `orion_sb_url` — URL Supabase
+  - `orion_sb_key` — Anon key Supabase
+  - `orion_api_key` — API key Anthropic (MAXXXI)
   - `orion_mx_briefing` — data do último briefing MAXXXI
 
-## Diagnóstico v16
+## Features Implementadas (v16)
 
-### Conexão Supabase v19
-O app usa Supabase como fonte primária de dados (quando conectado) com localStorage como cache/fallback.
-- Configuração via menu usuário → ⚙️ Supabase
-- Credenciais salvas em `orion_sb_url` e `orion_sb_key`
-- Sync bidirecional: startup puxa do Supabase → localStorage; writes vão para ambos
-- Todas as operações CRUD (lancamentos, tarefas, CRM, notas, agenda, alertas, checkins, empresas) sincronizam com Supabase
-
-### Tabelas Supabase (schema v19):
-
-| Tabela              | empresa_id | Status        |
-|---------------------|------------|---------------|
-| lancamentos         | ✅ SIM     | Planejada     |
-| tarefas             | ✅ SIM     | Planejada     |
-| leads               | ✅ SIM     | Planejada     |
-| compromissos        | ✅ SIM     | Planejada     |
-| extratos            | ❌ NÃO     | Precisa ADD   |
-| transacoes          | ❌ NÃO     | Precisa ADD   |
-| of_lancamentos      | via projeto_id | Planejada |
-| of_parcelas         | via projeto_id | Planejada |
-| maxxxi_alertas      | ✅ SIM     | Planejada     |
-| maxxxi_conversas    | ✅ SIM     | Planejada     |
-| empresas            | ✅ SIM     | Conectada     |
-| crm_itens           | ✅ SIM     | Conectada     |
-| notas               | ✅ SIM     | Conectada     |
-| agenda              | — global   | Conectada     |
-| alertas             | — global   | Conectada     |
-| checkins            | — global   | Conectada     |
-| categorias          | ✅ SIM     | Conectada     |
-
-### Riscos Identificados
-1. API key do Anthropic armazenada em localStorage (risco de segurança)
-2. Credenciais Supabase em localStorage (necessário para client-side app)
-
-### Inconsistências Corrigidas na v16
-- empresaAtiva agora persiste em localStorage entre sessões
+### Multiempresa (v16)
+- Isolamento completo por company_id em todas as entidades
+- Troca de empresa atualiza toda a UI
+- empresaAtiva persiste em localStorage entre sessões
 - Home dividida em PORTFÓLIO (DW, OF, FS, CDL) e PESSOAL (GP)
-- MAXXXI migrado de chat flutuante para drawer lateral
-- Badge de alertas no topbar
-- Sidebar com hierarquia visual clara
 
-### Engine Financeira v17
-- FMT utilities NaN-safe: `FMT.brl()`, `FMT.brlK()`, `FMT.pct()`, `FMT.pctVal()`, `FMT.score()`, `FMT.num()`
-- Lançamentos CRUD via localStorage (`orion_lanc_{empresaId}`)
-- DRE: receita, despesas por categoria, resultado operacional, margem
-- Fluxo de Caixa: 8 meses com entradas, saídas, saldo, acumulado
-- Categorias: 23 categorias pré-definidas (income/expense/transfer/investment)
+### Engine Financeira (v17)
+- FMT utilities NaN-safe: `brl`, `brlK`, `pct`, `pctVal`, `score`, `num`
+- Lançamentos CRUD com type (income/expense/transfer/investment)
+- `impacta_resultado`: transfer e investment NÃO afetam resultado operacional
+- 23 categorias pré-definidas (saúde, alimentação, moradia, transporte, etc.)
+- DRE estruturada: receita → impostos → despesas por categoria → resultado → margem
+- Fluxo de caixa: 8 meses com entradas, saídas, saldo, acumulado
 - Formulário de lançamento completo com validações inline
-- Aba "Financeiro" no workspace com DRE + Fluxo + Lista de lançamentos
-- Supabase migration v17: tabelas categorias, contas, views DRE/fluxo/resumo
+- Fallback demoData (`temLancamentos`) quando sem lançamentos reais
 
-### Visão CEO v18
-- Painel executivo READ ONLY com 8 seções
-- S1: Header com seletor período (mês/trimestre/ano) + atualização
+### Visão CEO (v18)
+- 8 seções executivas READ ONLY
+- S1: Header com seletor período (mês/trimestre/ano)
 - S2: 5 KPIs consolidados (receita, despesa, resultado, health score, alertas)
-- S3: MAXXXI Insights — cards horizontais com análise automática
+- S3: MAXXXI Insights — cards de análise automática
 - S4: Gráfico barras receita×despesa×resultado + ranking por resultado
 - S5: Gargalos automáticos + Top 5 prioridades com ação sugerida
-- S6: Tabela comparativa todas métricas × empresas + exportar CSV
+- S6: Tabela comparativa 7 métricas × empresas + exportar CSV
 - S7: Pipeline CRM funil por empresa + patrimônio GP
-- S8: Central de alertas agrupados por criticidade
+- S8: Central de alertas por criticidade
 - CEO Intelligence: identificar melhor/pior empresa, gargalos, prioridades
+
+### MAXXXI (v16+)
+- Drawer lateral (não chat flutuante)
+- Badge de alertas no topbar e sidebar
+- Briefing automático na primeira abertura do dia
+- Chat com API Anthropic + fallback local
+- Alertas não lidos no topo do drawer
+
+### Supabase (v19)
+- Client via CDN @supabase/supabase-js@2
+- Configuração via menu usuário → ⚙️ Supabase
+- Sync bidirecional: startup puxa → localStorage; writes → ambos
+- Entidades sincronizadas: lancamentos, tarefas, CRM, notas, agenda, alertas, checkins, empresas
+- Fallback automático: sem Supabase configurado, tudo funciona via localStorage
+- Storage buckets: avatars (público), logos (público), biblioteca (privado)
+
+### Interface (v12)
+- Barra de empresas no topo do workspace removida
+- Módulos configuráveis por empresa (checklist ao criar)
+- GP enxuto: apenas KPIs, Financeiro, Notas, Arquivos
+- Convite de usuário: modal com email, role, empresas, expiração, link copiável
+- Tarefas e CRM filtrados por curEmp
+- Favicon SVG constelação Orion (7 estrelas, Betelgeuse dourada)
+- PWA manifest com ícone SVG
+
+### Integridade
+- Braces balanceadas: 870/870
+- Zero NaN em HTML estático
+- Zero duplicate style attributes
+- renderTab guard contra curEmp null
+- FMT.score retorna mínimo 50 (nunca 0)
+- Health score com fallback consistente
 
 ## Variáveis de Ambiente
 
-| Variável            | Uso                    | Onde           |
-|---------------------|------------------------|----------------|
-| VITE_ANTHROPIC_KEY  | API Anthropic (MAXXXI) | .env (não usado runtime) |
-| orion_api_key       | API key em localStorage | Runtime browser |
+| Variável           | Onde                    | Obrigatório |
+|--------------------|-------------------------|-------------|
+| orion_api_key      | localStorage (runtime)  | Não — MAXXXI funciona com fallback local |
+| orion_sb_url       | localStorage (runtime)  | Não — app funciona 100% com localStorage |
+| orion_sb_key       | localStorage (runtime)  | Não — idem |
+| VITE_ANTHROPIC_KEY | .env (não usado runtime) | Não |
 
 ## Deploy (Vercel)
 
-- `vercel.json` configura build estático e SPA routing
-- Sem crons configurados (app é 100% client-side)
+1. Push para `main` no GitHub
+2. Vercel detecta automaticamente e deploya
+3. `vercel.json` configura:
+   - `index.html` como build estático
+   - `public/**` servido com rotas para manifest.json e orion-logo.svg
+   - SPA routing: todas as rotas → index.html
+4. Sem variáveis de ambiente no Vercel necessárias (tudo é client-side)
+
+## Tabelas Supabase
+
+| Tabela           | company_id | Status    |
+|------------------|------------|-----------|
+| empresas         | ✅ PK      | Conectada |
+| lancamentos      | ✅ SIM     | Conectada |
+| tarefas          | ✅ SIM     | Conectada |
+| crm_itens        | ✅ SIM     | Conectada |
+| notas            | ✅ SIM     | Conectada |
+| leads            | ✅ SIM     | Pronta    |
+| invites          | — global   | Pronta    |
+| empresa_modulos  | ✅ SIM     | Pronta    |
+| agenda           | — global   | Conectada |
+| alertas          | — global   | Conectada |
+| checkins         | — global   | Conectada |
+| categorias       | ✅ SIM     | Conectada |
