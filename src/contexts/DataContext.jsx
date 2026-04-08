@@ -246,7 +246,8 @@ export function DataProvider({ children }) {
     } catch (_) {}
     // Load patrimônio do Supabase
     try {
-      const { data: pat } = await supabase.from('patrimonio').select('*').eq('user_id', user.id).single()
+      const { data: patRows } = await supabase.from('patrimonio').select('*').eq('user_id', user.id).limit(1)
+      const pat = patRows?.[0]
       if (pat) {
         const patData = { ...pat, historico: typeof pat.historico === 'string' ? JSON.parse(pat.historico) : (pat.historico || []) }
         localStorage.setItem('orion_patrimonio', JSON.stringify(patData))
@@ -256,12 +257,6 @@ export function DataProvider({ children }) {
     try {
       const { data: arqs } = await supabase.from('arquivos').select('*').order('created_at', { ascending: false })
       if (arqs && arqs.length > 0) setArquivos(arqs)
-    } catch (_) {}
-    // Load today's checkin
-    try {
-      const { data: ci } = await supabase.from('checkins')
-        .select('*').eq('user_id', user.id).eq('data', new Date().toISOString().slice(0, 10)).single()
-      if (ci) setCheckin({ prioridade: ci.prioridade || '', decisao: ci.decisao || '', resultado: ci.resultado || '' })
     } catch (_) {}
     setLoaded(true)
   }, [user])
@@ -323,15 +318,16 @@ export function DataProvider({ children }) {
   // ── CHECKIN ──
   async function saveCheckin(ci) {
     setCheckin(ci)
-    if (isDemoMode) {
-      localStorage.setItem('orion_ci_' + new Date().toDateString(), JSON.stringify(ci))
-      return
+    localStorage.setItem('orion_ci_' + new Date().toDateString(), JSON.stringify(ci))
+    if (!isDemoMode && supabase && user) {
+      try {
+        await supabase.from('checkins').upsert({
+          user_id: user.id,
+          data: new Date().toISOString().slice(0, 10),
+          ...ci
+        })
+      } catch (_) {}
     }
-    await supabase.from('checkins').upsert({
-      user_id: user.id,
-      data: new Date().toISOString().slice(0, 10),
-      ...ci
-    })
   }
 
   // ── LANÇAMENTOS CRUD (dual: Supabase + localStorage) ──
@@ -619,13 +615,20 @@ export function DataProvider({ children }) {
 
   async function savePatrimonio(data) {
     localStorage.setItem('orion_patrimonio', JSON.stringify(data))
-    // Sync Supabase
     if (!isDemoMode && supabase && user) {
       try {
-        await supabase.from('patrimonio').upsert({
-          user_id: user.id, ...data, historico: JSON.stringify(data.historico || []),
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' })
+        // Tentar atualizar registro existente
+        const { data: existing } = await supabase.from('patrimonio').select('id').eq('user_id', user.id).limit(1)
+        const payload = {
+          user_id: user.id, imoveis: data.imoveis, investimentos: data.investimentos,
+          participacoes: data.participacoes, veiculos: data.veiculos, previdencia: data.previdencia,
+          dividas: data.dividas, historico: data.historico || [], updated_at: new Date().toISOString(),
+        }
+        if (existing?.[0]) {
+          await supabase.from('patrimonio').update(payload).eq('id', existing[0].id)
+        } else {
+          await supabase.from('patrimonio').insert(payload)
+        }
       } catch (_) {}
     }
   }
