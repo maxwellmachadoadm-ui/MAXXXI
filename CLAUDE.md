@@ -92,6 +92,18 @@ O app atual NÃO usa Supabase — tudo é localStorage. As tabelas abaixo são p
 - Aba "Financeiro" no workspace com DRE + Fluxo + Lista de lançamentos
 - Supabase migration v17: tabelas categorias, contas, views DRE/fluxo/resumo
 
+### Visão CEO v18
+- Painel executivo READ ONLY com 8 seções
+- S1: Header com seletor período (mês/trimestre/ano) + atualização
+- S2: 5 KPIs consolidados (receita, despesa, resultado, health score, alertas)
+- S3: MAXXXI Insights — cards horizontais com análise automática
+- S4: Gráfico barras receita×despesa×resultado + ranking por resultado
+- S5: Gargalos automáticos + Top 5 prioridades com ação sugerida
+- S6: Tabela comparativa todas métricas × empresas + exportar CSV
+- S7: Pipeline CRM funil por empresa + patrimônio GP
+- S8: Central de alertas agrupados por criticidade
+- CEO Intelligence: identificar melhor/pior empresa, gargalos, prioridades
+
 ## Variáveis de Ambiente
 
 | Variável            | Uso                    | Onde           |

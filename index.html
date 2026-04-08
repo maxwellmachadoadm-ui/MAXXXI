@@ -315,6 +315,52 @@ a{color:inherit;text-decoration:none}
 .dre-row .dre-lbl{font-size:13px}.dre-row .dre-val{font-family:'Syne',sans-serif;font-size:14px;font-weight:800}
 .lanc-type-active{opacity:1!important;box-shadow:0 0 0 2px rgba(59,130,246,.4)}
 
+/* VISÃO CEO */
+.vceo-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.vceo-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:900;color:#fff}
+.vceo-sub{font-size:13px;color:var(--tx3);margin-top:3px}
+.vceo-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.vceo-periodo{display:flex;gap:2px;background:var(--s2);border-radius:var(--r2);padding:2px;border:1px solid var(--br)}
+.vceo-periodo button{padding:6px 12px;border:none;border-radius:6px;background:transparent;color:var(--tx3);font-size:11px;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap}
+.vceo-periodo button.active{background:var(--blue2);color:#fff}
+.vceo-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.vceo-kpi{background:var(--s1);border:1px solid var(--br);border-radius:var(--r);padding:16px;position:relative;overflow:hidden}
+.vceo-kpi .kpi-stripe{position:absolute;top:0;left:0;right:0;height:3px}
+.vceo-kpi .kpi-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);margin-bottom:6px}
+.vceo-kpi .kpi-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:900;line-height:1.1}
+.vceo-kpi .kpi-delta{font-size:11px;margin-top:4px}
+.vceo-insights{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;margin-bottom:20px}
+.vceo-insight-card{min-width:280px;max-width:340px;flex-shrink:0;border-radius:var(--r);padding:16px;border:1px solid var(--br)}
+.vceo-insight-card.critico{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25)}
+.vceo-insight-card.atencao{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.25)}
+.vceo-insight-card.info{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.25)}
+.vceo-chart-bar{display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:8px}
+.vceo-chart-bar .bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.vceo-chart-bar .bar-wrap{display:flex;align-items:flex-end;gap:2px;height:100px;width:100%}
+.vceo-chart-bar .bar{flex:1;border-radius:3px 3px 0 0;transition:height .4s;min-height:2px}
+.vceo-chart-bar .bar-lbl{font-size:9px;color:var(--tx3);text-align:center;white-space:nowrap}
+.vceo-line{position:relative;height:120px;margin:12px 0}
+.vceo-table{width:100%;border-collapse:collapse;font-size:12px}
+.vceo-table th{padding:10px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);border-bottom:2px solid var(--br);position:sticky;top:0;background:var(--s1);z-index:1}
+.vceo-table td{padding:9px 12px;border-bottom:1px solid var(--br)}
+.vceo-table tr:hover{background:rgba(255,255,255,.02)}
+.vceo-table .cell-neg{background:rgba(127,29,29,.3);color:#fca5a5}
+.vceo-table .cell-best{border-left:3px solid var(--amber)}
+.vceo-rank-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:800;flex-shrink:0}
+.vceo-gargalo{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--s2);border:1px solid var(--br);border-radius:var(--r2);margin-bottom:8px;border-left:3px solid}
+.vceo-prio{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--s2);border:1px solid var(--br);border-radius:var(--r2);margin-bottom:8px}
+.vceo-prio-num{font-family:'Syne',sans-serif;font-size:18px;font-weight:900;color:var(--tx3);width:24px;text-align:center;flex-shrink:0}
+.vceo-alert-group{margin-bottom:16px}
+.vceo-alert-group-hdr{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:6px 0;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.vceo-funnel{display:flex;flex-direction:column;gap:4px}
+.vceo-funnel-row{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:var(--r2)}
+.vceo-funnel-bar{height:24px;border-radius:4px;display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:700;color:#fff;min-width:40px}
+@media(max-width:768px){
+  .vceo-kpis{grid-template-columns:1fr 1fr}
+  .vceo-table{font-size:11px}
+  .vceo-table th,.vceo-table td{padding:6px 8px}
+}
+
 /* FILE UPLOAD */
 .file-zone{
   border:1px dashed rgba(59,130,246,.3);border-radius:var(--r);
@@ -707,27 +753,96 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
-<!-- CEO -->
+<!-- CEO — VISÃO EXECUTIVA -->
 <div id="page-ceo" class="hidden">
-  <div style="margin-bottom:20px">
-    <h1 style="font-family:'Syne',sans-serif;font-size:24px;font-weight:900">Visão CEO Consolidada</h1>
-    <div style="font-size:13px;color:var(--tx3);margin-top:4px">Performance do Ecossistema — Março 2026</div>
+  <!-- S1: HEADER -->
+  <div class="vceo-header">
+    <div>
+      <div class="vceo-title">👁️ Visão CEO</div>
+      <div class="vceo-sub" id="vceo-datetime">Carregando...</div>
+    </div>
+    <div class="vceo-controls">
+      <div class="vceo-periodo" id="vceo-periodo">
+        <button class="active" onclick="setCeoPeriodo('mes')">Este mês</button>
+        <button onclick="setCeoPeriodo('trimestre')">Trimestre</button>
+        <button onclick="setCeoPeriodo('ano')">Ano</button>
+      </div>
+      <button class="tb-btn" onclick="renderCEO()" style="font-size:12px">🔄 Atualizar</button>
+      <span style="font-size:11px;color:var(--tx3)" id="vceo-updated"></span>
+    </div>
   </div>
+
+  <!-- S2: KPIs -->
+  <div class="vceo-kpis" id="vceo-kpis"></div>
+
+  <!-- S3: MAXXXI INSIGHTS -->
+  <div class="card mb">
+    <div class="flex aic jsb mb-sm">
+      <div class="slbl" style="margin:0">🤖 MAXXXI Insights</div>
+      <button class="tb-btn" style="font-size:11px" onclick="toggleMXDrawer()">Abrir MAXXXI →</button>
+    </div>
+    <div class="vceo-insights" id="vceo-insights"></div>
+  </div>
+
+  <!-- S4: GRÁFICOS -->
   <div class="g2 mb">
     <div class="card">
-      <div class="slbl">Ranking por Faturamento</div>
-      <div id="ceo-rank"></div>
+      <div class="slbl">Receita vs Despesa vs Resultado</div>
+      <div class="vceo-chart-bar" id="vceo-bar-chart"></div>
+      <div style="display:flex;gap:14px;margin-top:10px;justify-content:center">
+        <span style="font-size:10px;color:var(--tx3)"><span style="display:inline-block;width:8px;height:8px;background:var(--blue);border-radius:2px;margin-right:3px"></span>Receita</span>
+        <span style="font-size:10px;color:var(--tx3)"><span style="display:inline-block;width:8px;height:8px;background:var(--red);border-radius:2px;margin-right:3px"></span>Despesa</span>
+        <span style="font-size:10px;color:var(--tx3)"><span style="display:inline-block;width:8px;height:8px;background:var(--green);border-radius:2px;margin-right:3px"></span>Resultado</span>
+      </div>
     </div>
     <div class="card">
-      <div class="slbl">Distribuição de Receita</div>
-      <div id="ceo-dist"></div>
+      <div class="slbl">Ranking por Resultado</div>
+      <div id="vceo-ranking"></div>
     </div>
   </div>
-  <div class="g4">
-    <div class="card"><div class="lbl">Maior Margem</div><div class="val-sm txt-green">CDL</div><div class="delta-neu">34,3% líquida</div></div>
-    <div class="card"><div class="lbl">Maior Crescimento</div><div class="val-sm txt-blue">Forme Seguro</div><div class="delta-up">▲ +50% vs mês ant.</div></div>
-    <div class="card"><div class="lbl">Em Atenção</div><div class="val-sm txt-amber">Original Foto.</div><div class="delta-dn">▼ −4,2% + inadimpl.</div></div>
-    <div class="card"><div class="lbl">Clientes no Ecossistema</div><div class="val-sm" style="color:#a78bfa">72</div><div class="delta-up">▲ +6 vs mês ant.</div></div>
+
+  <!-- S5: GARGALOS + PRIORIDADES -->
+  <div class="g2 mb">
+    <div class="card">
+      <div class="slbl">Gargalos Identificados</div>
+      <div id="vceo-gargalos"></div>
+    </div>
+    <div class="card">
+      <div class="slbl">Top 5 Prioridades</div>
+      <div id="vceo-prioridades"></div>
+    </div>
+  </div>
+
+  <!-- S6: TABELA COMPARATIVA -->
+  <div class="card mb">
+    <div class="flex aic jsb mb-sm">
+      <div class="slbl" style="margin:0">Tabela Comparativa</div>
+      <button class="tb-btn" style="font-size:11px" onclick="exportCeoCSV()">📥 Exportar CSV</button>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="vceo-table" id="vceo-table"></table>
+    </div>
+  </div>
+
+  <!-- S7: PIPELINE + PATRIMÔNIO -->
+  <div class="g2 mb">
+    <div class="card">
+      <div class="slbl">Pipeline — Funil por Empresa</div>
+      <div id="vceo-pipeline"></div>
+    </div>
+    <div class="card">
+      <div class="slbl">💰 Patrimônio Pessoal (GP)</div>
+      <div id="vceo-patrimonio"></div>
+    </div>
+  </div>
+
+  <!-- S8: CENTRAL DE ALERTAS -->
+  <div class="card">
+    <div class="flex aic jsb mb-sm">
+      <div class="slbl" style="margin:0">Central de Alertas</div>
+      <button class="tb-btn" style="font-size:11px" onclick="toggleMXDrawer()">🤖 Analisar com MAXXXI</button>
+    </div>
+    <div id="vceo-alertas"></div>
   </div>
 </div>
 
@@ -1370,35 +1485,288 @@ function renderEmpGrid(){
 }
 
 // ── CEO ──────────────────────────────────────────────────────────────────
+// ── CEO INTELLIGENCE ENGINE ──────────────────────────────────────────────
+let ceoPeriodo = 'mes';
+let ceoLastUpdate = null;
+
+function getCeoPeriodo(){
+  const now = new Date();
+  let inicio, fim;
+  if(ceoPeriodo==='mes'){
+    inicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+    fim = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+  } else if(ceoPeriodo==='trimestre'){
+    const q = Math.floor(now.getMonth()/3)*3;
+    inicio = new Date(now.getFullYear(), q, 1).toISOString().slice(0,10);
+    fim = new Date(now.getFullYear(), q+3, 0).toISOString().slice(0,10);
+  } else {
+    inicio = new Date(now.getFullYear(), 0, 1).toISOString().slice(0,10);
+    fim = new Date(now.getFullYear(), 11, 31).toISOString().slice(0,10);
+  }
+  return {inicio, fim, label: ceoPeriodo==='mes'?now.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}):ceoPeriodo==='trimestre'?`Q${Math.floor(now.getMonth()/3)+1} ${now.getFullYear()}`:`Ano ${now.getFullYear()}`};
+}
+
+function setCeoPeriodo(p){
+  ceoPeriodo = p;
+  document.querySelectorAll('#vceo-periodo button').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(p==='mes'?'mês':p==='trimestre'?'trimestre':'ano')));
+  renderCEO();
+}
+
+function ceoCalcEmpresa(empresaId){
+  const e = EMPS[empresaId];
+  if(!e) return null;
+  const lancs = getLancamentos(empresaId);
+  const per = getCeoPeriodo();
+  const filtered = lancs.filter(l=>l.data>=per.inicio&&l.data<=per.fim);
+  let receita = filtered.filter(l=>l.type==='income').reduce((s,l)=>s+FMT.num(l.valor),0);
+  let despesa = filtered.filter(l=>l.type==='expense'&&l.impacta_resultado!==false).reduce((s,l)=>s+FMT.num(l.valor),0);
+  // Fallback to EMPS data when no lancamentos
+  if(receita===0 && despesa===0 && e.fat > 0){
+    receita = FMT.num(e.fat);
+    despesa = receita - FMT.num(e.result);
+  }
+  const resultado = receita - despesa;
+  const margem = receita>0 ? parseFloat((resultado/receita*100).toFixed(1)) : 0;
+  const tarefasAbertas = e.tarefas ? e.tarefas.filter(t=>!t.k).length : 0;
+  const inadimplencia = e.id==='of'?8.7:e.id==='dw'?3.2:e.id==='cdl'?2.1:0;
+  return { empresaId, sigla:e.sigla, nome:e.nome, cor:e.cor, receita, despesa, resultado, margem, score:e.score, cresc:e.cresc, tarefasAbertas, inadimplencia, kpis:e.kpis, crm:e.crm||[] };
+}
+
+function ceoIdentificarMelhor(kpis){ return [...kpis].sort((a,b)=>b.resultado-a.resultado)[0] }
+function ceoIdentificarPior(kpis){ return [...kpis].sort((a,b)=>a.margem-b.margem)[0] }
+
+function ceoGerarGargalos(kpis){
+  const g = [];
+  kpis.forEach(k=>{
+    if(k.margem < 0) g.push({nivel:'critico',emoji:'🔴',empresa:k.sigla,cor:k.cor,msg:`Resultado negativo: ${FMT.brl(k.resultado)}`,border:'var(--red)'});
+    else if(k.margem < 15) g.push({nivel:'atencao',emoji:'🟡',empresa:k.sigla,cor:k.cor,msg:`Margem em ${FMT.pctVal(k.margem)} — abaixo de 15%`,border:'var(--amber)'});
+    if(k.inadimplencia > 5) g.push({nivel:'critico',emoji:'🔴',empresa:k.sigla,cor:k.cor,msg:`Inadimplência ${k.inadimplencia}% (limite 5%)`,border:'var(--red)'});
+    if(k.tarefasAbertas > 3) g.push({nivel:'atencao',emoji:'🟡',empresa:k.sigla,cor:k.cor,msg:`${k.tarefasAbertas} tarefas pendentes`,border:'var(--amber)'});
+  });
+  return g.sort((a,b)=>a.nivel==='critico'?-1:1);
+}
+
+function ceoGerarPrioridades(kpis){
+  const p = [];
+  kpis.forEach(k=>{
+    if(k.margem < 0) p.push({empresa:k.sigla,cor:k.cor,desc:'Resultado negativo — reestruturar custos',valor:Math.abs(k.resultado),urgencia:10,acao:'Reunião de corte de custos'});
+    if(k.margem >= 0 && k.margem < 15) p.push({empresa:k.sigla,cor:k.cor,desc:'Margem abaixo de 15%',valor:k.receita,urgencia:7,acao:'Revisar precificação'});
+    if(k.inadimplencia > 5) p.push({empresa:k.sigla,cor:k.cor,desc:`Inadimplência ${k.inadimplencia}%`,valor:k.receita*k.inadimplencia/100,urgencia:8,acao:'Cobrança ativa urgente'});
+  });
+  return p.sort((a,b)=>(b.valor*b.urgencia)-(a.valor*a.urgencia)).slice(0,5);
+}
+
 function renderCEO(){
-  const emps=Object.values(EMPS).filter(e=>e.id!=='gp').sort((a,b)=>b.fat-a.fat);
-  const total=emps.reduce((s,e)=>s+e.fat,0);
-  const rank=document.getElementById('ceo-rank');
-  if(rank)rank.innerHTML=emps.map((e,i)=>`
-    <div class="ceo-row">
-      <div class="ceo-pos">${i+1}</div>
-      <div style="width:10px;height:10px;border-radius:50%;background:${e.cor};flex-shrink:0"></div>
-      <div class="ceo-n">${e.nome}</div>
-      <div class="ceo-v" style="color:${e.cor}">${fmt(e.fat)}</div>
-      <div class="ceo-mg">${e.fat>0?((e.result/e.fat)*100).toFixed(0)+'%':'—'} mg</div>
-    </div>`).join('');
-  const dist=document.getElementById('ceo-dist');
-  if(dist)dist.innerHTML=emps.map(e=>{
-    const pct=total>0?(e.fat/total*100).toFixed(0):0;
-    return `<div style="margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div style="width:10px;height:10px;border-radius:3px;background:${e.cor}"></div>
-          <span style="font-size:13px">${e.nome}</span>
+  const allEmps = Object.values(EMPS).filter(e=>!e.id.startsWith('custom_'));
+  const kpis = allEmps.map(e=>ceoCalcEmpresa(e.id)).filter(Boolean);
+  const portfolio = kpis.filter(k=>k.empresaId!=='gp');
+  const per = getCeoPeriodo();
+  ceoLastUpdate = new Date();
+
+  // S1: Header
+  const dtEl = document.getElementById('vceo-datetime');
+  if(dtEl) dtEl.textContent = per.label + ' — ' + new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const upEl = document.getElementById('vceo-updated');
+  if(upEl) upEl.textContent = 'Atualizado agora';
+
+  // S2: KPIs
+  const totalReceita = portfolio.reduce((s,k)=>s+k.receita,0);
+  const totalDespesa = portfolio.reduce((s,k)=>s+k.despesa,0);
+  const totalResultado = totalReceita - totalDespesa;
+  const totalMargem = totalReceita>0?(totalResultado/totalReceita*100):0;
+  const alerts = getAlerts();
+  const alertasAtivos = alerts.filter(a=>!a.read).length;
+  const kpiEl = document.getElementById('vceo-kpis');
+  if(kpiEl) kpiEl.innerHTML = `
+    <div class="vceo-kpi"><div class="kpi-stripe" style="background:var(--blue)"></div><div class="kpi-lbl">Receita Total</div><div class="kpi-val txt-blue">${FMT.brlK(totalReceita)}</div><div class="kpi-delta delta-up">Portfólio consolidado</div></div>
+    <div class="vceo-kpi"><div class="kpi-stripe" style="background:var(--red)"></div><div class="kpi-lbl">Despesa Total</div><div class="kpi-val txt-red">${FMT.brlK(totalDespesa)}</div><div class="kpi-delta delta-neu">${totalDespesa>totalReceita?'⚠️ Acima da receita':'Sob controle'}</div></div>
+    <div class="vceo-kpi"><div class="kpi-stripe" style="background:${totalResultado>=0?'var(--green)':'var(--red)'}"></div><div class="kpi-lbl">Resultado Líquido</div><div class="kpi-val" style="color:${totalResultado>=0?'var(--green)':'var(--red)'}">${FMT.brlK(totalResultado)}</div><div class="kpi-delta" style="color:var(--tx3)">Margem ${FMT.pctVal(totalMargem)}</div></div>
+    <div class="vceo-kpi"><div class="kpi-stripe" style="background:var(--purple)"></div><div class="kpi-lbl">Health Score Médio</div><div class="kpi-val" style="color:#a78bfa">${Math.round(portfolio.reduce((s,k)=>s+k.score,0)/Math.max(portfolio.length,1))}</div><div class="kpi-delta delta-neu">${portfolio.length} empresas no portfólio</div></div>
+    <div class="vceo-kpi"><div class="kpi-stripe" style="background:${alertasAtivos>0?'var(--red)':'var(--green)'}"></div><div class="kpi-lbl">Alertas Ativos</div><div class="kpi-val" style="color:${alertasAtivos>0?'var(--red)':'var(--green)'}">${alertasAtivos}</div><div class="kpi-delta delta-neu">${alertasAtivos>0?alertasAtivos+' pendentes':'Tudo em dia'}</div></div>`;
+
+  // S3: MAXXXI Insights
+  const insEl = document.getElementById('vceo-insights');
+  if(insEl){
+    const melhor = ceoIdentificarMelhor(portfolio);
+    const pior = ceoIdentificarPior(portfolio);
+    const gargalos = ceoGerarGargalos(portfolio);
+    const insights = [];
+    if(melhor) insights.push({nivel:'info',emoji:'🏆',titulo:`${melhor.sigla} lidera o resultado`,msg:`R$ ${(melhor.resultado/1000).toFixed(0)}k de resultado com margem de ${FMT.pctVal(melhor.margem)}. Maior contribuição ao ecossistema.`});
+    if(pior && pior.margem < 15) insights.push({nivel:pior.margem<0?'critico':'atencao',emoji:pior.margem<0?'🚨':'⚠️',titulo:`${pior.sigla} precisa de atenção`,msg:`Margem em ${FMT.pctVal(pior.margem)}${pior.margem<0?' — operação deficitária':' — abaixo do mínimo de 15%'}.`});
+    gargalos.slice(0,2).forEach(g=>insights.push({nivel:g.nivel,emoji:g.emoji,titulo:`${g.empresa}: ${g.msg}`,msg:'Ação necessária para corrigir.'}));
+    if(totalResultado>0) insights.push({nivel:'info',emoji:'📈',titulo:'Ecossistema positivo',msg:`Resultado consolidado de ${FMT.brlK(totalResultado)} com margem de ${FMT.pctVal(totalMargem)}.`});
+    insEl.innerHTML = insights.length>0 ? insights.map(ins=>`
+      <div class="vceo-insight-card ${ins.nivel}">
+        <div style="font-size:18px;margin-bottom:6px">${ins.emoji}</div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px">${ins.titulo}</div>
+        <div style="font-size:12px;color:var(--tx2);line-height:1.4">${ins.msg}</div>
+      </div>`).join('') : '<div style="font-size:13px;color:var(--tx3);padding:12px">Nenhum insight disponível. Adicione lançamentos para gerar análises.</div>';
+  }
+
+  // S4: Charts
+  const barEl = document.getElementById('vceo-bar-chart');
+  if(barEl){
+    const maxVal = Math.max(...portfolio.map(k=>Math.max(k.receita,k.despesa)),1);
+    barEl.innerHTML = portfolio.map(k=>`
+      <div class="bar-group">
+        <div class="bar-wrap">
+          <div class="bar" style="height:${Math.max(2,(k.receita/maxVal*100)).toFixed(0)}%;background:var(--blue)"></div>
+          <div class="bar" style="height:${Math.max(2,(k.despesa/maxVal*100)).toFixed(0)}%;background:var(--red)"></div>
+          <div class="bar" style="height:${Math.max(2,(Math.abs(k.resultado)/maxVal*100)).toFixed(0)}%;background:${k.resultado>=0?'var(--green)':'rgba(239,68,68,.5)'}"></div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${e.cor}">${fmt(e.fat)}</span>
-          <span style="font-size:11px;color:var(--tx3)">${pct}%</span>
+        <div class="bar-lbl" style="color:${k.cor};font-weight:700">${k.sigla}</div>
+      </div>`).join('');
+  }
+  const rankEl = document.getElementById('vceo-ranking');
+  if(rankEl){
+    const sorted = [...portfolio].sort((a,b)=>b.resultado-a.resultado);
+    rankEl.innerHTML = sorted.map((k,i)=>`
+      <div class="ceo-row">
+        <div class="vceo-rank-badge" style="background:${i===0?'var(--amber)':i===1?'var(--tx3)':i===2?'#cd7f32':'var(--s3)'};color:#fff">${i===0?'🏆':i+1}</div>
+        <div style="width:10px;height:10px;border-radius:50%;background:${k.cor};flex-shrink:0"></div>
+        <div class="ceo-n" style="flex:1">${k.nome}</div>
+        <div style="text-align:right">
+          <div class="ceo-v" style="color:${k.resultado>=0?'var(--green)':'var(--red)'}">${FMT.brlK(k.resultado)}</div>
+          <div style="font-size:10px;color:var(--tx3)">mg ${FMT.pctVal(k.margem)}</div>
         </div>
+      </div>`).join('');
+  }
+
+  // S5: Gargalos + Prioridades
+  const gargalos = ceoGerarGargalos(portfolio);
+  const garEl = document.getElementById('vceo-gargalos');
+  if(garEl) garEl.innerHTML = gargalos.length>0 ? gargalos.map(g=>`
+    <div class="vceo-gargalo" style="border-left-color:${g.border}">
+      <span>${g.emoji}</span>
+      <span style="font-size:12px;font-weight:700;color:${g.cor}">${g.empresa}</span>
+      <span style="font-size:13px;flex:1">${g.msg}</span>
+    </div>`).join('') : '<div style="padding:16px;text-align:center;color:var(--green);font-size:13px">✅ Nenhum gargalo identificado</div>';
+
+  const prios = ceoGerarPrioridades(portfolio);
+  const prioEl = document.getElementById('vceo-prioridades');
+  if(prioEl) prioEl.innerHTML = prios.length>0 ? prios.map((p,i)=>`
+    <div class="vceo-prio">
+      <div class="vceo-prio-num">${i+1}</div>
+      <div style="width:8px;height:8px;border-radius:50%;background:${p.cor};flex-shrink:0"></div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${p.empresa} — ${p.desc}</div>
+        <div style="font-size:11px;color:var(--tx3)">💡 ${p.acao}</div>
       </div>
-      <div class="pbar" style="height:6px"><div class="pfill" style="width:${pct}%;background:${e.cor}"></div></div>
-    </div>`;
-  }).join('');
+      <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--red)">${FMT.brlK(p.valor)}</div>
+    </div>`).join('') : '<div style="padding:16px;text-align:center;color:var(--green);font-size:13px">✅ Sem prioridades urgentes</div>';
+
+  // S6: Tabela Comparativa
+  const tblEl = document.getElementById('vceo-table');
+  if(tblEl){
+    const best = ceoIdentificarMelhor(portfolio);
+    const metrics = ['Receita','Despesa','Resultado','Margem %','Health Score','Inadimplência','Tarefas Abertas'];
+    const getVal = (k,m)=>{
+      if(m==='Receita') return k.receita;
+      if(m==='Despesa') return k.despesa;
+      if(m==='Resultado') return k.resultado;
+      if(m==='Margem %') return k.margem;
+      if(m==='Health Score') return k.score;
+      if(m==='Inadimplência') return k.inadimplencia;
+      if(m==='Tarefas Abertas') return k.tarefasAbertas;
+      return 0;
+    };
+    const fmtCell = (v,m)=>{
+      if(m==='Margem %'||m==='Inadimplência') return FMT.pctVal(v);
+      if(m==='Health Score'||m==='Tarefas Abertas') return v;
+      return FMT.brlK(v);
+    };
+    const isNeg = (v,m)=>{
+      if(m==='Resultado'&&v<0) return true;
+      if(m==='Margem %'&&v<0) return true;
+      if(m==='Inadimplência'&&v>5) return true;
+      return false;
+    };
+    tblEl.innerHTML = `<thead><tr><th>Métrica</th>${portfolio.map(k=>`<th style="color:${k.cor}">${k.sigla}</th>`).join('')}<th style="color:var(--blue3)">TOTAL</th></tr></thead>
+      <tbody>${metrics.map(m=>{
+        const total = m==='Margem %'?totalMargem:m==='Health Score'?Math.round(portfolio.reduce((s,k)=>s+k.score,0)/Math.max(portfolio.length,1)):m==='Inadimplência'?parseFloat((portfolio.reduce((s,k)=>s+k.inadimplencia,0)/Math.max(portfolio.length,1)).toFixed(1)):m==='Tarefas Abertas'?portfolio.reduce((s,k)=>s+k.tarefasAbertas,0):m==='Receita'?totalReceita:m==='Despesa'?totalDespesa:totalResultado;
+        return `<tr><td style="font-weight:600;font-size:12px">${m}</td>${portfolio.map(k=>{
+          const v=getVal(k,m);
+          const neg=isNeg(v,m);
+          const isBest=best&&k.empresaId===best.empresaId;
+          return `<td class="${neg?'cell-neg':''} ${isBest?'cell-best':''}" style="font-family:'Syne',sans-serif;font-weight:700;font-size:12px">${fmtCell(v,m)}</td>`;
+        }).join('')}<td style="font-family:'Syne',sans-serif;font-weight:800;font-size:12px;color:var(--blue3)">${fmtCell(total,m)}</td></tr>`;
+      }).join('')}</tbody>`;
+  }
+
+  // S7: Pipeline + Patrimônio
+  const pipEl = document.getElementById('vceo-pipeline');
+  if(pipEl){
+    const fases = ['Lead','Proposta','Negociação','Fechado'];
+    const fCores = {'Lead':'var(--blue)','Proposta':'var(--purple)','Negociação':'var(--amber)','Fechado':'var(--green)'};
+    pipEl.innerHTML = portfolio.filter(k=>k.crm&&k.crm.length>0).map(k=>{
+      const maxItems = Math.max(...k.crm.map(f=>f.itens.length),1);
+      return `<div style="margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:${k.cor};margin-bottom:6px">${k.sigla} — ${k.nome}</div>
+        <div class="vceo-funnel">${k.crm.map(f=>`
+          <div class="vceo-funnel-row">
+            <span style="font-size:11px;color:var(--tx3);width:70px;flex-shrink:0">${f.fase}</span>
+            <div class="vceo-funnel-bar" style="width:${Math.max(15,(f.itens.length/maxItems*100))}%;background:${fCores[f.fase]||f.cor}">${f.itens.length}</div>
+          </div>`).join('')}</div>
+      </div>`;
+    }).join('') || '<div style="font-size:13px;color:var(--tx3);padding:12px">Nenhum dado de CRM disponível.</div>';
+  }
+  const patEl = document.getElementById('vceo-patrimonio');
+  if(patEl){
+    const gp = EMPS.gp;
+    const gpLancs = getLancamentos('gp');
+    const gpReceita = gpLancs.filter(l=>l.type==='income').reduce((s,l)=>s+FMT.num(l.valor),0);
+    const gpDespesa = gpLancs.filter(l=>l.type==='expense').reduce((s,l)=>s+FMT.num(l.valor),0);
+    patEl.innerHTML = `
+      <div class="kpi-grid" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:12px">
+        <div class="kpi-card"><div class="kpi-icon">🏦</div><div class="lbl">Patrimônio Estimado</div><div class="val-sm" style="color:${gp.cor}">R$ 1,2M</div></div>
+        <div class="kpi-card"><div class="kpi-icon">💰</div><div class="lbl">Renda Total</div><div class="val-sm txt-green">R$ 52k/mês</div></div>
+        <div class="kpi-card"><div class="kpi-icon">🎯</div><div class="lbl">Taxa de Poupança</div><div class="val-sm txt-green">42%</div></div>
+      </div>
+      ${gpLancs.length>0?`<div style="font-size:12px;color:var(--tx3)">${gpLancs.length} lançamentos registrados · Receita: ${FMT.brl(gpReceita)} · Despesa: ${FMT.brl(gpDespesa)}</div>`:'<div style="font-size:12px;color:var(--tx3)">Adicione lançamentos em GP para dados detalhados.</div>'}
+      <div style="margin-top:10px">${gp.okrs?gp.okrs.map(o=>`
+        <div style="margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>${o.o}</span><span style="font-weight:800;color:${gp.cor}">${o.p}%</span></div>
+          <div class="pbar"><div class="pfill" style="width:${o.p}%;background:${gp.cor}"></div></div>
+        </div>`).join(''):''}`;
+  }
+
+  // S8: Central de Alertas
+  const alertEl = document.getElementById('vceo-alertas');
+  if(alertEl){
+    const allAlerts = getAlerts();
+    const criticos = allAlerts.filter(a=>a.level==='red');
+    const atencao = allAlerts.filter(a=>a.level==='amber'||a.level==='yellow');
+    const renderGroup = (title,emoji,color,items)=>{
+      if(items.length===0) return '';
+      return `<div class="vceo-alert-group">
+        <div class="vceo-alert-group-hdr" style="color:${color}">${emoji} ${title} (${items.length})</div>
+        ${items.map(a=>`
+          <div class="vceo-gargalo" style="border-left-color:${color}">
+            <span>${emoji}</span>
+            <div style="flex:1">
+              <div style="font-size:13px">${a.text}</div>
+              <div style="font-size:11px;color:var(--tx3)">${a.time||''}</div>
+            </div>
+            ${!a.read?`<button class="btn-sm btn-ghost" style="font-size:11px;padding:4px 10px" onclick="markAlertRead(${a.id});renderCEO()">✓ Resolver</button>`:'<span style="font-size:11px;color:var(--green)">✅</span>'}
+          </div>`).join('')}
+      </div>`;
+    };
+    alertEl.innerHTML = renderGroup('Críticos','🔴','var(--red)',criticos) + renderGroup('Atenção','🟡','var(--amber)',atencao) || '<div style="padding:16px;text-align:center;color:var(--green);font-size:13px">✅ Nenhum alerta ativo</div>';
+  }
+}
+
+function exportCeoCSV(){
+  const allEmps = Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&e.id!=='gp');
+  const kpis = allEmps.map(e=>ceoCalcEmpresa(e.id)).filter(Boolean);
+  const header = 'Empresa,Receita,Despesa,Resultado,Margem%,HealthScore,Inadimplencia,TarefasAbertas';
+  const rows = kpis.map(k=>`${k.nome},${k.receita},${k.despesa},${k.resultado},${k.margem},${k.score},${k.inadimplencia},${k.tarefasAbertas}`);
+  const csv = [header,...rows].join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='orion_ceo_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV exportado!');
 }
 
 // ── NAVEGAÇÃO ──────────────────────────────────────────────────────────────
@@ -1423,6 +1791,7 @@ function goCEO(){
   clearSb();
   document.getElementById('nav-ceo').classList.add('active');
   showPage('ceo');
+  renderCEO();
 }
 
 function openEmp(id){
