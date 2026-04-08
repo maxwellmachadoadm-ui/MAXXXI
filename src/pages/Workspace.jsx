@@ -6,6 +6,7 @@ import Biblioteca from './Biblioteca'
 import OriginalFotografia from './OriginalFotografia'
 import ExtratosIA from './ExtratosIA'
 import OFFinanceiro from './OFFinanceiro'
+import { BotaoAjuda, BotaoManualEmpresa } from '../components/ManualAjuda'
 
 const BASE_TABS = ['KPIs', 'OKRs', 'Tarefas', 'Contratos', 'Riscos', 'Decisões', 'Pipeline', 'Fluxo de Caixa', 'DRE', 'Arquivos', 'Biblioteca']
 
@@ -848,6 +849,7 @@ export default function Workspace() {
             <h1>{safeName(emp.nome)}</h1>
             <p className="subtitle">{emp.descricao}</p>
           </div>
+          <BotaoManualEmpresa empresaId={id} />
         </div>
         <div className="workspace-stats">
           <div className="ws-stat"><span className="lbl">Faturamento</span><span className="val">{fmt(emp.faturamento)}</span></div>
@@ -876,6 +878,11 @@ export default function Workspace() {
         {TABS.map(t => (
           <button key={t} className={`tab-btn ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>{t}</button>
         ))}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <BotaoAjuda empresaId={id} nomeAba={tab} />
+        <span style={{ fontSize: 11, color: 'var(--tx3)' }}>Ajuda sobre esta aba</span>
       </div>
 
       <div className="tab-content">

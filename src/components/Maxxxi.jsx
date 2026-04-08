@@ -177,6 +177,30 @@ Responda em português brasileiro. Seja direto e executivo.`
     const hora = new Date().getHours()
     const allAlerts = generateAlertsV5 ? generateAlertsV5() : generateAlerts()
 
+    // Manual / Como usar
+    if (lower.includes('como usar') || lower.includes('manual') || lower.includes('como funciona') || lower.includes('o que faz') || lower.includes('pra que serve')) {
+      try {
+        const { getManualAba, gerarTextoManual } = require('../lib/manual')
+        // Detectar aba mencionada
+        const abasConhecidas = ['kpis','okrs','tarefas','contratos','riscos','decisões','pipeline','fluxo de caixa','dre','arquivos','biblioteca','patrimônio','extratos','financeiro of','projeções','gestão de fundos']
+        const abaMatch = abasConhecidas.find(a => lower.includes(a))
+        if (abaMatch) {
+          const nomeAba = abaMatch === 'kpis' ? 'KPIs' : abaMatch === 'okrs' ? 'OKRs' : abaMatch === 'dre' ? 'DRE' : abaMatch === 'financeiro of' ? 'Financeiro OF' : abaMatch === 'fluxo de caixa' ? 'Fluxo de Caixa' : abaMatch === 'gestão de fundos' ? 'Gestão de Fundos' : abaMatch === 'extratos' ? 'Extratos IA' : abaMatch.charAt(0).toUpperCase() + abaMatch.slice(1)
+          const manual = getManualAba(empAtiva || 'geral', nomeAba)
+          if (manual) {
+            let resp = `📖 **${manual.icone} ${manual.titulo}**\n\n**Objetivo:** ${manual.objetivo}\n\n**Como usar:**\n`
+            manual.como_usar.forEach((s, i) => { resp += `${i+1}. ${s}\n` })
+            resp += `\n💡 **Dica:** ${manual.dica}`
+            return resp
+          }
+        }
+        // Manual completo da empresa
+        const texto = gerarTextoManual(empAtiva || 'geral')
+        if (texto.length > 100) return texto.slice(0, 2000)
+      } catch {}
+      return 'Para ver o manual de uma aba, clique no botão ❓ ao lado das abas, ou pergunte: "como usar a aba DRE?"'
+    }
+
     if (lower.startsWith('classificar:') || (lower.includes('classific') && lower.includes('despesa'))) {
       const desc = txt.replace(/classificar:/i, '').trim()
       const result = autoClassify(desc)
