@@ -1,17 +1,24 @@
 name: Sync to ORION
 on:
   push:
-    branches: [main, "claude/*"]
+    branches: ["**"]
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Push to ORION
+          token: ${{ secrets.ORION_TOKEN }}
+      - name: Push index.html to ORION
         run: |
-          git remote add orion https://x-access-token:${{ secrets.ORION_TOKEN }}@github.com/maxwellmachadoadm-ui/ORION.git
-          git fetch orion
-          git checkout main
-          git push orion main --force
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git clone https://x-access-token:${{ secrets.ORION_TOKEN }}@github.com/maxwellmachadoadm-ui/ORION.git orion_repo
+          cp index.html orion_repo/index.html
+          cd orion_repo
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git add index.html
+          git diff --staged --quiet || git commit -m "sync: auto deploy from MAXXXI"
+          git push origin main
