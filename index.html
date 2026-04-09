@@ -519,6 +519,24 @@ a{color:inherit;text-decoration:none}
   .topbar{padding:0 12px}
   .cmd-box{width:calc(100vw - 24px)}
 }
+/* PRINT */
+@media print{
+  body{background:#fff!important;color:#000!important;font-size:12px}
+  .sidebar,.topbar,.mx-drawer,.mx-backdrop,.mx-tb-btn,.tb-btn,.btn-sm,.btn-blue,.btn-ghost,.btn-red,.hamburger,.sb-maxxxi,.notif,.user-btn,.cmd-overlay,.overlay,.mx-quick,.mx-input{display:none!important}
+  .app{display:block!important;height:auto!important}
+  .main{display:block!important}
+  .content{padding:0!important;overflow:visible!important}
+  .card,.kpi-card,.vceo-kpi{border:1px solid #ccc!important;background:#fff!important;break-inside:avoid}
+  .vceo-table{font-size:11px}
+  .vceo-table th,.vceo-table td{border:1px solid #ccc!important;padding:6px 8px}
+  .val,.val-sm,.kpi-val,.ceo-v,.vceo-kpi .kpi-val{color:#000!important}
+  .lbl,.kpi-lbl,.slbl,.vceo-sub{color:#666!important}
+  #page-home,#page-ws{display:none!important}
+  #page-ceo{display:block!important}
+  .vceo-controls{display:none!important}
+  .pbar,.pfill{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  a{text-decoration:none!important}
+}
 </style>
 </head>
 <body>
@@ -640,6 +658,7 @@ a{color:inherit;text-decoration:none}
     <div class="sb-lbl">Navegação</div>
     <div class="sb-item active" id="nav-home" onclick="goHome()">🏠 Home</div>
     <div class="sb-item" id="nav-ceo" onclick="goCEO()">📊 Visão CEO</div>
+    <div class="sb-item" id="nav-agenda" onclick="goAgenda()">📅 Agenda</div>
   </div>
   <div class="sb-div"></div>
   <div class="sb-section">
@@ -670,16 +689,6 @@ a{color:inherit;text-decoration:none}
   <div class="sb-section">
     <div class="sb-item" id="sb-gp" onclick="openEmp('gp')">💰 Gestão Pessoal</div>
   </div>
-  <div class="sb-maxxxi" style="cursor:pointer" onclick="toggleMXDrawer()">
-    <div class="maxxxi-pill">
-      <span style="font-size:20px">🤖</span>
-      <div>
-        <div class="maxxxi-name">MAXXXI</div>
-        <div class="maxxxi-status"><div class="pulse"></div> Online</div>
-      </div>
-      <span class="mx-badge" id="mx-badge-sb" style="position:static;border-color:var(--s1)"></span>
-    </div>
-  </div>
 </nav>
 
 <!-- CONTENT -->
@@ -694,9 +703,9 @@ a{color:inherit;text-decoration:none}
   </div>
 
   <!-- KPIs -->
-  <div class="g4 mb">
-    <div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="lbl">Faturamento do Ecossistema</div><div class="val txt-blue" id="kpi-fat">R$ 126,5k</div><div class="delta-up">▲ +8,2% vs mês anterior</div></div><div class="spark" id="spark-fat"></div></div></div>
-    <div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="lbl">Resultado Líquido</div><div class="val txt-green">R$ 46,7k</div><div class="delta-up">▲ +12,1% vs mês anterior</div></div><div class="spark" id="spark-res"></div></div></div>
+  <div class="g4 mb" id="home-kpis">
+    <div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="lbl">Resultado Líquido</div><div class="val txt-green" id="kpi-result">R$ 46,7k</div><div class="delta-up" id="kpi-result-delta">▲ +12,1% vs mês anterior</div></div><div class="spark" id="spark-res"></div></div></div>
+    <div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="lbl">Margem Consolidada</div><div class="val txt-blue" id="kpi-margem">36,8%</div><div class="delta-neu" id="kpi-fat-sub">Fat. R$ 126,5k</div></div><div class="spark" id="spark-fat"></div></div></div>
     <div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="lbl">Health Score Médio</div><div class="val" style="color:#a78bfa" id="kpi-health">71</div><div class="delta-neu" id="kpi-emp-count">5 empresas ativas</div></div><div class="prog-ring" id="health-ring"></div></div></div>
     <div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="lbl">Alertas Ativos</div><div class="val txt-red" id="kpi-alerts">4</div><div class="delta-neu">2 críticos · 2 atenção</div></div><div class="spark" id="spark-alerts"></div></div></div>
   </div>
@@ -778,6 +787,8 @@ a{color:inherit;text-decoration:none}
         <button onclick="setCeoPeriodo('ano')">Ano</button>
       </div>
       <button class="tb-btn" onclick="renderCEO()" style="font-size:12px">🔄 Atualizar</button>
+      <button class="tb-btn" onclick="exportCeoPDF()" style="font-size:12px">📄 Exportar PDF</button>
+      <button class="tb-btn" onclick="gerarRelatorioExecutivo()" style="font-size:12px">📊 Relatório</button>
       <span style="font-size:11px;color:var(--tx3)" id="vceo-updated"></span>
     </div>
   </div>
@@ -856,6 +867,16 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
+<!-- AGENDA GLOBAL -->
+<div id="page-agenda" class="hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <div><h1 style="font-family:'Syne',sans-serif;font-size:24px;font-weight:900">📅 Agenda Global</h1>
+    <div style="font-size:13px;color:var(--tx3);margin-top:4px">Compromissos de todas as empresas</div></div>
+    <button class="btn-sm btn-blue" onclick="openModal('modal-evento')">+ Evento</button>
+  </div>
+  <div id="agenda-global-list"></div>
+</div>
+
 <!-- WORKSPACE -->
 <div id="page-ws" class="hidden">
   <div class="ws-header" id="ws-header"></div>
@@ -883,22 +904,13 @@ a{color:inherit;text-decoration:none}
     </div>
     <div id="mx-alerts-list"></div>
   </div>
-  <div class="mx-section-hdr">Chat com MAXXXI</div>
-  <div class="mx-msgs" id="mx-msgs">
-    <div class="msg-ai">
-      <div class="msg-from">MAXXXI</div>
-      <div class="msg-bubble-ai">Olá, Maxwell. Sou o MAXXXI — seu agente executivo. Posso analisar empresas, responder sobre a plataforma, gerar briefings e muito mais. O que precisa?</div>
-    </div>
+  <div class="mx-section-hdr">Análise MAXXXI</div>
+  <div id="mx-analysis" style="flex:1;overflow-y:auto;padding:14px 18px">
+    <div style="font-size:13px;color:var(--tx3);line-height:1.6" id="mx-analysis-content">Clique em "Analisar" para gerar insights da empresa ativa ou do ecossistema.</div>
   </div>
-  <div class="mx-quick">
-    <button class="qbtn" onclick="qSend('Como uso a plataforma?')">Como usar?</button>
-    <button class="qbtn" onclick="qSend('Qual empresa precisa de mais atenção agora?')">Prioridades</button>
-    <button class="qbtn" onclick="qSend('Faça um briefing executivo do ecossistema')">Briefing CEO</button>
-    <button class="qbtn" onclick="qSend('Como funciona o módulo CRM?')">CRM</button>
-  </div>
-  <div class="mx-input">
-    <input type="text" id="mx-in" placeholder="Consulte o MAXXXI..." onkeydown="if(event.key==='Enter')sendMX()"/>
-    <button class="mx-send" onclick="sendMX()">→</button>
+  <div style="padding:12px 18px;border-top:1px solid var(--br);display:flex;gap:8px;flex-shrink:0">
+    <button class="btn-sm btn-blue" style="flex:1" onclick="mxAnalyzeActive()">🔍 Analisar ${curEmp?'Empresa':'Ecossistema'}</button>
+    <button class="btn-sm btn-ghost" onclick="gerarRelatorioExecutivo()">📊 Relatório</button>
   </div>
 </div>
 
@@ -918,6 +930,14 @@ a{color:inherit;text-decoration:none}
     <input class="inp" id="emp-nome" placeholder="Nome da empresa"/>
     <input class="inp" id="emp-sigla" placeholder="Sigla (ex: DW)" maxlength="4"/>
     <input class="inp" id="emp-desc" placeholder="Descrição"/>
+    <div style="margin-bottom:12px">
+      <div class="lbl">Logo da empresa</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:6px">
+        <div id="emp-logo-preview" style="width:48px;height:48px;border-radius:10px;background:var(--s2);border:1px dashed var(--br);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--tx3);overflow:hidden;flex-shrink:0">Logo</div>
+        <button class="btn-sm btn-ghost" type="button" onclick="document.getElementById('emp-logo-inp').click()">📷 Upload</button>
+        <input type="file" id="emp-logo-inp" accept="image/*" style="display:none" onchange="previewEmpLogo(event)"/>
+      </div>
+    </div>
     <div style="margin-bottom:12px">
       <div class="lbl">Cor da empresa</div>
       <div style="display:flex;gap:8px;margin-top:6px" id="color-picks">
@@ -973,6 +993,31 @@ a{color:inherit;text-decoration:none}
     <div class="modal-actions">
       <button class="btn-sm btn-ghost" onclick="closeModal('modal-evento')">Cancelar</button>
       <button class="btn-sm btn-blue" onclick="saveNewEvento()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CHECKIN DIÁRIO -->
+<div class="overlay hidden" id="modal-checkin" onclick="if(event.target===this)closeModal('modal-checkin')">
+  <div class="modal" style="position:relative;width:460px">
+    <button class="modal-close" onclick="closeModal('modal-checkin')">&times;</button>
+    <h2>☀️ Check-in do Dia</h2>
+    <div style="font-size:13px;color:var(--tx3);margin-bottom:16px">Como está o dia hoje, Maxwell?</div>
+    <div class="lbl">Humor</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px" id="ci-humor-picks">
+      <button class="btn-sm btn-ghost ci-humor" onclick="pickHumor(1)" data-v="1">😫 1</button>
+      <button class="btn-sm btn-ghost ci-humor" onclick="pickHumor(2)" data-v="2">😐 2</button>
+      <button class="btn-sm btn-ghost ci-humor" onclick="pickHumor(3)" data-v="3">🙂 3</button>
+      <button class="btn-sm btn-ghost ci-humor" onclick="pickHumor(4)" data-v="4">😊 4</button>
+      <button class="btn-sm btn-ghost ci-humor" onclick="pickHumor(5)" data-v="5">🔥 5</button>
+    </div>
+    <div class="lbl">Prioridade do dia</div>
+    <input class="inp" id="ci-modal-prio" placeholder="O que é mais importante hoje?"/>
+    <div class="lbl">Observação</div>
+    <textarea class="inp" id="ci-modal-obs" rows="3" placeholder="Algo relevante..." style="resize:vertical"></textarea>
+    <div class="modal-actions">
+      <button class="btn-sm btn-ghost" onclick="closeModal('modal-checkin')">Pular</button>
+      <button class="btn-sm btn-blue" onclick="saveCheckinModal()">Salvar Check-in</button>
     </div>
   </div>
 </div>
@@ -1069,6 +1114,14 @@ a{color:inherit;text-decoration:none}
       <option value="confirmado">Confirmado</option>
       <option value="previsto">Previsto</option>
       <option value="pago">Pago</option>
+    </select>
+
+    <div class="lbl">Origem</div>
+    <select class="inp" id="lanc-origin">
+      <option value="manual">Manual</option>
+      <option value="banco">Extrato Bancário</option>
+      <option value="cartao">Cartão de Crédito</option>
+      <option value="recibo">Recibo/NF</option>
     </select>
 
     <div style="display:flex;align-items:center;gap:8px;margin:12px 0">
@@ -1203,7 +1256,14 @@ const FMT = {
   score: (v) => {
     const n = Number(v);
     if (!n || isNaN(n)) return 50;
-    return Math.min(100, Math.max(0, Math.round(n)));
+    return Math.min(100, Math.max(10, Math.round(n)));
+  },
+  calcHealthScore: (fat, result, meta, inadimp) => {
+    const margem = fat > 0 ? (result / fat * 100) : 0;
+    const metaPct = meta > 0 ? Math.min(fat / meta * 100, 100) : 50;
+    const inadInv = Math.max(0, 100 - (inadimp || 0) * 10);
+    const raw = margem * 0.4 + metaPct * 0.3 + inadInv * 0.3;
+    return Math.max(10, Math.min(100, Math.round(isFinite(raw) ? raw : 50)));
   },
   num: (v) => {
     const n = Number(v);
@@ -1215,29 +1275,43 @@ const fmt = FMT.brlK;
 
 // ── CATEGORIAS ──────────────────────────────────────────────────────────
 const CATEGORIAS = [
-  {nome:'Salário',tipo:'income',icone:'💰',cor:'#10b981'},
-  {nome:'Freelance',tipo:'income',icone:'💼',cor:'#10b981'},
-  {nome:'Investimentos Rendimento',tipo:'income',icone:'📈',cor:'#10b981'},
-  {nome:'Outras Receitas',tipo:'income',icone:'➕',cor:'#10b981'},
-  {nome:'Distribuição de Lucros',tipo:'income',icone:'🏆',cor:'#10b981'},
-  {nome:'Alimentação',tipo:'expense',icone:'🍽️',cor:'#ef4444'},
-  {nome:'Moradia',tipo:'expense',icone:'🏠',cor:'#ef4444'},
-  {nome:'Transporte',tipo:'expense',icone:'🚗',cor:'#ef4444'},
-  {nome:'Saúde',tipo:'expense',icone:'🏥',cor:'#ef4444'},
-  {nome:'Salão e Barbearia',tipo:'expense',icone:'✂️',cor:'#ef4444'},
-  {nome:'Lazer e Entretenimento',tipo:'expense',icone:'🎭',cor:'#ef4444'},
-  {nome:'Educação',tipo:'expense',icone:'📚',cor:'#ef4444'},
-  {nome:'Vestuário',tipo:'expense',icone:'👕',cor:'#ef4444'},
-  {nome:'Impostos e Taxas',tipo:'expense',icone:'📋',cor:'#ef4444'},
-  {nome:'Financiamento',tipo:'expense',icone:'🏦',cor:'#ef4444'},
-  {nome:'Manutenção Veículo',tipo:'expense',icone:'🔧',cor:'#ef4444'},
-  {nome:'Manutenção Casa',tipo:'expense',icone:'🔨',cor:'#ef4444'},
-  {nome:'Assinaturas',tipo:'expense',icone:'📱',cor:'#ef4444'},
-  {nome:'Pró-labore Sócio',tipo:'expense',icone:'👔',cor:'#f59e0b'},
-  {nome:'Outras Despesas',tipo:'expense',icone:'➖',cor:'#ef4444'},
-  {nome:'Transferência Entre Contas',tipo:'transfer',icone:'↔️',cor:'#6366f1'},
-  {nome:'Aporte em Investimento',tipo:'investment',icone:'📊',cor:'#8b5cf6'},
-  {nome:'Resgate de Investimento',tipo:'investment',icone:'💹',cor:'#8b5cf6'},
+  // Receitas
+  {nome:'Honorários',tipo:'income',icone:'⚖️',cor:'#10b981',grupo:'receita'},
+  {nome:'Mensalidades',tipo:'income',icone:'📅',cor:'#10b981',grupo:'receita'},
+  {nome:'Serviços',tipo:'income',icone:'🛠️',cor:'#10b981',grupo:'receita'},
+  {nome:'Vendas',tipo:'income',icone:'🛒',cor:'#10b981',grupo:'receita'},
+  {nome:'Rendimentos',tipo:'income',icone:'📈',cor:'#10b981',grupo:'receita'},
+  {nome:'Salário',tipo:'income',icone:'💰',cor:'#10b981',grupo:'receita'},
+  {nome:'Freelance',tipo:'income',icone:'💼',cor:'#10b981',grupo:'receita'},
+  {nome:'Distribuição de Lucros',tipo:'income',icone:'🏆',cor:'#10b981',grupo:'receita'},
+  {nome:'Outras Receitas',tipo:'income',icone:'➕',cor:'#10b981',grupo:'receita'},
+  // Despesas operacionais
+  {nome:'Saúde',tipo:'expense',icone:'🏥',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Alimentação',tipo:'expense',icone:'🍽️',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Moradia',tipo:'expense',icone:'🏠',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Transporte',tipo:'expense',icone:'🚗',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Lazer e Entretenimento',tipo:'expense',icone:'🎭',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Impostos e Taxas',tipo:'expense',icone:'📋',cor:'#ef4444',grupo:'deducao'},
+  {nome:'Folha de Pagamento',tipo:'expense',icone:'👥',cor:'#ef4444',grupo:'custo'},
+  {nome:'Fornecedores',tipo:'expense',icone:'📦',cor:'#ef4444',grupo:'custo'},
+  {nome:'Marketing',tipo:'expense',icone:'📣',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Manutenção',tipo:'expense',icone:'🔧',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Veículo',tipo:'expense',icone:'🚗',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Financiamento',tipo:'expense',icone:'🏦',cor:'#ef4444',grupo:'financeira'},
+  {nome:'Pró-labore Sócio',tipo:'expense',icone:'👔',cor:'#f59e0b',grupo:'operacional'},
+  {nome:'Assinaturas',tipo:'expense',icone:'📱',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Educação',tipo:'expense',icone:'📚',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Outras Despesas',tipo:'expense',icone:'➖',cor:'#ef4444',grupo:'operacional'},
+  // Transferências
+  {nome:'Entre Contas',tipo:'transfer',icone:'↔️',cor:'#6366f1',grupo:'transfer'},
+  {nome:'Aporte',tipo:'transfer',icone:'⬆️',cor:'#6366f1',grupo:'transfer'},
+  {nome:'Retirada',tipo:'transfer',icone:'⬇️',cor:'#6366f1',grupo:'transfer'},
+  // Investimentos
+  {nome:'Renda Fixa',tipo:'investment',icone:'🏦',cor:'#8b5cf6',grupo:'invest'},
+  {nome:'Ações',tipo:'investment',icone:'📈',cor:'#8b5cf6',grupo:'invest'},
+  {nome:'FII',tipo:'investment',icone:'🏢',cor:'#8b5cf6',grupo:'invest'},
+  {nome:'Crypto',tipo:'investment',icone:'₿',cor:'#8b5cf6',grupo:'invest'},
+  {nome:'Previdência',tipo:'investment',icone:'🎯',cor:'#8b5cf6',grupo:'invest'},
 ];
 
 // ── FINANCEIRO ENGINE ──────────────────────────────────────────────────
@@ -1372,7 +1446,6 @@ function calcularKPIsFinanceiro(empresaId){
 let curEmp = null;
 let curTab = 'KPIs';
 let mxOpen = false;
-let mxHistory = [{role:'assistant',content:'Olá, Maxwell. Sou o MAXXXI — seu agente executivo. Posso analisar empresas, responder sobre a plataforma, gerar briefings e muito mais. O que precisa?'}];
 let liveInterval = null;
 let liveIdx = 0;
 
@@ -1799,6 +1872,7 @@ async function initPlatform(){
   }
   // render
   renderEmpGrid();
+  renderHomeKPIs();
   renderAgenda();
   renderCEO();
   renderSparklines();
@@ -1806,6 +1880,7 @@ async function initPlatform(){
   renderHomeAlerts();
   updateMXBadge();
   loadCI();
+  checkDailyCheckin();
   // restore empresaAtiva from localStorage
   const savedEmp=localStorage.getItem('orion_empresa_ativa');
   if(savedEmp&&EMPS[savedEmp]){
@@ -1852,7 +1927,7 @@ function renderEmpGrid(){
       <div class="emp-top"></div>
       <div class="emp-header">
         <div class="flex aic gap12">
-          <div class="emp-sig">${e.sigla}</div>
+          <div class="emp-sig">${empLogoHTML(e.id,36)||e.sigla}</div>
           <div>
             <div class="emp-name">${e.nome}</div>
             <div class="emp-desc">${e.desc}</div>
@@ -1929,10 +2004,11 @@ function ceoCalcEmpresa(empresaId){
     despesa = Math.max(0, FMT.num(e.fat) - FMT.num(e.result));
   }
   const resultado = receita - despesa;
-  const margem = receita>0 ? parseFloat((resultado/receita*100).toFixed(1)) : 0;
+  const margem = (receita > 0 && resultado !== 0) ? parseFloat((resultado/receita*100).toFixed(1)) : 0;
   const tarefasAbertas = e.tarefas ? e.tarefas.filter(t=>!t.k).length : 0;
   const inadimplencia = e.id==='of'?8.7:e.id==='dw'?3.2:e.id==='cdl'?2.1:0;
-  return { empresaId, sigla:e.sigla, nome:e.nome, cor:e.cor, receita, despesa, resultado, margem, score:FMT.score(e.score), cresc:e.cresc, tarefasAbertas, inadimplencia, kpis:e.kpis, crm:e.crm||[] };
+  const hs = FMT.calcHealthScore(receita, resultado, FMT.num(e.meta), inadimplencia);
+  return { empresaId, sigla:e.sigla, nome:e.nome, cor:e.cor, receita, despesa, resultado, margem, score:hs, cresc:e.cresc, tarefasAbertas, inadimplencia, kpis:e.kpis, crm:e.crm||[] };
 }
 
 function ceoIdentificarMelhor(kpis){ return [...kpis].sort((a,b)=>b.resultado-a.resultado)[0] }
@@ -2172,15 +2248,38 @@ function exportCeoCSV(){
   showToast('CSV exportado!');
 }
 
+function exportCeoPDF(){
+  goCEO();
+  setTimeout(()=>{window.print()},300);
+}
+
 // ── NAVEGAÇÃO ──────────────────────────────────────────────────────────────
 function showPage(pg){
-  ['home','ceo','ws'].forEach(p=>{
+  ['home','ceo','ws','agenda'].forEach(p=>{
     const el=document.getElementById('page-'+p);
-    el.classList.toggle('hidden',p!==pg);
-    if(p===pg){el.classList.remove('page-enter');void el.offsetWidth;el.classList.add('page-enter')}
+    if(el){el.classList.toggle('hidden',p!==pg);
+    if(p===pg){el.classList.remove('page-enter');void el.offsetWidth;el.classList.add('page-enter')}}
   });
 }
 function clearSb(){document.querySelectorAll('.sb-item').forEach(el=>el.classList.remove('active'))}
+
+function goAgenda(){
+  clearSb();
+  const el=document.getElementById('nav-agenda');if(el)el.classList.add('active');
+  showPage('agenda');
+  renderAgendaGlobal();
+}
+function renderAgendaGlobal(){
+  const el=document.getElementById('agenda-global-list');if(!el)return;
+  const all=[...AGENDA];
+  // Add compromissos GP
+  getCompromissosGP().forEach(c=>{all.push({titulo:c.titulo+' (GP)',dia:'',num:'',hora:c.hora||c.data||'',cor:'#ec4899'})});
+  el.innerHTML=all.length>0?all.map((a,i)=>`
+    <div class="ag-item" style="border-left-color:${a.cor||'var(--blue)'}">
+      <div class="ag-date"><div class="ag-day">${a.dia||''}</div><div class="ag-num">${a.num||''}</div></div>
+      <div style="flex:1"><div style="font-size:14px;font-weight:500">${a.titulo}</div><div style="font-size:12px;color:var(--tx3)">${a.hora||''}</div></div>
+    </div>`).join(''):'<div style="padding:20px;text-align:center;color:var(--tx3)">Nenhum compromisso agendado.</div>';
+}
 
 function goHome(){
   clearSb();
@@ -2210,6 +2309,43 @@ function openEmp(id){
   showPage('ws');
   renderWS();
 }
+// ── LOGO EMPRESA ──────────────────────────────────────────────────────────
+window._empLogoData='';
+function previewEmpLogo(ev){
+  const f=ev.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    window._empLogoData=e.target.result;
+    document.getElementById('emp-logo-preview').innerHTML='<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px"/>';
+  };
+  r.readAsDataURL(f);
+}
+function getEmpLogo(empId){
+  const e=EMPS[empId];
+  if(e&&e.logo) return e.logo;
+  return localStorage.getItem('orion_logo_'+empId)||'';
+}
+function uploadEmpLogoToSupabase(empId, dataUrl){
+  if(!sb||!dataUrl||!dataUrl.startsWith('data:')) return;
+  try{
+    const byteStr=atob(dataUrl.split(',')[1]);
+    const mime=dataUrl.match(/data:([^;]+)/)[1];
+    const arr=new Uint8Array(byteStr.length);
+    for(let i=0;i<byteStr.length;i++) arr[i]=byteStr.charCodeAt(i);
+    const blob=new Blob([arr],{type:mime});
+    const ext=mime.split('/')[1]||'png';
+    sb.storage.from('logos').upload(empId+'.'+ext, blob, {upsert:true}).then(({error})=>{
+      if(error) console.warn('Logo upload failed:', error.message);
+    });
+  }catch(e){console.warn('Logo upload error:', e)}
+}
+function empLogoHTML(empId, size){
+  const logo=getEmpLogo(empId);
+  const e=EMPS[empId];
+  if(logo) return '<img src="'+logo+'" style="width:'+size+'px;height:'+size+'px;object-fit:cover;border-radius:'+(size>40?'12':'9')+'px"/>';
+  return '';
+}
+
 function addEmpresa(){
   openModal('modal-emp');
   const el=document.getElementById('emp-modulos-picks');
@@ -2218,13 +2354,19 @@ function addEmpresa(){
 function openDrive(){window.open(curEmp?EMPS[curEmp]?.drive:'https://drive.google.com','_blank')}
 
 // ── WORKSPACE ──────────────────────────────────────────────────────────────
-const WS_TABS_ALL=['KPIs','OKRs','Tarefas','Financeiro','Contratos','Riscos','Decisões','CRM','Notas','Arquivos'];
-const GP_TABS_DEFAULT=['KPIs','Financeiro','Notas','Arquivos'];
+const WS_TABS_ALL=['KPIs','OKRs','Tarefas','Financeiro','Pipeline','Contratos','Riscos','Decisões','CRM','Notas','Arquivos'];
+const GP_TABS_DEFAULT=['KPIs','Patrimônio','Investimentos','Financeiro','Metas','Compromissos','Notas','Arquivos'];
+const FS_TABS_DEFAULT=['KPIs','OKRs','Tarefas','Financeiro','Fundos','Projeções','Rentabilidade','Pipeline','Contratos','CRM','Notas','Arquivos'];
+const DW_TABS_DEFAULT=['KPIs','OKRs','Tarefas','Financeiro','Pacientes','Honorários','Pipeline','Contratos','Riscos','Decisões','CRM','Notas','Arquivos'];
+const OF_TABS_DEFAULT=['KPIs','OKRs','Tarefas','Financeiro','Projetos','Equipe','Pipeline','Contratos','Riscos','CRM','Notas','Arquivos'];
 
 function getEmpModulos(empresaId){
   const stored=localStorage.getItem('orion_modulos_'+empresaId);
   if(stored) return JSON.parse(stored);
   if(empresaId==='gp') return GP_TABS_DEFAULT;
+  if(empresaId==='fs') return FS_TABS_DEFAULT;
+  if(empresaId==='dw') return DW_TABS_DEFAULT;
+  if(empresaId==='of') return OF_TABS_DEFAULT;
   return WS_TABS_ALL;
 }
 function saveEmpModulos(empresaId, modulos){
@@ -2238,7 +2380,7 @@ function renderWS(){
   const cresc=e.cresc;
   wh.innerHTML=`
     <div style="display:flex;align-items:center;gap:14px">
-      <div class="ws-sig" style="--emp-rgb:${e.rgb};background:rgba(var(--emp-rgb),.12);color:${e.cor}">${e.sigla}</div>
+      <div class="ws-sig" style="--emp-rgb:${e.rgb};background:rgba(var(--emp-rgb),.12);color:${e.cor}">${empLogoHTML(e.id,46)||e.sigla}</div>
       <div>
         <div class="ws-n">${e.nome}</div>
         <div class="ws-d">${e.desc}</div>
@@ -2255,6 +2397,7 @@ function renderWS(){
       <div class="ws-kn"><div class="nl">Renda</div><div class="nv txt-green">R$ 52k/mês</div></div>
       <div class="ws-kn"><div class="nl">Poupança</div><div class="nv txt-green">42%</div></div>
       `}
+      <button class="tb-btn" onclick="toggleMXDrawer();mxAnalyzeActive()" style="font-size:11px;margin-left:12px">🤖 Análise IA</button>
     </div>`;
   // tabs (filtered by empresa modules)
   const wt=document.getElementById('ws-tabs');
@@ -2277,22 +2420,68 @@ function renderTab(){
   const co=e.cor;
 
   if(curTab==='KPIs'){
-    c.innerHTML=`<div class="kpi-grid">${e.kpis.map(k=>`
+    const tarefasPend=(e.tarefas||[]).filter(t=>!t.k).slice(0,5);
+    const lancsRecent=getLancamentos(curEmp).sort((a,b)=>(b.data||'').localeCompare(a.data||'')).slice(0,5);
+    const empAlerts=getAlerts().filter(a=>!a.read&&a.text.includes(e.nome)).slice(0,3);
+    const typeIcons={income:'💰',expense:'💸',transfer:'↔️',investment:'📊'};
+    c.innerHTML=`<div class="kpi-grid mb">${e.kpis.map(k=>`
       <div class="kpi-card">
         <div class="kpi-icon">${k.i}</div>
         <div class="lbl">${k.l}</div>
         <div class="val-sm" style="color:${co}">${k.v}</div>
-      </div>`).join('')}</div>`;
+      </div>`).join('')}</div>
+    <div class="g2">
+      <div class="card">
+        <div class="flex aic jsb mb-sm"><div class="slbl" style="margin:0">Tarefas Pendentes</div>
+        <button class="btn-sm btn-ghost" style="font-size:11px" onclick="switchTab('Tarefas')">Ver todas →</button></div>
+        ${tarefasPend.length>0?tarefasPend.map(t=>`<div class="task-item ${t.p}" style="margin-bottom:6px;padding:8px 12px">
+          <span style="font-size:12px">${t.p==='alta'?'🔴':t.p==='media'?'🟡':'⚪'}</span>
+          <span style="font-size:13px;flex:1">${t.t}</span>
+        </div>`).join(''):'<div style="font-size:13px;color:var(--tx3);padding:8px">Nenhuma tarefa pendente</div>'}
+      </div>
+      <div class="card">
+        <div class="flex aic jsb mb-sm"><div class="slbl" style="margin:0">Últimos Lançamentos</div>
+        <button class="btn-sm btn-ghost" style="font-size:11px" onclick="switchTab('Financeiro')">Ver todos →</button></div>
+        ${lancsRecent.length>0?lancsRecent.map(l=>{
+          const dt=l.data?new Date(l.data+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}):'';
+          return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--br);font-size:12px">
+            <span>${typeIcons[l.type]||'📋'}</span>
+            <span style="flex:1;color:var(--tx2)">${l.descricao||'—'}</span>
+            <span style="font-weight:700;color:${l.type==='income'?'var(--green)':'var(--red)'}">${l.type==='income'?'+':'-'}${FMT.brl(l.valor)}</span>
+            <span style="color:var(--tx3);font-size:10px">${dt}</span>
+          </div>`;
+        }).join(''):'<div style="font-size:13px;color:var(--tx3);padding:8px">Nenhum lançamento registrado</div>'}
+      </div>
+    </div>
+    ${empAlerts.length>0?`<div style="margin-top:14px"><div class="slbl">Alertas</div>${empAlerts.map(a=>`<div class="${a.level==='red'?'alert-r':'alert-a'}">${a.level==='red'?'🔴':'🟡'} ${a.text}</div>`).join('')}</div>`:''}`;
   }
   else if(curTab==='OKRs'){
-    c.innerHTML=e.okrs.map(o=>`
-      <div class="okr-item">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <span style="font-size:14px;font-weight:500">${o.o}</span>
-          <span style="font-family:'Syne',sans-serif;font-size:17px;font-weight:900;color:${co}">${o.p}%</span>
+    const okrs=getOKRs(curEmp);
+    c.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:13px;color:var(--tx3)">${okrs.length} objetivo(s)</div>
+      <button class="btn-sm btn-blue" onclick="addOKR()">+ Novo OKR</button>
+    </div>`+okrs.map((o,oi)=>{
+      const krs=o.krs||[];
+      const prog=krs.length>0?Math.round(krs.reduce((s,k)=>s+(k.meta>0?Math.min(k.atual/k.meta*100,100):0),0)/krs.length):o.p||0;
+      const statusC=prog>=70?'var(--green)':prog>=40?'var(--amber)':'var(--red)';
+      const statusL=prog>=70?'No prazo':prog>=40?'Em risco':'Atrasado';
+      return `<div class="okr-item">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <div style="flex:1"><span style="font-size:14px;font-weight:600">${o.o}</span>${o.resp?` <span style="font-size:11px;color:var(--tx3)">· ${o.resp}</span>`:''}</div>
+          <span class="stag" style="color:${statusC};background:${statusC}18">${statusL}</span>
+          <span style="font-family:'Syne',sans-serif;font-size:17px;font-weight:900;color:${co};margin-left:10px">${prog}%</span>
+          <button class="task-del" onclick="deleteOKR(${oi})">🗑</button>
         </div>
-        <div class="pbar"><div class="pfill" style="width:${o.p}%;background:${co}"></div></div>
-      </div>`).join('');
+        ${o.prazo?`<div style="font-size:11px;color:var(--tx3);margin-bottom:6px">Prazo: ${o.prazo}</div>`:''}
+        <div class="pbar" style="margin-bottom:8px"><div class="pfill" style="width:${prog}%;background:${co}"></div></div>
+        ${krs.map((k,ki)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--br);font-size:12px">
+          <span style="color:var(--tx3);flex:1">↳ ${k.nome}</span>
+          <span style="font-weight:700">${k.atual}/${k.meta} ${k.unid||''}</span>
+          <input type="range" min="0" max="${k.meta}" value="${k.atual}" style="width:60px;accent-color:${co}" onchange="updateKR(${oi},${ki},this.value)"/>
+        </div>`).join('')}
+        <button style="font-size:11px;color:var(--blue3);background:none;border:none;cursor:pointer;margin-top:4px" onclick="addKR(${oi})">+ Key Result</button>
+      </div>`;
+    }).join('');
   }
   else if(curTab==='Tarefas'){
     c.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
@@ -2307,20 +2496,27 @@ function renderTab(){
       </div>`).join('');
   }
   else if(curTab==='Contratos'){
-    c.innerHTML=e.contratos.map(ct=>{
-      const sc=ct.s==='ativo'?'var(--green)':ct.s==='inadim'?'var(--red)':'var(--amber)';
-      const sl=ct.s==='ativo'?'Ativo':ct.s==='inadim'?'Inadimplente':'Negociação';
-      return `<div class="contract-item">
-        <div>
-          <div style="font-size:14px;font-weight:600;margin-bottom:3px">${ct.n}</div>
-          <div style="font-size:12px;color:var(--tx3)">Vence: ${ct.d}</div>
+    const cts=getContratos(curEmp);
+    const ativos=cts.filter(c=>c.status==='ativo').length;
+    c.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:13px;color:var(--tx3)">${ativos} ativo(s) de ${cts.length}</div>
+      <button class="btn-sm btn-blue" onclick="addContrato()">+ Novo Contrato</button>
+    </div>`+cts.map((ct,i)=>{
+      const dias=ct.fim?Math.ceil((new Date(ct.fim)-new Date())/(86400000)):999;
+      const sc=ct.status==='ativo'&&dias>30?'var(--green)':ct.status==='ativo'&&dias>0?'var(--amber)':'var(--red)';
+      const sl=ct.status==='ativo'&&dias<=0?'Vencido':ct.status==='ativo'&&dias<=30?'Vence em '+dias+'d':ct.status==='ativo'?'Ativo':ct.status==='inadim'?'Inadimplente':'Negociação';
+      return `<div class="contract-item" style="border-left:3px solid ${sc}">
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600;margin-bottom:3px">${ct.cliente||ct.n||'Sem nome'}</div>
+          <div style="font-size:12px;color:var(--tx3)">${ct.inicio||''} → ${ct.fim||ct.d||''}</div>
         </div>
-        <div style="text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-          <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:${co}">${ct.v}</div>
-          <span class="stag" style="color:${sc};background:${sc}18">${sl}</span>
+        <div style="text-align:right;display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+          <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:${co}">${ct.valor?FMT.brl(ct.valor):ct.v||'—'}</div>
+          <span class="stag" style="color:${sc};background:${sc}18;font-size:9px">${sl}</span>
         </div>
+        <button class="task-del" onclick="deleteContrato(${i})">🗑</button>
       </div>`;
-    }).join('');
+    }).join('')||'<div style="padding:20px;text-align:center;color:var(--tx3)">Nenhum contrato.</div>';
   }
   else if(curTab==='Riscos'){
     c.innerHTML=e.riscos.map(r=>{
@@ -2343,6 +2539,32 @@ function renderTab(){
         </div>
         <span style="font-size:12px;color:var(--tx3);flex-shrink:0">${d.dt}</span>
       </div>`).join('');
+  }
+  else if(curTab==='Pipeline'){
+    const pipe=getPipeline(curEmp);
+    const stages=['Prospecção','Qualificação','Proposta','Negociação','Fechado'];
+    const sCores={'Prospecção':'var(--tx3)','Qualificação':'var(--blue)','Proposta':'var(--purple)','Negociação':'var(--amber)','Fechado':'var(--green)'};
+    const totalGeral=pipe.reduce((s,p)=>s+FMT.num(p.valor),0);
+    c.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:13px;color:var(--tx3)">Total pipeline: <b style="color:${co}">${FMT.brl(totalGeral)}</b></div>
+      <button class="btn-sm btn-blue" onclick="addPipeCard()">+ Novo Deal</button>
+    </div>
+    <div class="crm-wrap">${stages.map(st=>{
+      const items=pipe.filter(p=>p.stage===st);
+      const stTotal=items.reduce((s,p)=>s+FMT.num(p.valor),0);
+      return `<div class="crm-col" data-stage="${st}" ondragover="event.preventDefault();this.style.background='rgba(59,130,246,.06)'" ondragleave="this.style.background=''" ondrop="dropPipe(event,'${st}');this.style.background=''">
+        <div class="crm-hdr" style="background:${sCores[st]}18;color:${sCores[st]}">
+          ${st} <span style="background:rgba(255,255,255,.1);padding:1px 7px;border-radius:99px;font-size:10px">${items.length}</span>
+          <span style="font-size:10px;margin-left:auto">${FMT.brlK(stTotal)}</span>
+        </div>
+        ${items.map((p,i)=>`<div class="crm-card" draggable="true" ondragstart="dragPipe(event,'${p.id}')" style="cursor:grab">
+          <div class="crm-cname">${p.nome}</div>
+          <div class="crm-cv">${FMT.brl(p.valor)}</div>
+          <div style="font-size:10px;color:var(--tx3)">${p.resp||''} ${p.data||''}</div>
+        </div>`).join('')}
+        <div style="padding:6px;border:1px dashed var(--br);border-radius:var(--r2);text-align:center;font-size:11px;color:var(--tx3);cursor:pointer" onclick="addPipeCard('${st}')">+</div>
+      </div>`;
+    }).join('')}</div>`;
   }
   else if(curTab==='CRM'){
     if(!e.crm||e.crm.length===0){c.innerHTML='<div style="color:var(--tx3);font-size:14px;padding:20px">Nenhum dado de CRM cadastrado.</div>';return}
@@ -2388,6 +2610,18 @@ function renderTab(){
         ${files.map(f=>`<div class="file-item"><span>📄</span><span style="flex:1;font-size:13px">${f.name}</span><span style="font-size:12px;color:var(--tx3)">${f.size}</span></div>`).join('')}
       </div>`;
   }
+  // ── EMPRESA-SPECIFIC TABS ──
+  else if(curTab==='Projeções'){ renderProjecoes(e,c,co) }
+  else if(curTab==='Rentabilidade'){ renderRentabilidade(e,c,co) }
+  else if(curTab==='Fundos'){ renderFundos(e,c,co) }
+  else if(curTab==='Patrimônio'){ renderPatrimonio(e,c,co) }
+  else if(curTab==='Investimentos'){ renderInvestimentos(e,c,co) }
+  else if(curTab==='Pacientes'){ renderPacientes(e,c,co) }
+  else if(curTab==='Metas'){ renderMetasPessoais(e,c,co) }
+  else if(curTab==='Compromissos'){ renderCompromissosGP(e,c,co) }
+  else if(curTab==='Honorários'){ renderHonorarios(e,c,co) }
+  else if(curTab==='Projetos'){ renderProjetosOF(e,c,co) }
+  else if(curTab==='Equipe'){ renderEquipeOF(e,c,co) }
 }
 
 function handleFiles(ev){
@@ -2398,6 +2632,571 @@ function handleFiles(ev){
   }
   localStorage.setItem('orion_'+key,JSON.stringify(existing));
   renderTab();
+}
+
+// ── PROJEÇÕES (Forme Seguro) ──────────────────────────────────────────────
+function renderProjecoes(e,c,co){
+  const proj=JSON.parse(localStorage.getItem('orion_proj_'+curEmp)||'null')||{metas:Array(12).fill(0),realizados:Array(12).fill(0),turmas:3,crescimento:50};
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const baseMensal=FMT.num(e.fat);
+  const maxV=Math.max(...proj.metas,...proj.realizados,baseMensal,1);
+  c.innerHTML=`
+    <div class="flex aic jsb mb"><div class="slbl" style="margin:0">Projeções — ${e.nome}</div>
+    <button class="btn-sm btn-blue" onclick="editProjecoes()">✏️ Editar Metas</button></div>
+    <div class="card mb">
+      <div class="slbl">Receita Mensal — Meta vs Realizado</div>
+      <div style="display:flex;align-items:flex-end;gap:3px;height:120px;margin-bottom:8px">${meses.map((m,i)=>{
+        const meta=proj.metas[i]||baseMensal*(1+i*0.04);
+        const real=proj.realizados[i]||(i<=new Date().getMonth()?baseMensal*(0.9+Math.random()*0.2):0);
+        return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+          <div style="display:flex;gap:1px;align-items:flex-end;height:100px;width:100%">
+            <div style="flex:1;background:rgba(59,130,246,.3);border-radius:2px 2px 0 0;height:${Math.max(2,meta/maxV*100)}%"></div>
+            <div style="flex:1;background:${co};border-radius:2px 2px 0 0;height:${Math.max(2,real/maxV*100)}%"></div>
+          </div>
+          <span style="font-size:8px;color:var(--tx3)">${m}</span>
+        </div>`;
+      }).join('')}</div>
+      <div style="display:flex;gap:12px;font-size:10px;color:var(--tx3)"><span><span style="display:inline-block;width:8px;height:8px;background:rgba(59,130,246,.3);border-radius:2px;margin-right:3px"></span>Meta</span><span><span style="display:inline-block;width:8px;height:8px;background:${co};border-radius:2px;margin-right:3px"></span>Realizado</span></div>
+    </div>
+    <div class="g3">
+      <div class="card"><div class="lbl">Novos Fundos Previstos</div><div class="val-sm" style="color:${co}">${proj.turmas} turmas</div></div>
+      <div class="card"><div class="lbl">Crescimento Estimado</div><div class="val-sm txt-green">${proj.crescimento}%</div></div>
+      <div class="card"><div class="lbl">Receita Projetada Anual</div><div class="val-sm txt-blue">${FMT.brlK(baseMensal*12*(1+proj.crescimento/100))}</div></div>
+    </div>`;
+}
+function editProjecoes(){
+  const turmas=prompt('Novos fundos previstos:','3');
+  const crescimento=prompt('Crescimento estimado (%):','50');
+  if(turmas===null)return;
+  const proj=JSON.parse(localStorage.getItem('orion_proj_'+curEmp)||'{}');
+  proj.turmas=parseInt(turmas)||3;
+  proj.crescimento=parseFloat(crescimento)||50;
+  localStorage.setItem('orion_proj_'+curEmp,JSON.stringify(proj));
+  renderTab();
+}
+
+// ── RENTABILIDADE (Forme Seguro) ──────────────────────────────────────────
+function renderRentabilidade(e,c,co){
+  const rent=JSON.parse(localStorage.getItem('orion_rent_'+curEmp)||'null')||{custoFixo:5000,custoVar:2000};
+  const receita=FMT.num(e.fat);
+  const custoTotal=rent.custoFixo+rent.custoVar;
+  const resultado=receita-custoTotal;
+  const margem=receita>0?(resultado/receita*100):0;
+  const margemContrib=receita>0?((receita-rent.custoVar)/receita*100):0;
+  const breakeven=margemContrib>0?(rent.custoFixo/(margemContrib/100)):0;
+  c.innerHTML=`
+    <div class="flex aic jsb mb"><div class="slbl" style="margin:0">Rentabilidade — ${e.nome}</div>
+    <button class="btn-sm btn-ghost" onclick="editRentabilidade()">✏️ Editar Custos</button></div>
+    <div class="card mb">
+      <div class="slbl">DRE Simplificado</div>
+      <table class="fc-table">
+        <tr style="font-weight:700"><td>(+) Receita</td><td style="text-align:right;color:var(--green)">${FMT.brl(receita)}</td></tr>
+        <tr><td>(−) Custos Fixos</td><td style="text-align:right;color:var(--red)">${FMT.brl(rent.custoFixo)}</td></tr>
+        <tr><td>(−) Custos Variáveis</td><td style="text-align:right;color:var(--red)">${FMT.brl(rent.custoVar)}</td></tr>
+        <tr style="font-weight:900;border-top:2px solid var(--br)"><td>(=) Resultado</td><td style="text-align:right;color:${resultado>=0?'var(--green)':'var(--red)'}">${FMT.brl(resultado)}</td></tr>
+        <tr><td>Margem Líquida</td><td style="text-align:right">${FMT.pctVal(margem)}</td></tr>
+      </table>
+    </div>
+    <div class="g3">
+      <div class="card"><div class="lbl">Margem de Contribuição</div><div class="val-sm" style="color:${co}">${FMT.pctVal(margemContrib)}</div></div>
+      <div class="card"><div class="lbl">Break-even Mensal</div><div class="val-sm txt-amber">${FMT.brl(breakeven)}</div></div>
+      <div class="card"><div class="lbl">Resultado Mensal</div><div class="val-sm" style="color:${resultado>=0?'var(--green)':'var(--red)'}">${FMT.brl(resultado)}</div></div>
+    </div>`;
+}
+function editRentabilidade(){
+  const cf=prompt('Custo Fixo Mensal (R$):','5000');
+  const cv=prompt('Custo Variável Mensal (R$):','2000');
+  if(cf===null)return;
+  localStorage.setItem('orion_rent_'+curEmp,JSON.stringify({custoFixo:parseFloat(cf)||0,custoVar:parseFloat(cv)||0}));
+  renderTab();
+}
+
+// ── FUNDOS (Forme Seguro) ──────────────────────────────────────────────────
+// ── FUNDOS FORME SEGURO (COMPLETO) ──────────────────────────────────────
+let fundoSubTab='painel';
+function getTurmas(){ return JSON.parse(localStorage.getItem('orion_fs_turmas')||'[]') }
+function saveTurmas(t){ localStorage.setItem('orion_fs_turmas',JSON.stringify(t)) }
+function getFsLancs(){ return JSON.parse(localStorage.getItem('orion_fs_lancamentos')||'[]') }
+function saveFsLancs(l){ localStorage.setItem('orion_fs_lancamentos',JSON.stringify(l)) }
+
+function renderFundos(e,c,co){
+  const turmas=getTurmas();
+  const lancs=getFsLancs();
+  c.innerHTML=`
+    <div class="tabs" style="margin-bottom:16px">
+      <button class="tab ${fundoSubTab==='painel'?'active':''}" onclick="fundoSubTab='painel';renderTab()">Painel</button>
+      <button class="tab ${fundoSubTab==='lancamento'?'active':''}" onclick="fundoSubTab='lancamento';renderTab()">Lançamento Mensal</button>
+      <button class="tab ${fundoSubTab==='consolidado'?'active':''}" onclick="fundoSubTab='consolidado';renderTab()">Consolidado</button>
+      <button class="tab ${fundoSubTab==='relatorios'?'active':''}" onclick="fundoSubTab='relatorios';renderTab()">Relatórios</button>
+    </div>
+    <div id="fundos-content"></div>`;
+  const fc=document.getElementById('fundos-content');
+  if(!fc) return;
+  if(fundoSubTab==='painel') renderFundosPainel(fc,turmas,lancs,co);
+  else if(fundoSubTab==='lancamento') renderFundosLancamento(fc,turmas,lancs,co);
+  else if(fundoSubTab==='consolidado') renderFundosConsolidado(fc,turmas,lancs,co);
+  else if(fundoSubTab==='relatorios') renderFundosRelatorios(fc,turmas,co);
+}
+
+function renderFundosPainel(fc,turmas,lancs,co){
+  const totArrecadado=lancs.reduce((s,l)=>s+FMT.num(l.boletos||0)+FMT.num(l.eventos||0),0);
+  const totDespesas=lancs.reduce((s,l)=>s+FMT.num(l.taxaBoletos||0)+FMT.num(l.cerimonial||0)+FMT.num(l.rifa||0)+FMT.num(l.devolucao||0)+FMT.num(l.outras||0),0);
+  const totRent=lancs.reduce((s,l)=>s+FMT.num(l.rentabilidade||0),0);
+  const totHonor=lancs.reduce((s,l)=>s+FMT.num(l.honorario||0),0);
+  const patrimonio=totArrecadado-totDespesas+totRent-totHonor;
+  fc.innerHTML=`
+    <div class="kpi-grid mb" style="grid-template-columns:repeat(5,1fr)">
+      <div class="kpi-card"><div class="kpi-icon">🏦</div><div class="lbl">Patrimônio Líquido</div><div class="val-sm" style="color:${co}">${FMT.brl(patrimonio)}</div></div>
+      <div class="kpi-card"><div class="kpi-icon">💰</div><div class="lbl">Total Arrecadado</div><div class="val-sm txt-green">${FMT.brl(totArrecadado)}</div></div>
+      <div class="kpi-card"><div class="kpi-icon">💸</div><div class="lbl">Total Despesas</div><div class="val-sm txt-red">${FMT.brl(totDespesas)}</div></div>
+      <div class="kpi-card"><div class="kpi-icon">📈</div><div class="lbl">Rentabilidade</div><div class="val-sm txt-blue">${FMT.brl(totRent)}</div></div>
+      <div class="kpi-card"><div class="kpi-icon">🏆</div><div class="lbl">Honorários Forme</div><div class="val-sm txt-amber">${FMT.brl(totHonor)}</div></div>
+    </div>
+    <div class="flex aic jsb mb-sm"><div class="slbl" style="margin:0">Turmas Ativas</div>
+    <button class="btn-sm btn-blue" onclick="addTurma()">+ Nova Turma</button></div>
+    ${turmas.length>0?turmas.map((t,i)=>{
+      const tLancs=lancs.filter(l=>l.turmaId===t.id);
+      const saldo=tLancs.reduce((s,l)=>s+FMT.num(l.saldoFinal||0),0)||FMT.num(t.arrecadado||0);
+      const statusC=t.status==='encerrado'?'var(--tx3)':saldo>0?'var(--green)':'var(--red)';
+      return `<div class="card" style="margin-bottom:8px;border-left:3px solid ${statusC}">
+        <div class="flex aic jsb">
+          <div><div style="font-size:14px;font-weight:700">${t.nome}</div>
+          <div style="font-size:11px;color:var(--tx3)">${t.curso||''} · Formatura ${t.anoFormatura||''}</div></div>
+          <div style="text-align:right"><div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:${co}">${FMT.brl(saldo)}</div>
+          <span class="stag" style="color:${statusC};background:${statusC}18">${t.status||'ativo'}</span></div>
+          <button class="task-del" onclick="deleteTurma(${i})">🗑</button>
+        </div>
+      </div>`;
+    }).join(''):'<div style="padding:20px;text-align:center;color:var(--tx3)">Nenhuma turma cadastrada.</div>'}`;
+}
+
+function renderFundosLancamento(fc,turmas,lancs,co){
+  if(turmas.length===0){fc.innerHTML='<div style="padding:20px;text-align:center;color:var(--tx3)">Cadastre uma turma primeiro.</div>';return}
+  fc.innerHTML=`
+    <div class="g2 mb">
+      <div><div class="lbl">Turma</div><select class="inp" id="fs-turma">${turmas.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select></div>
+      <div><div class="lbl">Mês Referência</div><input class="inp" id="fs-mes" type="month" value="${new Date().toISOString().slice(0,7)}"/></div>
+    </div>
+    <div class="g2 mb">
+      <div class="card"><div class="slbl">Receitas</div>
+        <div class="lbl">Boletos Pagos (R$)</div><input class="inp" id="fs-boletos" type="number" value="0" oninput="fsPreview()"/>
+        <div class="lbl">Lucro Eventos (R$)</div><input class="inp" id="fs-eventos" type="number" value="0" oninput="fsPreview()"/>
+        <div class="lbl">Rendimento XP (%)</div><input class="inp" id="fs-rendimento" type="number" value="1.2" step="0.1" oninput="fsPreview()"/>
+      </div>
+      <div class="card"><div class="slbl">Despesas</div>
+        <div class="lbl">Taxa Emissão Boletos</div><input class="inp" id="fs-taxa" type="number" value="0" oninput="fsPreview()"/>
+        <div class="lbl">Cerimonial/Shows</div><input class="inp" id="fs-cerimonial" type="number" value="0" oninput="fsPreview()"/>
+        <div class="lbl">Despesas Rifa</div><input class="inp" id="fs-rifa" type="number" value="0" oninput="fsPreview()"/>
+        <div class="lbl">Devolução/Saída</div><input class="inp" id="fs-devolucao" type="number" value="0" oninput="fsPreview()"/>
+        <div class="lbl">Outras</div><input class="inp" id="fs-outras" type="number" value="0" oninput="fsPreview()"/>
+      </div>
+    </div>
+    <div class="card mb" id="fs-preview" style="background:linear-gradient(135deg,#0d1e3d,var(--s1));border-color:rgba(139,92,246,.3)">
+      <div class="slbl">Preview do Cálculo</div>
+      <div id="fs-calc"></div>
+    </div>
+    <button class="btn-sm btn-blue" onclick="saveFsLanc()">Salvar Lançamento</button>`;
+  setTimeout(fsPreview,100);
+}
+
+function fsPreview(){
+  const el=document.getElementById('fs-calc');if(!el)return;
+  const boletos=FMT.num(document.getElementById('fs-boletos')?.value);
+  const eventos=FMT.num(document.getElementById('fs-eventos')?.value);
+  const rendPct=FMT.num(document.getElementById('fs-rendimento')?.value);
+  const taxa=FMT.num(document.getElementById('fs-taxa')?.value);
+  const cerimonial=FMT.num(document.getElementById('fs-cerimonial')?.value);
+  const rifa=FMT.num(document.getElementById('fs-rifa')?.value);
+  const devolucao=FMT.num(document.getElementById('fs-devolucao')?.value);
+  const outras=FMT.num(document.getElementById('fs-outras')?.value);
+  const despTotal=taxa+cerimonial+rifa+devolucao+outras;
+  const saldoParcial=boletos+eventos-despTotal;
+  const rentabilidade=saldoParcial*(rendPct/100);
+  const honorario=rentabilidade*0.5;
+  const saldoFinal=saldoParcial+rentabilidade-honorario;
+  el.innerHTML=`<table class="fc-table"><tbody>
+    <tr><td>Boletos + Eventos</td><td style="text-align:right;color:var(--green)">${FMT.brl(boletos+eventos)}</td></tr>
+    <tr><td>(−) Despesas</td><td style="text-align:right;color:var(--red)">${FMT.brl(despTotal)}</td></tr>
+    <tr style="font-weight:600"><td>(=) Saldo Parcial</td><td style="text-align:right">${FMT.brl(saldoParcial)}</td></tr>
+    <tr><td>Rentabilidade (${rendPct}%)</td><td style="text-align:right;color:var(--blue3)">${FMT.brl(rentabilidade)}</td></tr>
+    <tr><td>(−) Honorário Forme (50% rent.)</td><td style="text-align:right;color:var(--amber)">${FMT.brl(honorario)}</td></tr>
+    <tr style="font-weight:900;border-top:2px solid var(--br);font-size:15px"><td>(=) Saldo Final</td><td style="text-align:right;color:${saldoFinal>=0?'var(--green)':'var(--red)'}">${FMT.brl(saldoFinal)}</td></tr>
+  </tbody></table>`;
+}
+
+function saveFsLanc(){
+  const turmaId=document.getElementById('fs-turma')?.value;
+  const mes=document.getElementById('fs-mes')?.value;
+  if(!turmaId||!mes){alert('Selecione turma e mês');return}
+  const boletos=FMT.num(document.getElementById('fs-boletos')?.value);
+  const eventos=FMT.num(document.getElementById('fs-eventos')?.value);
+  const rendPct=FMT.num(document.getElementById('fs-rendimento')?.value);
+  const taxaBoletos=FMT.num(document.getElementById('fs-taxa')?.value);
+  const cerimonial=FMT.num(document.getElementById('fs-cerimonial')?.value);
+  const rifa_val=FMT.num(document.getElementById('fs-rifa')?.value);
+  const devolucao=FMT.num(document.getElementById('fs-devolucao')?.value);
+  const outras=FMT.num(document.getElementById('fs-outras')?.value);
+  const despTotal=taxaBoletos+cerimonial+rifa_val+devolucao+outras;
+  const saldoParcial=boletos+eventos-despTotal;
+  const rentabilidade=saldoParcial*(rendPct/100);
+  const honorario=rentabilidade*0.5;
+  const saldoFinal=saldoParcial+rentabilidade-honorario;
+  const lancs=getFsLancs();
+  lancs.push({id:crypto.randomUUID(),turmaId,mes,boletos,eventos,rendPct,taxaBoletos,cerimonial,rifa:rifa_val,devolucao,outras,rentabilidade,honorario,saldoFinal,created:new Date().toISOString()});
+  saveFsLancs(lancs);
+  showToast('Lançamento salvo!');
+  fundoSubTab='painel';renderTab();
+}
+
+function renderFundosConsolidado(fc,turmas,lancs,co){
+  fc.innerHTML=`<div class="slbl">Consolidado por Turma</div>
+    <div style="overflow-x:auto"><table class="vceo-table"><thead><tr><th>Turma</th><th>Arrecadado</th><th>Despesas</th><th>Rentabilidade</th><th>Honorários</th><th>Saldo Líquido</th><th>Meses</th></tr></thead>
+    <tbody>${turmas.map(t=>{
+      const tl=lancs.filter(l=>l.turmaId===t.id);
+      const arr=tl.reduce((s,l)=>s+FMT.num(l.boletos)+FMT.num(l.eventos),0);
+      const desp=tl.reduce((s,l)=>s+FMT.num(l.taxaBoletos)+FMT.num(l.cerimonial)+FMT.num(l.rifa)+FMT.num(l.devolucao)+FMT.num(l.outras),0);
+      const rent=tl.reduce((s,l)=>s+FMT.num(l.rentabilidade),0);
+      const hon=tl.reduce((s,l)=>s+FMT.num(l.honorario),0);
+      const saldo=arr-desp+rent-hon;
+      return `<tr><td style="font-weight:600">${t.nome}</td><td style="color:var(--green)">${FMT.brl(arr)}</td><td style="color:var(--red)">${FMT.brl(desp)}</td><td style="color:var(--blue3)">${FMT.brl(rent)}</td><td style="color:var(--amber)">${FMT.brl(hon)}</td><td style="font-weight:800;color:${saldo>=0?'var(--green)':'var(--red)'}">${FMT.brl(saldo)}</td><td>${tl.length}</td></tr>`;
+    }).join('')}
+    <tr style="font-weight:900;border-top:2px solid var(--br)"><td>TOTAL</td>
+    <td style="color:var(--green)">${FMT.brl(lancs.reduce((s,l)=>s+FMT.num(l.boletos)+FMT.num(l.eventos),0))}</td>
+    <td style="color:var(--red)">${FMT.brl(lancs.reduce((s,l)=>s+FMT.num(l.taxaBoletos)+FMT.num(l.cerimonial)+FMT.num(l.rifa)+FMT.num(l.devolucao)+FMT.num(l.outras),0))}</td>
+    <td style="color:var(--blue3)">${FMT.brl(lancs.reduce((s,l)=>s+FMT.num(l.rentabilidade),0))}</td>
+    <td style="color:var(--amber)">${FMT.brl(lancs.reduce((s,l)=>s+FMT.num(l.honorario),0))}</td>
+    <td style="font-weight:900">${FMT.brl(lancs.reduce((s,l)=>s+FMT.num(l.saldoFinal),0))}</td>
+    <td>${lancs.length}</td></tr>
+    </tbody></table></div>`;
+}
+
+function renderFundosRelatorios(fc,turmas,co){
+  fc.innerHTML=`<div class="slbl">Relatórios</div>
+    <div class="g2">${turmas.map(t=>`<div class="card" style="cursor:pointer" onclick="printTurmaReport('${t.id}')">
+      <div style="font-size:14px;font-weight:600">📄 ${t.nome}</div>
+      <div style="font-size:11px;color:var(--tx3)">Relatório individual da turma</div>
+    </div>`).join('')}
+    <div class="card" style="cursor:pointer" onclick="window.print()">
+      <div style="font-size:14px;font-weight:600">📊 Consolidado</div>
+      <div style="font-size:11px;color:var(--tx3)">Relatório de todas as turmas</div>
+    </div></div>`;
+}
+function printTurmaReport(turmaId){
+  fundoSubTab='consolidado';renderTab();
+  setTimeout(()=>window.print(),300);
+}
+
+function addTurma(){
+  const nome=prompt('Nome da turma:');if(!nome)return;
+  const curso=prompt('Curso:','')||'';
+  const anoFormatura=prompt('Ano formatura:','2026')||'';
+  const meta=parseFloat(prompt('Meta arrecadação (R$):','200000'))||0;
+  const turmas=getTurmas();
+  turmas.push({id:crypto.randomUUID(),nome,curso,anoFormatura,meta,arrecadado:0,status:'ativo'});
+  saveTurmas(turmas);renderTab();
+}
+function deleteTurma(i){const t=getTurmas();t.splice(i,1);saveTurmas(t);renderTab()}
+
+// ── PATRIMÔNIO (Gestão Pessoal) ──────────────────────────────────────────
+function getPatrimonio(){ return JSON.parse(localStorage.getItem('orion_pat_gp')||'[]') }
+function savePatrimonio(p){ localStorage.setItem('orion_pat_gp',JSON.stringify(p)) }
+function renderPatrimonio(e,c,co){
+  const bens=getPatrimonio();
+  const total=bens.reduce((s,b)=>s+FMT.num(b.valor),0);
+  c.innerHTML=`<div class="flex aic jsb mb">
+    <div><div class="slbl" style="margin:0">Patrimônio</div>
+    <div style="font-size:12px;color:var(--tx3)">Total: <b style="color:${co}">${FMT.brl(total)}</b></div></div>
+    <button class="btn-sm btn-blue" onclick="addBem()">+ Novo Bem</button>
+  </div>`+
+  (bens.length>0?bens.map((b,i)=>`<div class="contract-item">
+    <div style="flex:1"><div style="font-size:14px;font-weight:600">${b.tipo==='imovel'?'🏠':b.tipo==='veiculo'?'🚗':'📦'} ${b.descricao}</div>
+    <div style="font-size:11px;color:var(--tx3)">${b.tipo} · Adq: ${b.dataAquisicao||'—'}</div></div>
+    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:${co}">${FMT.brl(b.valor)}</div>
+    <button class="task-del" onclick="deleteBem(${i})">🗑</button>
+  </div>`).join(''):'<div style="padding:20px;text-align:center;color:var(--tx3)">Nenhum bem cadastrado.</div>');
+}
+function addBem(){
+  const tipo=prompt('Tipo (imovel/veiculo/outro):','imovel');if(!tipo)return;
+  const descricao=prompt('Descrição:');if(!descricao)return;
+  const valor=parseFloat(prompt('Valor estimado (R$):','0'))||0;
+  const dataAquisicao=prompt('Data aquisição:','')||'';
+  const bens=getPatrimonio();bens.push({tipo,descricao,valor,dataAquisicao,id:crypto.randomUUID()});
+  savePatrimonio(bens);renderTab();
+}
+function deleteBem(i){const b=getPatrimonio();b.splice(i,1);savePatrimonio(b);renderTab()}
+
+// ── INVESTIMENTOS (Gestão Pessoal) ──────────────────────────────────────
+function getInvestimentos(){ return JSON.parse(localStorage.getItem('orion_inv_gp')||'[]') }
+function saveInvestimentos(inv){ localStorage.setItem('orion_inv_gp',JSON.stringify(inv)) }
+function renderInvestimentos(e,c,co){
+  const invs=getInvestimentos();
+  const totalAplicado=invs.reduce((s,i)=>s+FMT.num(i.aplicado),0);
+  const totalAtual=invs.reduce((s,i)=>s+FMT.num(i.atual),0);
+  const rendTotal=totalAplicado>0?((totalAtual-totalAplicado)/totalAplicado*100):0;
+  const tipoIcons={'renda_fixa':'🏦','acoes':'📈','fii':'🏢','crypto':'₿','outro':'💰'};
+  c.innerHTML=`<div class="flex aic jsb mb">
+    <div><div class="slbl" style="margin:0">Investimentos</div>
+    <div style="font-size:12px;color:var(--tx3)">Aplicado: ${FMT.brl(totalAplicado)} · Atual: <b style="color:${co}">${FMT.brl(totalAtual)}</b> · Rend: <span style="color:${rendTotal>=0?'var(--green)':'var(--red)'}"> ${FMT.pctVal(rendTotal)}</span></div></div>
+    <button class="btn-sm btn-blue" onclick="addInvestimento()">+ Novo</button>
+  </div>`+
+  (invs.length>0?invs.map((inv,i)=>{
+    const rend=inv.aplicado>0?((inv.atual-inv.aplicado)/inv.aplicado*100):0;
+    return `<div class="contract-item">
+      <div style="flex:1"><div style="font-size:14px;font-weight:600">${tipoIcons[inv.tipo]||'💰'} ${inv.descricao}</div>
+      <div style="font-size:11px;color:var(--tx3)">${inv.tipo} · Rend: <span style="color:${rend>=0?'var(--green)':'var(--red)'}"> ${FMT.pctVal(rend)}</span></div></div>
+      <div style="text-align:right"><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${co}">${FMT.brl(inv.atual)}</div>
+      <div style="font-size:10px;color:var(--tx3)">Aplicado: ${FMT.brl(inv.aplicado)}</div></div>
+      <button class="task-del" onclick="deleteInvestimento(${i})">🗑</button>
+    </div>`;
+  }).join(''):'<div style="padding:20px;text-align:center;color:var(--tx3)">Nenhum investimento cadastrado.</div>');
+}
+function addInvestimento(){
+  const tipo=prompt('Tipo (renda_fixa/acoes/fii/crypto/outro):','renda_fixa');if(!tipo)return;
+  const descricao=prompt('Descrição:');if(!descricao)return;
+  const aplicado=parseFloat(prompt('Valor aplicado (R$):','0'))||0;
+  const atual=parseFloat(prompt('Valor atual (R$):',String(aplicado)))||aplicado;
+  const invs=getInvestimentos();invs.push({tipo,descricao,aplicado,atual,id:crypto.randomUUID()});
+  saveInvestimentos(invs);renderTab();
+}
+function deleteInvestimento(i){const v=getInvestimentos();v.splice(i,1);saveInvestimentos(v);renderTab()}
+
+// ── PACIENTES (Doctor Wealth) ──────────────────────────────────────────────
+function getPacientes(){ return JSON.parse(localStorage.getItem('orion_pacientes_dw')||'[]') }
+function savePacientes(p){ localStorage.setItem('orion_pacientes_dw',JSON.stringify(p)) }
+function renderPacientes(e,c,co){
+  const pacs=getPacientes();
+  const totalRec=pacs.reduce((s,p)=>s+FMT.num(p.recorrente),0);
+  const inadimCount=pacs.filter(p=>p.inadimplente).length;
+  c.innerHTML=`<div class="flex aic jsb mb">
+    <div><div class="slbl" style="margin:0">Pacientes / Clientes — ${e.nome}</div>
+    <div style="font-size:12px;color:var(--tx3)">${pacs.length} ativos · Rec: ${FMT.brl(totalRec)}/mês · ${inadimCount} inadimplente(s)</div></div>
+    <button class="btn-sm btn-blue" onclick="addPaciente()">+ Novo Paciente</button>
+  </div>`+
+  (pacs.length>0?pacs.map((p,i)=>`<div class="task-item" style="border-left-color:${p.inadimplente?'var(--red)':'var(--green)'}">
+    <span style="font-size:16px">👤</span>
+    <div style="flex:1"><div style="font-size:14px;font-weight:600">${p.nome}</div>
+    <div style="font-size:11px;color:var(--tx3)">${p.proxima||'Sem agendamento'}</div></div>
+    <div style="text-align:right"><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${co}">${FMT.brl(p.recorrente)}/mês</div>
+    ${p.inadimplente?'<span class="stag" style="color:var(--red);background:rgba(239,68,68,.15)">Inadimplente</span>':''}</div>
+    <button class="task-del" onclick="deletePaciente(${i})">🗑</button>
+  </div>`).join(''):'<div style="padding:20px;text-align:center;color:var(--tx3)">Nenhum paciente cadastrado.</div>');
+}
+function addPaciente(){
+  const nome=prompt('Nome do paciente/cliente:');if(!nome)return;
+  const recorrente=parseFloat(prompt('Receita recorrente (R$/mês):','890'))||0;
+  const inadimplente=confirm('Está inadimplente?');
+  const proxima=prompt('Próxima consulta/reunião:','')||'';
+  const pacs=getPacientes();pacs.push({nome,recorrente,inadimplente,proxima,id:crypto.randomUUID()});
+  savePacientes(pacs);renderTab();
+}
+function deletePaciente(i){const p=getPacientes();p.splice(i,1);savePacientes(p);renderTab()}
+
+// ── METAS PESSOAIS (GP) ──────────────────────────────────────────────────
+function getMetasGP(){ return JSON.parse(localStorage.getItem('orion_metas_gp')||'[]') }
+function saveMetasGP(m){ localStorage.setItem('orion_metas_gp',JSON.stringify(m)) }
+function renderMetasPessoais(e,c,co){
+  const metas=getMetasGP();
+  c.innerHTML=`<div class="flex aic jsb mb"><div class="slbl" style="margin:0">Metas Pessoais</div>
+    <button class="btn-sm btn-blue" onclick="addMetaGP()">+ Nova Meta</button></div>`+
+  (metas.length>0?metas.map((m,i)=>{
+    const pct=m.alvo>0?Math.min(m.atual/m.alvo*100,100):0;
+    const statusC=pct>=70?'var(--green)':pct>=40?'var(--amber)':'var(--red)';
+    return `<div class="okr-item"><div class="flex aic jsb mb-sm">
+      <div><div style="font-size:14px;font-weight:600">${m.titulo}</div><div style="font-size:11px;color:var(--tx3)">Prazo: ${m.prazo||'—'}</div></div>
+      <div style="text-align:right"><span style="font-family:'Syne',sans-serif;font-size:17px;font-weight:900;color:${statusC}">${pct.toFixed(0)}%</span></div>
+      <button class="task-del" onclick="deleteMetaGP(${i})">🗑</button>
+    </div>
+    <div style="font-size:12px;color:var(--tx3);margin-bottom:4px">${FMT.brl(m.atual)} / ${FMT.brl(m.alvo)}</div>
+    <div class="pbar"><div class="pfill" style="width:${pct}%;background:${co}"></div></div></div>`;
+  }).join(''):'<div style="padding:20px;text-align:center;color:var(--tx3)">Nenhuma meta cadastrada.</div>');
+}
+function addMetaGP(){
+  const titulo=prompt('Título da meta:');if(!titulo)return;
+  const alvo=parseFloat(prompt('Valor alvo (R$):','100000'))||0;
+  const atual=parseFloat(prompt('Valor atual (R$):','0'))||0;
+  const prazo=prompt('Prazo:','Dez/2026')||'';
+  const metas=getMetasGP();metas.push({titulo,alvo,atual,prazo,id:crypto.randomUUID()});
+  saveMetasGP(metas);renderTab();
+}
+function deleteMetaGP(i){const m=getMetasGP();m.splice(i,1);saveMetasGP(m);renderTab()}
+
+// ── COMPROMISSOS (GP) ──────────────────────────────────────────────────────
+function getCompromissosGP(){ return JSON.parse(localStorage.getItem('orion_comp_gp')||'[]') }
+function saveCompromissosGP(c){ localStorage.setItem('orion_comp_gp',JSON.stringify(c)) }
+function renderCompromissosGP(e,c,co){
+  const comps=getCompromissosGP().sort((a,b)=>(a.data||'').localeCompare(b.data||''));
+  c.innerHTML=`<div class="flex aic jsb mb"><div class="slbl" style="margin:0">Compromissos Pessoais</div>
+    <button class="btn-sm btn-blue" onclick="addCompGP()">+ Novo</button></div>`+
+  (comps.length>0?comps.map((cp,i)=>{
+    const dias=cp.data?Math.ceil((new Date(cp.data)-new Date())/86400000):999;
+    const urgC=dias<0?'var(--red)':dias<=3?'var(--amber)':'var(--green)';
+    return `<div class="ag-item" style="border-left-color:${urgC}">
+      <div class="ag-date"><div class="ag-day">${cp.data?new Date(cp.data+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short'}).toUpperCase():''}</div>
+      <div class="ag-num" style="font-size:16px">${cp.data?new Date(cp.data+'T12:00:00').getDate():''}</div></div>
+      <div style="flex:1"><div style="font-size:14px;font-weight:500">${cp.titulo}</div><div style="font-size:12px;color:var(--tx3)">${cp.hora||''} ${cp.tipo||''}</div></div>
+      <button class="task-del" onclick="deleteCompGP(${i})">🗑</button>
+    </div>`;
+  }).join(''):'<div style="padding:20px;text-align:center;color:var(--tx3)">Nenhum compromisso.</div>');
+}
+function addCompGP(){
+  const titulo=prompt('Título:');if(!titulo)return;
+  const data=prompt('Data (YYYY-MM-DD):',new Date().toISOString().slice(0,10))||'';
+  const hora=prompt('Hora:','')||'';
+  const tipo=prompt('Tipo (reunião/pessoal/saúde/financeiro):','pessoal')||'';
+  const comps=getCompromissosGP();comps.push({titulo,data,hora,tipo,id:crypto.randomUUID()});
+  saveCompromissosGP(comps);renderTab();
+}
+function deleteCompGP(i){const c=getCompromissosGP();c.splice(i,1);saveCompromissosGP(c);renderTab()}
+
+// ── HONORÁRIOS (Doctor Wealth) ──────────────────────────────────────────────
+function getHonorarios(){ return JSON.parse(localStorage.getItem('orion_honor_dw')||'[]') }
+function saveHonorarios(h){ localStorage.setItem('orion_honor_dw',JSON.stringify(h)) }
+function renderHonorarios(e,c,co){
+  const honors=getHonorarios();
+  const totalPendente=honors.filter(h=>h.status!=='pago').reduce((s,h)=>s+FMT.num(h.valor),0);
+  const totalPago=honors.filter(h=>h.status==='pago').reduce((s,h)=>s+FMT.num(h.valor),0);
+  c.innerHTML=`<div class="flex aic jsb mb"><div><div class="slbl" style="margin:0">Honorários — ${e.nome}</div>
+    <div style="font-size:12px;color:var(--tx3)">Pago: ${FMT.brl(totalPago)} · Pendente: <span style="color:var(--amber)">${FMT.brl(totalPendente)}</span></div></div>
+    <button class="btn-sm btn-blue" onclick="addHonorario()">+ Lançar</button></div>`+
+  (honors.length>0?honors.map((h,i)=>{
+    const sc=h.status==='pago'?'var(--green)':h.status==='vencido'?'var(--red)':'var(--amber)';
+    return `<div class="contract-item" style="border-left:3px solid ${sc}">
+      <div style="flex:1"><div style="font-size:14px;font-weight:600">${h.cliente}</div>
+      <div style="font-size:11px;color:var(--tx3)">Venc: ${h.vencimento||'—'} · Parc: ${h.parcela||'1/1'}</div></div>
+      <div style="text-align:right"><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${co}">${FMT.brl(h.valor)}</div>
+      <span class="stag" style="color:${sc};background:${sc}18;font-size:9px">${h.status}</span></div>
+      <button class="task-del" onclick="deleteHonorario(${i})">🗑</button>
+    </div>`;
+  }).join(''):'<div style="padding:20px;text-align:center;color:var(--tx3)">Nenhum honorário lançado.</div>');
+}
+function addHonorario(){
+  const cliente=prompt('Cliente:');if(!cliente)return;
+  const valor=parseFloat(prompt('Valor (R$):','890'))||0;
+  const vencimento=prompt('Vencimento (YYYY-MM-DD):','')||'';
+  const parcela=prompt('Parcela (ex: 1/12):','1/1')||'1/1';
+  const honors=getHonorarios();honors.push({cliente,valor,vencimento,parcela,status:'pendente',id:crypto.randomUUID()});
+  saveHonorarios(honors);renderTab();
+}
+function deleteHonorario(i){const h=getHonorarios();h.splice(i,1);saveHonorarios(h);renderTab()}
+
+// ── PROJETOS (Original Fotografia) ──────────────────────────────────────────
+function getProjetosOF(){ return JSON.parse(localStorage.getItem('orion_proj_of')||'[]') }
+function saveProjetosOF(p){ localStorage.setItem('orion_proj_of',JSON.stringify(p)) }
+function renderProjetosOF(e,c,co){
+  const projs=getProjetosOF();
+  c.innerHTML=`<div class="flex aic jsb mb"><div class="slbl" style="margin:0">Projetos — ${e.nome}</div>
+    <button class="btn-sm btn-blue" onclick="addProjetoOF()">+ Novo Projeto</button></div>`+
+  (projs.length>0?projs.map((p,i)=>{
+    const fases={'captacao':'🔵 Captação','producao':'🟡 Produção','edicao':'🟠 Edição','entrega':'🟢 Entrega'};
+    return `<div class="card" style="margin-bottom:10px">
+      <div class="flex aic jsb mb-sm"><div><div style="font-size:14px;font-weight:700">${p.nome}</div>
+      <div style="font-size:11px;color:var(--tx3)">${p.turma||''} · ${p.data||''}</div></div>
+      <span class="stag" style="color:${co};background:${co}18">${fases[p.fase]||p.fase}</span>
+      <button class="task-del" onclick="deleteProjetoOF(${i})">🗑</button></div>
+      <div class="flex aic jsb" style="font-size:12px;margin-bottom:4px"><span>Valor: ${FMT.brl(p.valor)}</span><span>${p.conclusao||0}% concluído</span></div>
+      <div class="pbar"><div class="pfill" style="width:${p.conclusao||0}%;background:${co}"></div></div>
+    </div>`;
+  }).join(''):'<div style="padding:20px;text-align:center;color:var(--tx3)">Nenhum projeto.</div>');
+}
+function addProjetoOF(){
+  const nome=prompt('Nome do evento/projeto:');if(!nome)return;
+  const turma=prompt('Turma:','')||'';
+  const data=prompt('Data:','')||'';
+  const valor=parseFloat(prompt('Valor contratado (R$):','0'))||0;
+  const fase=prompt('Fase (captacao/producao/edicao/entrega):','captacao')||'captacao';
+  const projs=getProjetosOF();projs.push({nome,turma,data,valor,fase,conclusao:0,id:crypto.randomUUID()});
+  saveProjetosOF(projs);renderTab();
+}
+function deleteProjetoOF(i){const p=getProjetosOF();p.splice(i,1);saveProjetosOF(p);renderTab()}
+
+// ── EQUIPE (Original Fotografia) ──────────────────────────────────────────
+function getEquipeOF(){ return JSON.parse(localStorage.getItem('orion_equipe_of')||'[]') }
+function saveEquipeOF(eq){ localStorage.setItem('orion_equipe_of',JSON.stringify(eq)) }
+function renderEquipeOF(e,c,co){
+  const equipe=getEquipeOF();
+  c.innerHTML=`<div class="flex aic jsb mb"><div class="slbl" style="margin:0">Equipe — ${e.nome}</div>
+    <button class="btn-sm btn-blue" onclick="addMembroOF()">+ Novo Membro</button></div>`+
+  (equipe.length>0?equipe.map((m,i)=>`<div class="task-item" style="border-left-color:${co}">
+    <span style="font-size:16px">👤</span>
+    <div style="flex:1"><div style="font-size:14px;font-weight:600">${m.nome}</div>
+    <div style="font-size:11px;color:var(--tx3)">${m.funcao||'Fotógrafo'} · ${m.eventos||0} eventos</div></div>
+    <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${co}">${FMT.brl(m.comissao||0)}/evt</div>
+    <button class="task-del" onclick="deleteMembroOF(${i})">🗑</button>
+  </div>`).join(''):'<div style="padding:20px;text-align:center;color:var(--tx3)">Nenhum membro.</div>');
+}
+function addMembroOF(){
+  const nome=prompt('Nome:');if(!nome)return;
+  const funcao=prompt('Função:','Fotógrafo')||'Fotógrafo';
+  const comissao=parseFloat(prompt('Comissão por evento (R$):','500'))||0;
+  const equipe=getEquipeOF();equipe.push({nome,funcao,comissao,eventos:0,id:crypto.randomUUID()});
+  saveEquipeOF(equipe);renderTab();
+}
+function deleteMembroOF(i){const eq=getEquipeOF();eq.splice(i,1);saveEquipeOF(eq);renderTab()}
+
+// ── RELATÓRIO EXECUTIVO ──────────────────────────────────────────────────
+async function gerarRelatorioExecutivo(){
+  const apiKey=localStorage.getItem('orion_api_key')||'';
+  const emps=Object.values(EMPS).filter(e=>!e.id.startsWith('custom_'));
+  const dados=emps.map(e=>`${e.nome} (${e.sigla}): Fat ${FMT.brlK(e.fat)}, Result ${FMT.brlK(e.result)}, Score ${e.score}, Status ${e.status}`).join('\n');
+  const alerts=getAlerts().filter(a=>!a.read).map(a=>a.text).join('; ');
+  const prompt_text=`Gere um relatório executivo completo do ecossistema ORION de Maxwell Machado.
+
+Dados das empresas:
+${dados}
+
+Alertas ativos: ${alerts||'Nenhum'}
+
+Estruture em seções:
+1. RESUMO EXECUTIVO (3 frases)
+2. ANÁLISE POR EMPRESA (cada uma com situação, ponto forte, ponto de atenção)
+3. RISCOS IDENTIFICADOS
+4. OPORTUNIDADES
+5. RECOMENDAÇÕES DE AÇÃO (top 5 prioridades)
+
+Seja direto, executivo, em português. Máximo 800 palavras.`;
+
+  const modal=document.createElement('div');
+  modal.className='overlay';
+  modal.onclick=ev=>{if(ev.target===modal)modal.remove()};
+  modal.innerHTML=`<div class="modal" style="position:relative;width:640px;max-height:80vh;overflow-y:auto">
+    <button class="modal-close" onclick="this.closest('.overlay').remove()">&times;</button>
+    <h2>📊 Relatório Executivo</h2>
+    <div id="relatorio-content" style="font-size:13px;line-height:1.6;color:var(--tx)"><em style="color:var(--blue3)">Gerando relatório com MAXXXI...</em></div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn-sm btn-ghost" onclick="this.closest('.overlay').remove()">Fechar</button>
+      <button class="btn-sm btn-ghost" onclick="navigator.clipboard.writeText(document.getElementById('relatorio-content').innerText);showToast('Copiado!')">📋 Copiar</button>
+      <button class="btn-sm btn-blue" onclick="window.print()">🖨️ Imprimir</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+
+  if(!apiKey){
+    document.getElementById('relatorio-content').innerHTML=gerarRelatorioLocal(emps,alerts);
+    return;
+  }
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:prompt_text}]})
+    });
+    const d=await res.json();
+    const text=d.content?.[0]?.text||'Erro ao gerar relatório.';
+    document.getElementById('relatorio-content').innerHTML=text.replace(/\n/g,'<br>');
+  }catch(e){
+    document.getElementById('relatorio-content').innerHTML=gerarRelatorioLocal(emps,alerts);
+  }
+}
+function gerarRelatorioLocal(emps,alerts){
+  const portfolio=emps.filter(e=>e.id!=='gp');
+  const totalFat=portfolio.reduce((s,e)=>s+e.fat,0);
+  const totalRes=portfolio.reduce((s,e)=>s+e.result,0);
+  const melhor=[...portfolio].sort((a,b)=>b.result-a.result)[0];
+  const pior=[...portfolio].sort((a,b)=>a.score-b.score)[0];
+  return `<b>RESUMO EXECUTIVO</b><br>Ecossistema com faturamento de ${FMT.brlK(totalFat)} e resultado de ${FMT.brlK(totalRes)}. ${melhor.sigla} lidera em resultado. ${pior.sigla} requer atenção (score ${pior.score}).<br><br>`+
+    `<b>ANÁLISE POR EMPRESA</b><br>`+portfolio.map(e=>`<b>${e.nome}</b>: Fat ${FMT.brlK(e.fat)}, Score ${e.score}, Status ${e.status}. ${e.result>0?'Resultado positivo.':'⚠️ Atenção.'}<br>`).join('')+
+    `<br><b>RISCOS</b><br>${alerts||'Nenhum alerta crítico no momento.'}<br><br>`+
+    `<b>RECOMENDAÇÕES</b><br>1. Priorizar ${pior.sigla} (score mais baixo)<br>2. Manter crescimento de ${melhor.sigla}<br>3. Revisar inadimplência do portfólio<br>4. Atualizar metas trimestrais<br>5. Agendar reunião de planejamento estratégico`;
 }
 
 // ── FINANCEIRO TAB ──────────────────────────────────────────────────────
@@ -2422,7 +3221,10 @@ function renderFinanceiro(e, c){
         <div class="slbl" style="margin:0">Financeiro — ${e.nome}</div>
         <div style="font-size:12px;color:var(--tx3);margin-top:2px">${mesLabel}</div>
       </div>
-      <button class="btn-sm btn-blue" onclick="openModal('modal-lancamento')">+ Lançamento</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn-sm btn-ghost" onclick="importExtrato()">📥 Importar Extrato</button>
+        <button class="btn-sm btn-blue" onclick="openModal('modal-lancamento')">+ Lançamento</button>
+      </div>
     </div>
 
     <!-- KPIs Financeiros -->
@@ -2453,25 +3255,29 @@ function renderFinanceiro(e, c){
     <!-- DRE -->
     <div class="card mb">
       <div class="slbl" style="margin-bottom:14px">DRE — Demonstrativo de Resultado</div>
-      <table class="fc-table">
-        <tbody>
+      ${(()=>{
+        const deducoes=Object.entries(dre.despPorCat).filter(([c])=>{const cat=CATEGORIAS.find(x=>x.nome===c);return cat&&cat.grupo==='deducao'}).reduce((s,[,v])=>s+v,0)||(receitaShow*0.06);
+        const custos=curEmp==='of'?(receitaShow*0.85):Object.entries(dre.despPorCat).filter(([c])=>{const cat=CATEGORIAS.find(x=>x.nome===c);return cat&&cat.grupo==='custo'}).reduce((s,[,v])=>s+v,0)||(despesaShow*0.4);
+        const opex=Object.entries(dre.despPorCat).filter(([c])=>{const cat=CATEGORIAS.find(x=>x.nome===c);return !cat||cat.grupo==='operacional'}).reduce((s,[,v])=>s+v,0)||(despesaShow*0.5);
+        const financeiras=Object.entries(dre.despPorCat).filter(([c])=>{const cat=CATEGORIAS.find(x=>x.nome===c);return cat&&cat.grupo==='financeira'}).reduce((s,[,v])=>s+v,0)||(despesaShow*0.1);
+        const recLiq=receitaShow-deducoes;
+        const lucroBruto=recLiq-custos;
+        const ebitda=lucroBruto-opex;
+        const resultFinal=ebitda-financeiras;
+        const mg=(receitaShow>0&&resultFinal!==0)?(resultFinal/receitaShow*100):0;
+        return `<table class="fc-table"><tbody>
           <tr style="font-weight:700"><td>(+) Receita Bruta</td><td style="text-align:right;color:var(--green)">${FMT.brl(receitaShow)}</td></tr>
-          <tr><td style="color:var(--tx3)">(−) Impostos estimados</td><td style="text-align:right;color:var(--tx3)">${FMT.brl(receitaShow * 0.06)}</td></tr>
-          <tr style="font-weight:700;border-top:2px solid var(--br)"><td>(=) Receita Líquida</td><td style="text-align:right;color:var(--blue3)">${FMT.brl(receitaShow * 0.94)}</td></tr>
-          ${Object.entries(dre.despPorCat).length > 0 ?
-            Object.entries(dre.despPorCat).map(([cat,val])=>{
-              const ci = CATEGORIAS.find(x=>x.nome===cat);
-              return `<tr><td style="color:var(--tx2)">(−) ${ci?ci.icone:''} ${cat}</td><td style="text-align:right;color:var(--red)">${FMT.brl(val)}</td></tr>`;
-            }).join('') :
-            `<tr><td style="color:var(--tx2)">(−) Despesas Operacionais</td><td style="text-align:right;color:var(--red)">${FMT.brl(despesaShow)}</td></tr>`
-          }
-          <tr style="font-weight:900;border-top:2px solid var(--br);font-size:15px">
-            <td>(=) Resultado Operacional</td>
-            <td style="text-align:right;color:${resultadoShow>=0?'var(--green)':'var(--red)'}">${FMT.brl(resultadoShow)}</td>
-          </tr>
-          <tr><td style="color:var(--tx3)">Margem Operacional</td><td style="text-align:right;color:var(--tx2)">${FMT.pctVal(margemShow)}</td></tr>
-        </tbody>
-      </table>
+          <tr><td style="color:var(--tx3)">(−) Deduções/Impostos</td><td style="text-align:right;color:var(--tx3)">${FMT.brl(deducoes)}</td></tr>
+          <tr style="font-weight:600;border-top:1px solid var(--br)"><td>(=) Receita Líquida</td><td style="text-align:right;color:var(--blue3)">${FMT.brl(recLiq)}</td></tr>
+          <tr><td style="color:var(--tx2)">(−) Custos Diretos${curEmp==='of'?' (85% OF)':''}</td><td style="text-align:right;color:var(--red)">${FMT.brl(custos)}</td></tr>
+          <tr style="font-weight:600;border-top:1px solid var(--br)"><td>(=) Lucro Bruto</td><td style="text-align:right;color:${lucroBruto>=0?'var(--green)':'var(--red)'}">${FMT.brl(lucroBruto)}</td></tr>
+          <tr><td style="color:var(--tx2)">(−) Despesas Operacionais</td><td style="text-align:right;color:var(--red)">${FMT.brl(opex)}</td></tr>
+          <tr style="font-weight:700;border-top:1px solid var(--br)"><td>(=) EBITDA</td><td style="text-align:right;color:${ebitda>=0?'var(--green)':'var(--red)'}">${FMT.brl(ebitda)}</td></tr>
+          <tr><td style="color:var(--tx2)">(−) Financeiras</td><td style="text-align:right;color:var(--red)">${FMT.brl(financeiras)}</td></tr>
+          <tr style="font-weight:900;border-top:2px solid var(--br);font-size:15px"><td>(=) Resultado Líquido</td><td style="text-align:right;color:${resultFinal>=0?'var(--green)':'var(--red)'}">${FMT.brl(resultFinal)}</td></tr>
+          <tr><td style="color:var(--tx3)">Margem Líquida</td><td style="text-align:right">${FMT.pctVal(mg)}</td></tr>
+        </tbody></table>`;
+      })()}
     </div>
 
     <!-- Fluxo de Caixa -->
@@ -2575,6 +3381,7 @@ function saveLancamentoForm(){
   const categoria = document.getElementById('lanc-categoria').value;
   const status = document.getElementById('lanc-status').value;
   const observacao = document.getElementById('lanc-obs').value.trim();
+  const origin = document.getElementById('lanc-origin').value;
   const recorrente = document.getElementById('lanc-recorrente').checked;
   const frequencia = document.getElementById('lanc-freq').value;
   // Validations
@@ -2585,7 +3392,7 @@ function saveLancamentoForm(){
   if(errs.length > 0){ alert(errs.join('\n')); return; }
   const result = criarLancamento({
     empresa_id: curEmp, type, valor: FMT.num(valor), data, descricao,
-    categoria, status, observacao, recorrente, frequencia
+    categoria, status, observacao, recorrente, frequencia, origin
   });
   if(result){
     closeModal('modal-lancamento');
@@ -2620,6 +3427,178 @@ function loadCI(){
     document.getElementById('ci2').value=ci[1]||'';
     document.getElementById('ci3').value=ci[2]||'';
   }catch(e){}
+}
+
+// ── OKRs CRUD ──────────────────────────────────────────────────────────────
+function getOKRs(empId){ return JSON.parse(localStorage.getItem('orion_okrs_'+empId)||'null')||EMPS[empId]?.okrs||[] }
+function saveOKRs(empId, okrs){ localStorage.setItem('orion_okrs_'+empId, JSON.stringify(okrs)); if(EMPS[empId])EMPS[empId].okrs=okrs; }
+function addOKR(){
+  const o=prompt('Objetivo:'); if(!o)return;
+  const prazo=prompt('Prazo (ex: Jun/2026):')||'';
+  const resp=prompt('Responsável:')||'';
+  const okrs=getOKRs(curEmp);
+  okrs.push({o,p:0,prazo,resp,krs:[]});
+  saveOKRs(curEmp,okrs);renderTab();
+}
+function deleteOKR(i){ const okrs=getOKRs(curEmp);okrs.splice(i,1);saveOKRs(curEmp,okrs);renderTab() }
+function addKR(oi){
+  const nome=prompt('Key Result:'); if(!nome)return;
+  const meta=parseFloat(prompt('Meta (número):')||'100');
+  const unid=prompt('Unidade (%, R$, un):')||'%';
+  const okrs=getOKRs(curEmp);
+  okrs[oi].krs=okrs[oi].krs||[];
+  okrs[oi].krs.push({nome,atual:0,meta,unid});
+  saveOKRs(curEmp,okrs);renderTab();
+}
+function updateKR(oi,ki,val){
+  const okrs=getOKRs(curEmp);
+  okrs[oi].krs[ki].atual=parseFloat(val)||0;
+  saveOKRs(curEmp,okrs);
+}
+
+// ── CONTRATOS CRUD ──────────────────────────────────────────────────────────
+function getContratos(empId){
+  const stored=JSON.parse(localStorage.getItem('orion_contratos_'+empId)||'null');
+  if(stored) return stored;
+  return (EMPS[empId]?.contratos||[]).map(ct=>({cliente:ct.n,valor:0,inicio:'',fim:ct.d,status:ct.s==='ativo'?'ativo':ct.s||'negoc',v:ct.v}));
+}
+function saveContratos(empId, cts){ localStorage.setItem('orion_contratos_'+empId, JSON.stringify(cts)) }
+function addContrato(){
+  const cliente=prompt('Cliente/Nome:'); if(!cliente)return;
+  const valor=parseFloat(prompt('Valor mensal (R$):')||'0');
+  const inicio=prompt('Data início (YYYY-MM-DD):')||new Date().toISOString().slice(0,10);
+  const fim=prompt('Data fim (YYYY-MM-DD):')||'';
+  const cts=getContratos(curEmp);
+  cts.push({cliente,valor,inicio,fim,status:'ativo',id:crypto.randomUUID()});
+  saveContratos(curEmp,cts);renderTab();
+}
+function deleteContrato(i){ const cts=getContratos(curEmp);cts.splice(i,1);saveContratos(curEmp,cts);renderTab() }
+
+// ── PIPELINE CRUD ──────────────────────────────────────────────────────────
+let pipeDragId=null;
+function getPipeline(empId){ return JSON.parse(localStorage.getItem('orion_pipeline_'+empId)||'[]') }
+function savePipeline(empId, pipe){ localStorage.setItem('orion_pipeline_'+empId, JSON.stringify(pipe)) }
+function addPipeCard(stage){
+  const nome=prompt('Nome do deal:'); if(!nome)return;
+  const valor=parseFloat(prompt('Valor (R$):')||'0');
+  const resp=prompt('Responsável:')||'';
+  const data=prompt('Data prevista:')||'';
+  const pipe=getPipeline(curEmp);
+  pipe.push({id:crypto.randomUUID(),nome,valor,resp,data,stage:stage||'Prospecção'});
+  savePipeline(curEmp,pipe);renderTab();
+}
+function dragPipe(ev,id){ pipeDragId=id; ev.dataTransfer.effectAllowed='move' }
+function dropPipe(ev,stage){
+  ev.preventDefault(); if(!pipeDragId)return;
+  const pipe=getPipeline(curEmp);
+  const item=pipe.find(p=>p.id===pipeDragId);
+  if(item){item.stage=stage;savePipeline(curEmp,pipe);renderTab()}
+  pipeDragId=null;
+}
+
+// ── EXTRATO IMPORT ──────────────────────────────────────────────────────────
+function importExtrato(){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='.csv,.ofx,.txt';
+  inp.onchange=async(ev)=>{
+    const f=ev.target.files[0]; if(!f)return;
+    const text=await f.text();
+    const lines=text.split('\n').filter(l=>l.trim());
+    const txns=[];
+    // Try CSV parse: date,description,amount
+    lines.forEach(line=>{
+      const parts=line.split(/[,;\t]/);
+      if(parts.length>=3){
+        const dateStr=parts[0].trim();
+        const desc=parts[1].trim();
+        const amount=parseFloat(parts[2].replace(/[^\d.,-]/g,'').replace(',','.'))||0;
+        if(desc&&amount!==0) txns.push({date:dateStr,desc,amount});
+      }
+    });
+    if(txns.length===0){showToast('Nenhuma transação encontrada no arquivo.');return}
+    // Classify with AI or fallback
+    const classified=await classifyTransactions(txns);
+    showExtratoReview(classified);
+  };
+  inp.click();
+}
+async function classifyTransactions(txns){
+  const apiKey=localStorage.getItem('orion_api_key')||'';
+  if(!apiKey) return txns.map(t=>({...t,type:t.amount>0?'income':'expense',category:t.amount>0?'Outras Receitas':'Outras Despesas'}));
+  try{
+    const prompt=`Classifique estas transações bancárias. Para cada uma, retorne type (income/expense) e category (das categorias: Salário, Alimentação, Moradia, Transporte, Saúde, Lazer e Entretenimento, Educação, Impostos e Taxas, Assinaturas, Outras Receitas, Outras Despesas). Responda APENAS um JSON array.\n\nTransações:\n${txns.map((t,i)=>`${i}. ${t.date} | ${t.desc} | R$ ${t.amount}`).join('\n')}`;
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+    });
+    const d=await res.json();
+    const text=d.content?.[0]?.text||'';
+    const match=text.match(/\[[\s\S]*\]/);
+    if(match){
+      const arr=JSON.parse(match[0]);
+      return txns.map((t,i)=>({...t,type:arr[i]?.type||'expense',category:arr[i]?.category||'Outras Despesas'}));
+    }
+  }catch(e){console.warn('AI classify failed:',e)}
+  return txns.map(t=>({...t,type:t.amount>0?'income':'expense',category:t.amount>0?'Outras Receitas':'Outras Despesas'}));
+}
+function showExtratoReview(txns){
+  const c=document.getElementById('ws-content');
+  c.innerHTML=`<div style="margin-bottom:14px">
+    <div class="slbl">Revisar Transações Importadas (${txns.length})</div>
+    <div style="font-size:12px;color:var(--tx3);margin-bottom:10px">Verifique a classificação e clique em Confirmar para salvar.</div>
+  </div>
+  ${txns.map((t,i)=>`<div class="task-item" style="border-left-color:${t.type==='income'?'var(--green)':'var(--red)'}">
+    <span style="font-size:14px">${t.type==='income'?'💰':'💸'}</span>
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:500">${t.desc}</div>
+      <div style="font-size:11px;color:var(--tx3)">${t.date} · ${t.category}</div>
+    </div>
+    <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${t.type==='income'?'var(--green)':'var(--red)'}">
+      ${t.type==='income'?'+':'−'} ${FMT.brl(Math.abs(t.amount))}
+    </div>
+  </div>`).join('')}
+  <div style="display:flex;gap:8px;margin-top:14px">
+    <button class="btn-sm btn-ghost" onclick="renderTab()">Cancelar</button>
+    <button class="btn-sm btn-blue" onclick="confirmExtrato(${JSON.stringify(txns).replace(/"/g,'&quot;')})">✅ Confirmar ${txns.length} transações</button>
+  </div>`;
+}
+function confirmExtrato(txns){
+  if(typeof txns==='string') txns=JSON.parse(txns.replace(/&quot;/g,'"'));
+  txns.forEach(t=>{
+    criarLancamento({
+      empresa_id:curEmp,type:t.type,
+      valor:Math.abs(t.amount),data:t.date.length===10?t.date:new Date().toISOString().slice(0,10),
+      descricao:t.desc,categoria:t.category,status:'confirmado'
+    });
+  });
+  showToast(txns.length+' transações importadas!');
+  renderTab();
+}
+
+// ── CHECKIN MODAL ──────────────────────────────────────────────────────────
+let ciHumor=3;
+function pickHumor(v){
+  ciHumor=v;
+  document.querySelectorAll('.ci-humor').forEach(b=>b.style.background=parseInt(b.dataset.v)===v?'var(--blue2)':'transparent');
+  document.querySelectorAll('.ci-humor').forEach(b=>b.style.color=parseInt(b.dataset.v)===v?'#fff':'var(--tx2)');
+}
+function saveCheckinModal(){
+  const prio=document.getElementById('ci-modal-prio').value.trim();
+  const obs=document.getElementById('ci-modal-obs').value.trim();
+  const data={humor:ciHumor,prioridade:prio,observacao:obs,data:new Date().toISOString().slice(0,10)};
+  localStorage.setItem('orion_ci_'+new Date().toDateString(),JSON.stringify([prio,obs,'humor:'+ciHumor]));
+  localStorage.setItem('orion_ci_done_'+new Date().toDateString(),'1');
+  sbPush('checkins',{data:data.data,prioridade:prio,decisao:obs,resultado:'humor:'+ciHumor});
+  closeModal('modal-checkin');
+  showToast('Check-in salvo!');
+  // Atualizar campos do checkin inline na home
+  const ci1=document.getElementById('ci1');if(ci1)ci1.value=prio;
+  const ci2=document.getElementById('ci2');if(ci2)ci2.value=obs;
+}
+function checkDailyCheckin(){
+  const done=localStorage.getItem('orion_ci_done_'+new Date().toDateString());
+  if(!done) setTimeout(()=>openModal('modal-checkin'),1500);
 }
 
 // ── LIVE FEED ──────────────────────────────────────────────────────────────
@@ -2690,68 +3669,70 @@ function checkDailyBriefing(){
   const u=JSON.parse(LS('session')||'{}');
   const name=u.name?u.name.split(' ')[0]:'';
   const alerts=getAlerts().filter(a=>!a.read);
+  const portfolio=Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&e.id!=='gp');
+  const totalResult=portfolio.reduce((s,e)=>s+FMT.num(e.result),0);
+  const totalFat=portfolio.reduce((s,e)=>s+FMT.num(e.fat),0);
   const briefing=`Bom dia, ${name}! Briefing de hoje:<br><br>` +
-    `📊 <b>Ecossistema:</b> R$ 126,5k faturamento (+8,2%)<br>` +
+    `📊 <b>Ecossistema:</b> ${FMT.brlK(totalFat)} faturamento, resultado ${FMT.brlK(totalResult)}<br>` +
     `⚠️ <b>${alerts.length} alertas</b> pendentes${alerts.length>0?' — '+alerts[0].text:''}<br>` +
-    `🎯 <b>Prioridade:</b> Original Fotografia em turnaround (inadimplência 8,7%)<br><br>` +
-    `O que deseja analisar?`;
-  addMXMsg('ai',briefing);
-  mxHistory.push({role:'assistant',content:briefing});
+    `🎯 <b>Prioridade:</b> Original Fotografia em turnaround (inadimplência 8,7%)`;
+  const el=document.getElementById('mx-analysis-content');
+  if(el) el.innerHTML=briefing;
 }
 function toggleMX(){toggleMXDrawer()}
-function qSend(txt){document.getElementById('mx-in').value=txt;sendMX()}
 
-async function sendMX(){
-  const inp=document.getElementById('mx-in');
-  const txt=inp.value.trim();
-  if(!txt)return;
-  inp.value='';
-  addMXMsg('user',txt);
-  mxHistory.push({role:'user',content:txt});
-  const typing=addMXMsg('ai','<em style="color:var(--blue3)">MAXXXI está analisando...</em>');
-  const ctx=`Você é MAXXXI — Agente Executivo da plataforma ORION de Maxwell Oliveira Machado.
-Maxwell é CEO, Contador, Presidente da CDL de Divinópolis, MG.
-Empresas: Doctor Wealth (contabilidade médica, 47 clientes, R$ 48,5k/mês, meta R$ 60k), Original Fotografia (estúdio, turnaround, inadimplência 8,7%), Forme Seguro (fundos de formatura universitária premium, 3 fundos, R$ 420k gerenciados), CDL Divinópolis (1.100 associados), Gestão Pessoal (patrimônio R$ 1,2M).
-Empresa ativa agora: ${curEmp?EMPS[curEmp]?.nome:'Visão Geral do Ecossistema'}.
-Plataforma ORION: sidebar com empresas, workspace com abas KPIs/OKRs/Tarefas/Contratos/Riscos/Decisões/CRM/Arquivos, Home com agenda e check-in, MAXXXI Live com radar de mercado.
-Responda de forma direta, executiva, em português. Máximo 3 parágrafos curtos.`;
-  try{
-    const apiKey=localStorage.getItem('orion_api_key')||'';
-    if(!apiKey){throw new Error('no_key')}
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:800,
-        system:ctx,
-        messages:mxHistory.slice(-10)
-      })
-    });
-    const d=await res.json();
-    const reply=d.content?.[0]?.text||'Erro na resposta.';
-    typing.querySelector('.msg-bubble-ai').innerHTML=reply.replace(/\n/g,'<br>');
-    mxHistory.push({role:'assistant',content:reply});
-  }catch(e){
-    // Fallback local responses
-    const reply=localMXResponse(txt,curEmp);
-    typing.querySelector('.msg-bubble-ai').innerHTML=reply;
-    mxHistory.push({role:'assistant',content:reply});
+function mxAnalyzeActive(){
+  const el=document.getElementById('mx-analysis-content');if(!el)return;
+  el.innerHTML='<em style="color:var(--blue3)">Analisando...</em>';
+  if(curEmp&&EMPS[curEmp]){
+    const e=EMPS[curEmp];
+    const k=ceoCalcEmpresa(curEmp);
+    if(k){
+      const apiKey=localStorage.getItem('orion_api_key')||'';
+      const dados=`${e.nome}: Fat ${FMT.brlK(k.receita)}, Desp ${FMT.brlK(k.despesa)}, Result ${FMT.brlK(k.resultado)}, Margem ${FMT.pctVal(k.margem)}, Score ${k.score}, Inadimp ${k.inadimplencia}%, Tarefas pendentes ${k.tarefasAbertas}`;
+      if(apiKey){
+        fetch('https://api.anthropic.com/v1/messages',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+          body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:`Analise esta empresa de forma executiva e direta (máx 5 frases decisórias):\n${dados}`}]})
+        }).then(r=>r.json()).then(d=>{el.innerHTML=(d.content?.[0]?.text||'').replace(/\n/g,'<br>')}).catch(()=>{el.innerHTML=mxLocalAnalysis(k)});
+      } else { el.innerHTML=mxLocalAnalysis(k); }
+    }
+  } else {
+    const kpis=Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&e.id!=='gp').map(e=>ceoCalcEmpresa(e.id)).filter(Boolean);
+    const total=kpis.reduce((s,k)=>s+k.resultado,0);
+    const melhor=ceoIdentificarMelhor(kpis);
+    const pior=ceoIdentificarPior(kpis);
+    el.innerHTML=`<b>Ecossistema ORION</b><br>Resultado consolidado: ${FMT.brlK(total)}<br>${melhor?`Melhor: ${melhor.sigla} (${FMT.brlK(melhor.resultado)})`:''}. ${pior?`Atenção: ${pior.sigla} (margem ${FMT.pctVal(pior.margem)})`:''}.`;
   }
-  document.getElementById('mx-msgs').scrollTop=document.getElementById('mx-msgs').scrollHeight;
 }
-
-function addMXMsg(role,html){
-  const wrap=document.getElementById('mx-msgs');
-  const d=document.createElement('div');
-  d.className=role==='ai'?'msg-ai':'msg-u';
-  d.innerHTML=(role==='ai'?'<div class="msg-from">MAXXXI</div>':'')+`<div class="${role==='ai'?'msg-bubble-ai':'msg-bubble-u'}">${html}</div>`;
-  wrap.appendChild(d);
-  wrap.scrollTop=wrap.scrollHeight;
-  return d;
+function mxLocalAnalysis(k){
+  const lines=[];
+  if(k.resultado>0) lines.push(`✅ Resultado positivo: ${FMT.brlK(k.resultado)} (margem ${FMT.pctVal(k.margem)})`);
+  else lines.push(`🔴 Resultado negativo: ${FMT.brlK(k.resultado)} — reestruturar custos urgente`);
+  if(k.inadimplencia>5) lines.push(`⚠️ Inadimplência ${k.inadimplencia}% acima do limite (5%)`);
+  if(k.tarefasAbertas>3) lines.push(`📋 ${k.tarefasAbertas} tarefas pendentes — priorizar execução`);
+  lines.push(`📊 Health Score: ${k.score}/100`);
+  return lines.join('<br>');
 }
 
 // ── HOME ALERTS RENDER ──────────────────────────────────────────────────────
+function renderHomeKPIs(){
+  const portfolio=Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&e.id!=='gp');
+  const totalFat=portfolio.reduce((s,e)=>s+FMT.num(e.fat),0);
+  const totalResult=portfolio.reduce((s,e)=>s+FMT.num(e.result),0);
+  const margem=totalFat>0?(totalResult/totalFat*100):0;
+  const avgScore=Math.round(portfolio.reduce((s,e)=>s+FMT.calcHealthScore(e.fat,e.result,e.meta,e.id==='of'?8.7:e.id==='dw'?3.2:e.id==='cdl'?2.1:0),0)/Math.max(portfolio.length,1));
+  const alerts=getAlerts().filter(a=>!a.read).length;
+  const el1=document.getElementById('kpi-result');if(el1)el1.textContent=FMT.brlK(totalResult);
+  const el1d=document.getElementById('kpi-result-delta');if(el1d)el1d.textContent=totalResult>0?'▲ Portfólio positivo':'▼ Atenção';
+  if(el1)el1.style.color=totalResult>0?'var(--green)':'var(--red)';
+  const el2=document.getElementById('kpi-margem');if(el2)el2.textContent=FMT.pctVal(margem);
+  const el2s=document.getElementById('kpi-fat-sub');if(el2s)el2s.textContent='Fat. '+FMT.brlK(totalFat);
+  const el3=document.getElementById('kpi-health');if(el3)el3.textContent=avgScore;
+  const el4=document.getElementById('kpi-alerts');if(el4)el4.textContent=alerts;
+}
+
 function renderHomeAlerts(){
   const alerts=getAlerts();
   const el=document.getElementById('home-alerts');
@@ -2759,28 +3740,6 @@ function renderHomeAlerts(){
   el.innerHTML=alerts.map(a=>`
     <div class="${a.level==='red'?'alert-r':'alert-a'}">${a.level==='red'?'🔴':'🟡'} ${a.text}</div>
   `).join('');
-}
-
-// ── MAXXXI LOCAL FALLBACK ──────────────────────────────────────────────────
-function localMXResponse(msg,empId){
-  const m=msg.toLowerCase();
-  const e=empId?EMPS[empId]:null;
-  if(m.includes('como')&&(m.includes('uso')||m.includes('usar')||m.includes('plataforma')||m.includes('funciona'))){
-    return 'A plataforma ORION possui:<br>• <b>Home</b> — visão geral com KPIs, agenda e check-in<br>• <b>Visão CEO</b> — ranking e distribuição consolidada<br>• <b>Workspace</b> — clique em qualquer empresa para ver KPIs, OKRs, Tarefas, CRM, Fluxo de Caixa e mais<br>• <b>Ctrl+K</b> — busca rápida para navegar<br>• Arraste cards no CRM entre colunas. Tarefas podem ser criadas, concluídas e deletadas.';
-  }
-  if(m.includes('prioridade')||m.includes('atenção')){
-    return '⚠️ <b>Original Fotografia</b> precisa de atenção imediata:<br>• Inadimplência em 8,7% (acima do limite)<br>• Contrato XYZ inadimplente há 60 dias<br>• Crescimento negativo de -4,2%<br><br>Recomendo: reunião de reestruturação de preços e cobrança ativa.';
-  }
-  if(m.includes('briefing')||m.includes('ceo')||m.includes('ecossistema')){
-    return '📊 <b>Briefing Executivo — Ecossistema ORION</b><br><br>• Faturamento total: R$ 126,5k (+8,2%)<br>• Resultado líquido: R$ 46,7k (+12,1%)<br>• Health Score médio: 71/100<br>• 4 alertas ativos (2 críticos)<br><br>Destaques: CDL é a mais estável (88 score), Forme Seguro tem maior potencial de crescimento (+50%).';
-  }
-  if(m.includes('crm')){
-    return '📋 O módulo CRM mostra o funil de vendas por empresa:<br>• <b>Lead</b> → <b>Proposta</b> → <b>Negociação</b> → <b>Fechado</b><br>• Arraste cards entre colunas para atualizar o status<br>• Clique em "+ Adicionar" para novos contatos<br>• Tudo salva automaticamente no navegador.';
-  }
-  if(e){
-    return `📈 <b>${e.nome}</b> — Resumo Rápido:<br>• Faturamento: R$ ${(e.fat/1000).toFixed(0)}k | Meta: R$ ${(e.meta/1000).toFixed(0)}k<br>• Health Score: ${e.score}/100<br>• Status: ${e.status}<br>• ${e.tarefas.filter(t=>!t.k).length} tarefas pendentes<br><br>Posso ajudar com algo específico sobre ${e.nome}?`;
-  }
-  return 'Entendi sua pergunta. Para respostas mais completas com IA, configure sua API Key em: localStorage.setItem("orion_api_key", "sk-ant-..."). Enquanto isso, posso ajudar com briefings, prioridades e informações da plataforma. Pergunte sobre qualquer empresa!';
 }
 
 // ── CRM DRAG & DROP ──────────────────────────────────────────────────────────
@@ -2881,7 +3840,29 @@ const ALERTS_DATA=[
   {id:3,text:'Forme Seguro — Meta mensal: apenas 30% atingida (R$ 15k / R$ 50k)',level:'amber',read:false,time:'Ontem 17:00'},
   {id:4,text:'Doctor Wealth — 3 tarefas de alta prioridade pendentes',level:'amber',read:false,time:'Ontem 14:22'},
 ];
-function getAlerts(){return JSON.parse(localStorage.getItem('orion_alerts')||'null')||ALERTS_DATA}
+function generateAutoAlerts(){
+  const auto=[];
+  let aid=100;
+  const now=new Date();
+  const timeStr=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  Object.values(EMPS).forEach(e=>{
+    if(e.id==='gp'||e.id.startsWith('custom_')) return;
+    const inadimp=e.id==='of'?8.7:e.id==='dw'?3.2:e.id==='cdl'?2.1:0;
+    if(inadimp>5) auto.push({id:aid++,text:`${e.nome} — Inadimplência em ${inadimp}% (limite: 5%)`,level:'red',read:false,time:'Hoje '+timeStr});
+    if(e.result<0) auto.push({id:aid++,text:`${e.nome} — Resultado negativo: ${FMT.brlK(e.result)}`,level:'red',read:false,time:'Hoje '+timeStr});
+    if(e.meta>0&&e.fat/e.meta>=0.9) auto.push({id:aid++,text:`${e.nome} — Meta ${(e.fat/e.meta*100).toFixed(0)}% atingida!`,level:'green',read:false,time:'Hoje '+timeStr});
+    if(e.score<50) auto.push({id:aid++,text:`${e.nome} — Health Score ${e.score} (abaixo de 50)`,level:'amber',read:false,time:'Hoje '+timeStr});
+    const pendentes=(e.tarefas||[]).filter(t=>!t.k&&t.p==='alta').length;
+    if(pendentes>=3) auto.push({id:aid++,text:`${e.nome} — ${pendentes} tarefas de alta prioridade pendentes`,level:'amber',read:false,time:'Hoje '+timeStr});
+  });
+  return auto;
+}
+function getAlerts(){
+  const stored=JSON.parse(localStorage.getItem('orion_alerts')||'null');
+  if(stored) return stored;
+  const auto=generateAutoAlerts();
+  return auto.length>0?auto:ALERTS_DATA;
+}
 function saveAlerts(a){
   localStorage.setItem('orion_alerts',JSON.stringify(a));
   a.forEach(al=>sbUpdate('alertas',al.id,{lido:al.read}));
@@ -2965,9 +3946,29 @@ function filterCmd(){
   const customEmps=JSON.parse(localStorage.getItem('orion_custom_emps')||'[]');
   const dynItems=customEmps.map(e=>({icon:'🏢',label:e.nome,hint:'Empresa',action:()=>{openEmp(e.id);closeCmdPalette()}}));
   const all=[...CMD_ITEMS,...dynItems];
-  const filtered=q?all.filter(i=>i.label.toLowerCase().includes(q)||i.hint.toLowerCase().includes(q)):all;
+  // Global search: search in tarefas, contratos, notas, pipeline
+  const searchResults=[];
+  if(q&&q.length>=2){
+    Object.values(EMPS).forEach(e=>{
+      (e.tarefas||[]).forEach(t=>{
+        if(t.t&&t.t.toLowerCase().includes(q)) searchResults.push({icon:'✅',label:t.t,hint:e.sigla+' · Tarefa',action:()=>{openEmp(e.id);curTab='Tarefas';renderTab();closeCmdPalette()}});
+      });
+      (e.crm||[]).forEach(f=>f.itens.forEach(it=>{
+        if(it.n&&it.n.toLowerCase().includes(q)) searchResults.push({icon:'👤',label:it.n,hint:e.sigla+' · CRM · '+f.fase,action:()=>{openEmp(e.id);curTab='CRM';renderTab();closeCmdPalette()}});
+      }));
+      const nota=localStorage.getItem('orion_notas_'+e.id)||'';
+      if(nota.toLowerCase().includes(q)) searchResults.push({icon:'📝',label:'Nota: "...'+nota.substring(Math.max(0,nota.toLowerCase().indexOf(q)-15),nota.toLowerCase().indexOf(q)+30)+'..."',hint:e.sigla+' · Notas',action:()=>{openEmp(e.id);curTab='Notas';renderTab();closeCmdPalette()}});
+      getContratos(e.id).forEach(ct=>{
+        if((ct.cliente||ct.n||'').toLowerCase().includes(q)) searchResults.push({icon:'📄',label:ct.cliente||ct.n,hint:e.sigla+' · Contrato',action:()=>{openEmp(e.id);curTab='Contratos';renderTab();closeCmdPalette()}});
+      });
+      getPipeline(e.id).forEach(p=>{
+        if(p.nome.toLowerCase().includes(q)) searchResults.push({icon:'🎯',label:p.nome,hint:e.sigla+' · Pipeline · '+p.stage,action:()=>{openEmp(e.id);curTab='Pipeline';renderTab();closeCmdPalette()}});
+      });
+    });
+  }
+  const filtered=q?[...all.filter(i=>i.label.toLowerCase().includes(q)||i.hint.toLowerCase().includes(q)),...searchResults]:all;
   const el=document.getElementById('cmd-results');
-  el.innerHTML=filtered.map((it,i)=>`
+  el.innerHTML=filtered.slice(0,20).map((it,i)=>`
     <div class="cmd-item ${i===0?'active':''}" onclick="CMD_FILTERED[${i}].action()">
       <span class="cmd-icon">${it.icon}</span>
       <span class="cmd-lbl">${it.label}</span>
@@ -3009,9 +4010,12 @@ function saveNewEmpresa(){
     kpis:[{i:'📊',l:'Definir KPI 1',v:'—'},{i:'📈',l:'Definir KPI 2',v:'—'},{i:'💰',l:'Definir KPI 3',v:'—'},{i:'🎯',l:'Definir KPI 4',v:'—'}],
     okrs:[{o:'Definir primeiro objetivo',p:0}],
     tarefas:[{t:'Configurar empresa na plataforma',p:'alta',k:false}],
-    contratos:[],riscos:[],decisoes:[],crm:[]
+    contratos:[],riscos:[],decisoes:[],crm:[],
+    logo: window._empLogoData||''
   };
   EMPS[id]=emp;
+  if(emp.logo) localStorage.setItem('orion_logo_'+id, emp.logo);
+  uploadEmpLogoToSupabase(id, emp.logo);
   // save custom emps list
   const custom=JSON.parse(localStorage.getItem('orion_custom_emps')||'[]');
   custom.push(emp);
@@ -3160,6 +4164,36 @@ function loadStoredTasks(){
 function loadStoredAgenda(){
   const stored=getStoredAgenda();
   if(stored){AGENDA.length=0;stored.forEach(a=>AGENDA.push(a))}
+}
+
+// ── SESSION TIMEOUT ──────────────────────────────────────────────────────
+let sessionTimer=null;
+function resetSessionTimer(){
+  clearTimeout(sessionTimer);
+  sessionTimer=setTimeout(()=>{
+    if(LS('session')){
+      alert('Sessão expirada por inatividade (2h). Faça login novamente.');
+      doLogout();
+    }
+  },7200000); // 2 hours
+}
+['mousemove','keydown','click','scroll'].forEach(ev=>document.addEventListener(ev,resetSessionTimer,{passive:true}));
+
+// ── OFFLINE INDICATOR ──────────────────────────────────────────────────────
+function updateOnlineStatus(){
+  const dot=document.getElementById('notif-dot');
+  if(!navigator.onLine&&dot) dot.style.background='var(--tx3)';
+  else if(dot) dot.style.background=sbConnected()?'var(--green)':'var(--red)';
+}
+window.addEventListener('online',()=>{updateOnlineStatus();if(sbConnected()){syncFromSupabase();showToast('Online — sincronizando...')}});
+window.addEventListener('offline',()=>{updateOnlineStatus();showToast('Offline — dados salvos localmente')});
+
+// ── ACTION LOG ──────────────────────────────────────────────────────────────
+function logAction(action,detail){
+  const log=JSON.parse(localStorage.getItem('orion_action_log')||'[]');
+  log.push({action,detail,time:new Date().toISOString(),user:JSON.parse(LS('session')||'{}').name||'?'});
+  if(log.length>200) log.splice(0,log.length-200);
+  localStorage.setItem('orion_action_log',JSON.stringify(log));
 }
 
 // ── START ──────────────────────────────────────────────────────────────────
