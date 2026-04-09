@@ -1116,6 +1116,14 @@ a{color:inherit;text-decoration:none}
       <option value="pago">Pago</option>
     </select>
 
+    <div class="lbl">Origem</div>
+    <select class="inp" id="lanc-origin">
+      <option value="manual">Manual</option>
+      <option value="banco">Extrato Bancário</option>
+      <option value="cartao">Cartão de Crédito</option>
+      <option value="recibo">Recibo/NF</option>
+    </select>
+
     <div style="display:flex;align-items:center;gap:8px;margin:12px 0">
       <input type="checkbox" id="lanc-recorrente" style="width:16px;height:16px"/>
       <label for="lanc-recorrente" style="font-size:13px;color:var(--tx2);cursor:pointer">Lançamento recorrente</label>
@@ -1267,29 +1275,43 @@ const fmt = FMT.brlK;
 
 // ── CATEGORIAS ──────────────────────────────────────────────────────────
 const CATEGORIAS = [
-  {nome:'Salário',tipo:'income',icone:'💰',cor:'#10b981'},
-  {nome:'Freelance',tipo:'income',icone:'💼',cor:'#10b981'},
-  {nome:'Investimentos Rendimento',tipo:'income',icone:'📈',cor:'#10b981'},
-  {nome:'Outras Receitas',tipo:'income',icone:'➕',cor:'#10b981'},
-  {nome:'Distribuição de Lucros',tipo:'income',icone:'🏆',cor:'#10b981'},
-  {nome:'Alimentação',tipo:'expense',icone:'🍽️',cor:'#ef4444'},
-  {nome:'Moradia',tipo:'expense',icone:'🏠',cor:'#ef4444'},
-  {nome:'Transporte',tipo:'expense',icone:'🚗',cor:'#ef4444'},
-  {nome:'Saúde',tipo:'expense',icone:'🏥',cor:'#ef4444'},
-  {nome:'Salão e Barbearia',tipo:'expense',icone:'✂️',cor:'#ef4444'},
-  {nome:'Lazer e Entretenimento',tipo:'expense',icone:'🎭',cor:'#ef4444'},
-  {nome:'Educação',tipo:'expense',icone:'📚',cor:'#ef4444'},
-  {nome:'Vestuário',tipo:'expense',icone:'👕',cor:'#ef4444'},
-  {nome:'Impostos e Taxas',tipo:'expense',icone:'📋',cor:'#ef4444'},
-  {nome:'Financiamento',tipo:'expense',icone:'🏦',cor:'#ef4444'},
-  {nome:'Manutenção Veículo',tipo:'expense',icone:'🔧',cor:'#ef4444'},
-  {nome:'Manutenção Casa',tipo:'expense',icone:'🔨',cor:'#ef4444'},
-  {nome:'Assinaturas',tipo:'expense',icone:'📱',cor:'#ef4444'},
-  {nome:'Pró-labore Sócio',tipo:'expense',icone:'👔',cor:'#f59e0b'},
-  {nome:'Outras Despesas',tipo:'expense',icone:'➖',cor:'#ef4444'},
-  {nome:'Transferência Entre Contas',tipo:'transfer',icone:'↔️',cor:'#6366f1'},
-  {nome:'Aporte em Investimento',tipo:'investment',icone:'📊',cor:'#8b5cf6'},
-  {nome:'Resgate de Investimento',tipo:'investment',icone:'💹',cor:'#8b5cf6'},
+  // Receitas
+  {nome:'Honorários',tipo:'income',icone:'⚖️',cor:'#10b981',grupo:'receita'},
+  {nome:'Mensalidades',tipo:'income',icone:'📅',cor:'#10b981',grupo:'receita'},
+  {nome:'Serviços',tipo:'income',icone:'🛠️',cor:'#10b981',grupo:'receita'},
+  {nome:'Vendas',tipo:'income',icone:'🛒',cor:'#10b981',grupo:'receita'},
+  {nome:'Rendimentos',tipo:'income',icone:'📈',cor:'#10b981',grupo:'receita'},
+  {nome:'Salário',tipo:'income',icone:'💰',cor:'#10b981',grupo:'receita'},
+  {nome:'Freelance',tipo:'income',icone:'💼',cor:'#10b981',grupo:'receita'},
+  {nome:'Distribuição de Lucros',tipo:'income',icone:'🏆',cor:'#10b981',grupo:'receita'},
+  {nome:'Outras Receitas',tipo:'income',icone:'➕',cor:'#10b981',grupo:'receita'},
+  // Despesas operacionais
+  {nome:'Saúde',tipo:'expense',icone:'🏥',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Alimentação',tipo:'expense',icone:'🍽️',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Moradia',tipo:'expense',icone:'🏠',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Transporte',tipo:'expense',icone:'🚗',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Lazer e Entretenimento',tipo:'expense',icone:'🎭',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Impostos e Taxas',tipo:'expense',icone:'📋',cor:'#ef4444',grupo:'deducao'},
+  {nome:'Folha de Pagamento',tipo:'expense',icone:'👥',cor:'#ef4444',grupo:'custo'},
+  {nome:'Fornecedores',tipo:'expense',icone:'📦',cor:'#ef4444',grupo:'custo'},
+  {nome:'Marketing',tipo:'expense',icone:'📣',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Manutenção',tipo:'expense',icone:'🔧',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Veículo',tipo:'expense',icone:'🚗',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Financiamento',tipo:'expense',icone:'🏦',cor:'#ef4444',grupo:'financeira'},
+  {nome:'Pró-labore Sócio',tipo:'expense',icone:'👔',cor:'#f59e0b',grupo:'operacional'},
+  {nome:'Assinaturas',tipo:'expense',icone:'📱',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Educação',tipo:'expense',icone:'📚',cor:'#ef4444',grupo:'operacional'},
+  {nome:'Outras Despesas',tipo:'expense',icone:'➖',cor:'#ef4444',grupo:'operacional'},
+  // Transferências
+  {nome:'Entre Contas',tipo:'transfer',icone:'↔️',cor:'#6366f1',grupo:'transfer'},
+  {nome:'Aporte',tipo:'transfer',icone:'⬆️',cor:'#6366f1',grupo:'transfer'},
+  {nome:'Retirada',tipo:'transfer',icone:'⬇️',cor:'#6366f1',grupo:'transfer'},
+  // Investimentos
+  {nome:'Renda Fixa',tipo:'investment',icone:'🏦',cor:'#8b5cf6',grupo:'invest'},
+  {nome:'Ações',tipo:'investment',icone:'📈',cor:'#8b5cf6',grupo:'invest'},
+  {nome:'FII',tipo:'investment',icone:'🏢',cor:'#8b5cf6',grupo:'invest'},
+  {nome:'Crypto',tipo:'investment',icone:'₿',cor:'#8b5cf6',grupo:'invest'},
+  {nome:'Previdência',tipo:'investment',icone:'🎯',cor:'#8b5cf6',grupo:'invest'},
 ];
 
 // ── FINANCEIRO ENGINE ──────────────────────────────────────────────────
@@ -3057,25 +3079,29 @@ function renderFinanceiro(e, c){
     <!-- DRE -->
     <div class="card mb">
       <div class="slbl" style="margin-bottom:14px">DRE — Demonstrativo de Resultado</div>
-      <table class="fc-table">
-        <tbody>
+      ${(()=>{
+        const deducoes=Object.entries(dre.despPorCat).filter(([c])=>{const cat=CATEGORIAS.find(x=>x.nome===c);return cat&&cat.grupo==='deducao'}).reduce((s,[,v])=>s+v,0)||(receitaShow*0.06);
+        const custos=curEmp==='of'?(receitaShow*0.85):Object.entries(dre.despPorCat).filter(([c])=>{const cat=CATEGORIAS.find(x=>x.nome===c);return cat&&cat.grupo==='custo'}).reduce((s,[,v])=>s+v,0)||(despesaShow*0.4);
+        const opex=Object.entries(dre.despPorCat).filter(([c])=>{const cat=CATEGORIAS.find(x=>x.nome===c);return !cat||cat.grupo==='operacional'}).reduce((s,[,v])=>s+v,0)||(despesaShow*0.5);
+        const financeiras=Object.entries(dre.despPorCat).filter(([c])=>{const cat=CATEGORIAS.find(x=>x.nome===c);return cat&&cat.grupo==='financeira'}).reduce((s,[,v])=>s+v,0)||(despesaShow*0.1);
+        const recLiq=receitaShow-deducoes;
+        const lucroBruto=recLiq-custos;
+        const ebitda=lucroBruto-opex;
+        const resultFinal=ebitda-financeiras;
+        const mg=(receitaShow>0&&resultFinal!==0)?(resultFinal/receitaShow*100):0;
+        return `<table class="fc-table"><tbody>
           <tr style="font-weight:700"><td>(+) Receita Bruta</td><td style="text-align:right;color:var(--green)">${FMT.brl(receitaShow)}</td></tr>
-          <tr><td style="color:var(--tx3)">(−) Impostos estimados</td><td style="text-align:right;color:var(--tx3)">${FMT.brl(receitaShow * 0.06)}</td></tr>
-          <tr style="font-weight:700;border-top:2px solid var(--br)"><td>(=) Receita Líquida</td><td style="text-align:right;color:var(--blue3)">${FMT.brl(receitaShow * 0.94)}</td></tr>
-          ${Object.entries(dre.despPorCat).length > 0 ?
-            Object.entries(dre.despPorCat).map(([cat,val])=>{
-              const ci = CATEGORIAS.find(x=>x.nome===cat);
-              return `<tr><td style="color:var(--tx2)">(−) ${ci?ci.icone:''} ${cat}</td><td style="text-align:right;color:var(--red)">${FMT.brl(val)}</td></tr>`;
-            }).join('') :
-            `<tr><td style="color:var(--tx2)">(−) Despesas Operacionais</td><td style="text-align:right;color:var(--red)">${FMT.brl(despesaShow)}</td></tr>`
-          }
-          <tr style="font-weight:900;border-top:2px solid var(--br);font-size:15px">
-            <td>(=) Resultado Operacional</td>
-            <td style="text-align:right;color:${resultadoShow>=0?'var(--green)':'var(--red)'}">${FMT.brl(resultadoShow)}</td>
-          </tr>
-          <tr><td style="color:var(--tx3)">Margem Operacional</td><td style="text-align:right;color:var(--tx2)">${FMT.pctVal(margemShow)}</td></tr>
-        </tbody>
-      </table>
+          <tr><td style="color:var(--tx3)">(−) Deduções/Impostos</td><td style="text-align:right;color:var(--tx3)">${FMT.brl(deducoes)}</td></tr>
+          <tr style="font-weight:600;border-top:1px solid var(--br)"><td>(=) Receita Líquida</td><td style="text-align:right;color:var(--blue3)">${FMT.brl(recLiq)}</td></tr>
+          <tr><td style="color:var(--tx2)">(−) Custos Diretos${curEmp==='of'?' (85% OF)':''}</td><td style="text-align:right;color:var(--red)">${FMT.brl(custos)}</td></tr>
+          <tr style="font-weight:600;border-top:1px solid var(--br)"><td>(=) Lucro Bruto</td><td style="text-align:right;color:${lucroBruto>=0?'var(--green)':'var(--red)'}">${FMT.brl(lucroBruto)}</td></tr>
+          <tr><td style="color:var(--tx2)">(−) Despesas Operacionais</td><td style="text-align:right;color:var(--red)">${FMT.brl(opex)}</td></tr>
+          <tr style="font-weight:700;border-top:1px solid var(--br)"><td>(=) EBITDA</td><td style="text-align:right;color:${ebitda>=0?'var(--green)':'var(--red)'}">${FMT.brl(ebitda)}</td></tr>
+          <tr><td style="color:var(--tx2)">(−) Financeiras</td><td style="text-align:right;color:var(--red)">${FMT.brl(financeiras)}</td></tr>
+          <tr style="font-weight:900;border-top:2px solid var(--br);font-size:15px"><td>(=) Resultado Líquido</td><td style="text-align:right;color:${resultFinal>=0?'var(--green)':'var(--red)'}">${FMT.brl(resultFinal)}</td></tr>
+          <tr><td style="color:var(--tx3)">Margem Líquida</td><td style="text-align:right">${FMT.pctVal(mg)}</td></tr>
+        </tbody></table>`;
+      })()}
     </div>
 
     <!-- Fluxo de Caixa -->
@@ -3179,6 +3205,7 @@ function saveLancamentoForm(){
   const categoria = document.getElementById('lanc-categoria').value;
   const status = document.getElementById('lanc-status').value;
   const observacao = document.getElementById('lanc-obs').value.trim();
+  const origin = document.getElementById('lanc-origin').value;
   const recorrente = document.getElementById('lanc-recorrente').checked;
   const frequencia = document.getElementById('lanc-freq').value;
   // Validations
@@ -3189,7 +3216,7 @@ function saveLancamentoForm(){
   if(errs.length > 0){ alert(errs.join('\n')); return; }
   const result = criarLancamento({
     empresa_id: curEmp, type, valor: FMT.num(valor), data, descricao,
-    categoria, status, observacao, recorrente, frequencia
+    categoria, status, observacao, recorrente, frequencia, origin
   });
   if(result){
     closeModal('modal-lancamento');
