@@ -2712,42 +2712,190 @@ function editRentabilidade(){
 }
 
 // ── FUNDOS (Forme Seguro) ──────────────────────────────────────────────────
-function getFundos(empId){ return JSON.parse(localStorage.getItem('orion_fundos_'+empId)||'[]') }
-function saveFundos(empId,f){ localStorage.setItem('orion_fundos_'+empId,JSON.stringify(f)) }
+// ── FUNDOS FORME SEGURO (COMPLETO) ──────────────────────────────────────
+let fundoSubTab='painel';
+function getTurmas(){ return JSON.parse(localStorage.getItem('orion_fs_turmas')||'[]') }
+function saveTurmas(t){ localStorage.setItem('orion_fs_turmas',JSON.stringify(t)) }
+function getFsLancs(){ return JSON.parse(localStorage.getItem('orion_fs_lancamentos')||'[]') }
+function saveFsLancs(l){ localStorage.setItem('orion_fs_lancamentos',JSON.stringify(l)) }
+
 function renderFundos(e,c,co){
-  const fundos=getFundos(curEmp);
-  const total=fundos.reduce((s,f)=>s+FMT.num(f.total),0);
-  const arrecadado=fundos.reduce((s,f)=>s+FMT.num(f.arrecadado),0);
-  c.innerHTML=`<div class="flex aic jsb mb">
-    <div><div class="slbl" style="margin:0">Fundos / Turmas — ${e.nome}</div>
-    <div style="font-size:12px;color:var(--tx3)">Total: ${FMT.brl(total)} · Arrecadado: ${FMT.brl(arrecadado)}</div></div>
-    <button class="btn-sm btn-blue" onclick="addFundo()">+ Novo Fundo</button>
-  </div>`+
-  (fundos.length>0?fundos.map((f,i)=>{
-    const pct=f.total>0?(f.arrecadado/f.total*100):0;
-    const statusC=pct>=70?'var(--green)':pct>=40?'var(--amber)':'var(--red)';
-    const statusL=pct>=70?'Saudável':pct>=40?'Atenção':'Crítico';
-    return `<div class="card" style="margin-bottom:10px">
-      <div class="flex aic jsb mb-sm">
-        <div><div style="font-size:14px;font-weight:700">${f.nome}</div><div style="font-size:11px;color:var(--tx3)">Evento: ${f.dataEvento||'—'}</div></div>
-        <div style="text-align:right"><span class="stag" style="color:${statusC};background:${statusC}18">${statusL}</span></div>
-        <button class="task-del" onclick="deleteFundo(${i})">🗑</button>
+  const turmas=getTurmas();
+  const lancs=getFsLancs();
+  c.innerHTML=`
+    <div class="tabs" style="margin-bottom:16px">
+      <button class="tab ${fundoSubTab==='painel'?'active':''}" onclick="fundoSubTab='painel';renderTab()">Painel</button>
+      <button class="tab ${fundoSubTab==='lancamento'?'active':''}" onclick="fundoSubTab='lancamento';renderTab()">Lançamento Mensal</button>
+      <button class="tab ${fundoSubTab==='consolidado'?'active':''}" onclick="fundoSubTab='consolidado';renderTab()">Consolidado</button>
+      <button class="tab ${fundoSubTab==='relatorios'?'active':''}" onclick="fundoSubTab='relatorios';renderTab()">Relatórios</button>
+    </div>
+    <div id="fundos-content"></div>`;
+  const fc=document.getElementById('fundos-content');
+  if(!fc) return;
+  if(fundoSubTab==='painel') renderFundosPainel(fc,turmas,lancs,co);
+  else if(fundoSubTab==='lancamento') renderFundosLancamento(fc,turmas,lancs,co);
+  else if(fundoSubTab==='consolidado') renderFundosConsolidado(fc,turmas,lancs,co);
+  else if(fundoSubTab==='relatorios') renderFundosRelatorios(fc,turmas,co);
+}
+
+function renderFundosPainel(fc,turmas,lancs,co){
+  const totArrecadado=lancs.reduce((s,l)=>s+FMT.num(l.boletos||0)+FMT.num(l.eventos||0),0);
+  const totDespesas=lancs.reduce((s,l)=>s+FMT.num(l.taxaBoletos||0)+FMT.num(l.cerimonial||0)+FMT.num(l.rifa||0)+FMT.num(l.devolucao||0)+FMT.num(l.outras||0),0);
+  const totRent=lancs.reduce((s,l)=>s+FMT.num(l.rentabilidade||0),0);
+  const totHonor=lancs.reduce((s,l)=>s+FMT.num(l.honorario||0),0);
+  const patrimonio=totArrecadado-totDespesas+totRent-totHonor;
+  fc.innerHTML=`
+    <div class="kpi-grid mb" style="grid-template-columns:repeat(5,1fr)">
+      <div class="kpi-card"><div class="kpi-icon">🏦</div><div class="lbl">Patrimônio Líquido</div><div class="val-sm" style="color:${co}">${FMT.brl(patrimonio)}</div></div>
+      <div class="kpi-card"><div class="kpi-icon">💰</div><div class="lbl">Total Arrecadado</div><div class="val-sm txt-green">${FMT.brl(totArrecadado)}</div></div>
+      <div class="kpi-card"><div class="kpi-icon">💸</div><div class="lbl">Total Despesas</div><div class="val-sm txt-red">${FMT.brl(totDespesas)}</div></div>
+      <div class="kpi-card"><div class="kpi-icon">📈</div><div class="lbl">Rentabilidade</div><div class="val-sm txt-blue">${FMT.brl(totRent)}</div></div>
+      <div class="kpi-card"><div class="kpi-icon">🏆</div><div class="lbl">Honorários Forme</div><div class="val-sm txt-amber">${FMT.brl(totHonor)}</div></div>
+    </div>
+    <div class="flex aic jsb mb-sm"><div class="slbl" style="margin:0">Turmas Ativas</div>
+    <button class="btn-sm btn-blue" onclick="addTurma()">+ Nova Turma</button></div>
+    ${turmas.length>0?turmas.map((t,i)=>{
+      const tLancs=lancs.filter(l=>l.turmaId===t.id);
+      const saldo=tLancs.reduce((s,l)=>s+FMT.num(l.saldoFinal||0),0)||FMT.num(t.arrecadado||0);
+      const statusC=t.status==='encerrado'?'var(--tx3)':saldo>0?'var(--green)':'var(--red)';
+      return `<div class="card" style="margin-bottom:8px;border-left:3px solid ${statusC}">
+        <div class="flex aic jsb">
+          <div><div style="font-size:14px;font-weight:700">${t.nome}</div>
+          <div style="font-size:11px;color:var(--tx3)">${t.curso||''} · Formatura ${t.anoFormatura||''}</div></div>
+          <div style="text-align:right"><div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:${co}">${FMT.brl(saldo)}</div>
+          <span class="stag" style="color:${statusC};background:${statusC}18">${t.status||'ativo'}</span></div>
+          <button class="task-del" onclick="deleteTurma(${i})">🗑</button>
+        </div>
+      </div>`;
+    }).join(''):'<div style="padding:20px;text-align:center;color:var(--tx3)">Nenhuma turma cadastrada.</div>'}`;
+}
+
+function renderFundosLancamento(fc,turmas,lancs,co){
+  if(turmas.length===0){fc.innerHTML='<div style="padding:20px;text-align:center;color:var(--tx3)">Cadastre uma turma primeiro.</div>';return}
+  fc.innerHTML=`
+    <div class="g2 mb">
+      <div><div class="lbl">Turma</div><select class="inp" id="fs-turma">${turmas.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')}</select></div>
+      <div><div class="lbl">Mês Referência</div><input class="inp" id="fs-mes" type="month" value="${new Date().toISOString().slice(0,7)}"/></div>
+    </div>
+    <div class="g2 mb">
+      <div class="card"><div class="slbl">Receitas</div>
+        <div class="lbl">Boletos Pagos (R$)</div><input class="inp" id="fs-boletos" type="number" value="0" oninput="fsPreview()"/>
+        <div class="lbl">Lucro Eventos (R$)</div><input class="inp" id="fs-eventos" type="number" value="0" oninput="fsPreview()"/>
+        <div class="lbl">Rendimento XP (%)</div><input class="inp" id="fs-rendimento" type="number" value="1.2" step="0.1" oninput="fsPreview()"/>
       </div>
-      <div class="flex aic jsb" style="font-size:12px;color:var(--tx3);margin-bottom:4px"><span>${FMT.brl(f.arrecadado)}</span><span>${FMT.brl(f.total)} (${pct.toFixed(0)}%)</span></div>
-      <div class="pbar"><div class="pfill" style="width:${Math.min(pct,100)}%;background:${co}"></div></div>
-    </div>`;
-  }).join(''):'<div style="padding:20px;text-align:center;color:var(--tx3)">Nenhum fundo cadastrado.</div>');
+      <div class="card"><div class="slbl">Despesas</div>
+        <div class="lbl">Taxa Emissão Boletos</div><input class="inp" id="fs-taxa" type="number" value="0" oninput="fsPreview()"/>
+        <div class="lbl">Cerimonial/Shows</div><input class="inp" id="fs-cerimonial" type="number" value="0" oninput="fsPreview()"/>
+        <div class="lbl">Despesas Rifa</div><input class="inp" id="fs-rifa" type="number" value="0" oninput="fsPreview()"/>
+        <div class="lbl">Devolução/Saída</div><input class="inp" id="fs-devolucao" type="number" value="0" oninput="fsPreview()"/>
+        <div class="lbl">Outras</div><input class="inp" id="fs-outras" type="number" value="0" oninput="fsPreview()"/>
+      </div>
+    </div>
+    <div class="card mb" id="fs-preview" style="background:linear-gradient(135deg,#0d1e3d,var(--s1));border-color:rgba(139,92,246,.3)">
+      <div class="slbl">Preview do Cálculo</div>
+      <div id="fs-calc"></div>
+    </div>
+    <button class="btn-sm btn-blue" onclick="saveFsLanc()">Salvar Lançamento</button>`;
+  setTimeout(fsPreview,100);
 }
-function addFundo(){
-  const nome=prompt('Nome da turma/fundo:');if(!nome)return;
-  const total=parseFloat(prompt('Valor total (R$):','100000'))||0;
-  const arrecadado=parseFloat(prompt('Já arrecadado (R$):','0'))||0;
-  const dataEvento=prompt('Data do evento:','Dez/2026')||'';
-  const fundos=getFundos(curEmp);
-  fundos.push({nome,total,arrecadado,dataEvento,id:crypto.randomUUID()});
-  saveFundos(curEmp,fundos);renderTab();
+
+function fsPreview(){
+  const el=document.getElementById('fs-calc');if(!el)return;
+  const boletos=FMT.num(document.getElementById('fs-boletos')?.value);
+  const eventos=FMT.num(document.getElementById('fs-eventos')?.value);
+  const rendPct=FMT.num(document.getElementById('fs-rendimento')?.value);
+  const taxa=FMT.num(document.getElementById('fs-taxa')?.value);
+  const cerimonial=FMT.num(document.getElementById('fs-cerimonial')?.value);
+  const rifa=FMT.num(document.getElementById('fs-rifa')?.value);
+  const devolucao=FMT.num(document.getElementById('fs-devolucao')?.value);
+  const outras=FMT.num(document.getElementById('fs-outras')?.value);
+  const despTotal=taxa+cerimonial+rifa+devolucao+outras;
+  const saldoParcial=boletos+eventos-despTotal;
+  const rentabilidade=saldoParcial*(rendPct/100);
+  const honorario=rentabilidade*0.5;
+  const saldoFinal=saldoParcial+rentabilidade-honorario;
+  el.innerHTML=`<table class="fc-table"><tbody>
+    <tr><td>Boletos + Eventos</td><td style="text-align:right;color:var(--green)">${FMT.brl(boletos+eventos)}</td></tr>
+    <tr><td>(−) Despesas</td><td style="text-align:right;color:var(--red)">${FMT.brl(despTotal)}</td></tr>
+    <tr style="font-weight:600"><td>(=) Saldo Parcial</td><td style="text-align:right">${FMT.brl(saldoParcial)}</td></tr>
+    <tr><td>Rentabilidade (${rendPct}%)</td><td style="text-align:right;color:var(--blue3)">${FMT.brl(rentabilidade)}</td></tr>
+    <tr><td>(−) Honorário Forme (50% rent.)</td><td style="text-align:right;color:var(--amber)">${FMT.brl(honorario)}</td></tr>
+    <tr style="font-weight:900;border-top:2px solid var(--br);font-size:15px"><td>(=) Saldo Final</td><td style="text-align:right;color:${saldoFinal>=0?'var(--green)':'var(--red)'}">${FMT.brl(saldoFinal)}</td></tr>
+  </tbody></table>`;
 }
-function deleteFundo(i){const f=getFundos(curEmp);f.splice(i,1);saveFundos(curEmp,f);renderTab()}
+
+function saveFsLanc(){
+  const turmaId=document.getElementById('fs-turma')?.value;
+  const mes=document.getElementById('fs-mes')?.value;
+  if(!turmaId||!mes){alert('Selecione turma e mês');return}
+  const boletos=FMT.num(document.getElementById('fs-boletos')?.value);
+  const eventos=FMT.num(document.getElementById('fs-eventos')?.value);
+  const rendPct=FMT.num(document.getElementById('fs-rendimento')?.value);
+  const taxaBoletos=FMT.num(document.getElementById('fs-taxa')?.value);
+  const cerimonial=FMT.num(document.getElementById('fs-cerimonial')?.value);
+  const rifa_val=FMT.num(document.getElementById('fs-rifa')?.value);
+  const devolucao=FMT.num(document.getElementById('fs-devolucao')?.value);
+  const outras=FMT.num(document.getElementById('fs-outras')?.value);
+  const despTotal=taxaBoletos+cerimonial+rifa_val+devolucao+outras;
+  const saldoParcial=boletos+eventos-despTotal;
+  const rentabilidade=saldoParcial*(rendPct/100);
+  const honorario=rentabilidade*0.5;
+  const saldoFinal=saldoParcial+rentabilidade-honorario;
+  const lancs=getFsLancs();
+  lancs.push({id:crypto.randomUUID(),turmaId,mes,boletos,eventos,rendPct,taxaBoletos,cerimonial,rifa:rifa_val,devolucao,outras,rentabilidade,honorario,saldoFinal,created:new Date().toISOString()});
+  saveFsLancs(lancs);
+  showToast('Lançamento salvo!');
+  fundoSubTab='painel';renderTab();
+}
+
+function renderFundosConsolidado(fc,turmas,lancs,co){
+  fc.innerHTML=`<div class="slbl">Consolidado por Turma</div>
+    <div style="overflow-x:auto"><table class="vceo-table"><thead><tr><th>Turma</th><th>Arrecadado</th><th>Despesas</th><th>Rentabilidade</th><th>Honorários</th><th>Saldo Líquido</th><th>Meses</th></tr></thead>
+    <tbody>${turmas.map(t=>{
+      const tl=lancs.filter(l=>l.turmaId===t.id);
+      const arr=tl.reduce((s,l)=>s+FMT.num(l.boletos)+FMT.num(l.eventos),0);
+      const desp=tl.reduce((s,l)=>s+FMT.num(l.taxaBoletos)+FMT.num(l.cerimonial)+FMT.num(l.rifa)+FMT.num(l.devolucao)+FMT.num(l.outras),0);
+      const rent=tl.reduce((s,l)=>s+FMT.num(l.rentabilidade),0);
+      const hon=tl.reduce((s,l)=>s+FMT.num(l.honorario),0);
+      const saldo=arr-desp+rent-hon;
+      return `<tr><td style="font-weight:600">${t.nome}</td><td style="color:var(--green)">${FMT.brl(arr)}</td><td style="color:var(--red)">${FMT.brl(desp)}</td><td style="color:var(--blue3)">${FMT.brl(rent)}</td><td style="color:var(--amber)">${FMT.brl(hon)}</td><td style="font-weight:800;color:${saldo>=0?'var(--green)':'var(--red)'}">${FMT.brl(saldo)}</td><td>${tl.length}</td></tr>`;
+    }).join('')}
+    <tr style="font-weight:900;border-top:2px solid var(--br)"><td>TOTAL</td>
+    <td style="color:var(--green)">${FMT.brl(lancs.reduce((s,l)=>s+FMT.num(l.boletos)+FMT.num(l.eventos),0))}</td>
+    <td style="color:var(--red)">${FMT.brl(lancs.reduce((s,l)=>s+FMT.num(l.taxaBoletos)+FMT.num(l.cerimonial)+FMT.num(l.rifa)+FMT.num(l.devolucao)+FMT.num(l.outras),0))}</td>
+    <td style="color:var(--blue3)">${FMT.brl(lancs.reduce((s,l)=>s+FMT.num(l.rentabilidade),0))}</td>
+    <td style="color:var(--amber)">${FMT.brl(lancs.reduce((s,l)=>s+FMT.num(l.honorario),0))}</td>
+    <td style="font-weight:900">${FMT.brl(lancs.reduce((s,l)=>s+FMT.num(l.saldoFinal),0))}</td>
+    <td>${lancs.length}</td></tr>
+    </tbody></table></div>`;
+}
+
+function renderFundosRelatorios(fc,turmas,co){
+  fc.innerHTML=`<div class="slbl">Relatórios</div>
+    <div class="g2">${turmas.map(t=>`<div class="card" style="cursor:pointer" onclick="printTurmaReport('${t.id}')">
+      <div style="font-size:14px;font-weight:600">📄 ${t.nome}</div>
+      <div style="font-size:11px;color:var(--tx3)">Relatório individual da turma</div>
+    </div>`).join('')}
+    <div class="card" style="cursor:pointer" onclick="window.print()">
+      <div style="font-size:14px;font-weight:600">📊 Consolidado</div>
+      <div style="font-size:11px;color:var(--tx3)">Relatório de todas as turmas</div>
+    </div></div>`;
+}
+function printTurmaReport(turmaId){
+  fundoSubTab='consolidado';renderTab();
+  setTimeout(()=>window.print(),300);
+}
+
+function addTurma(){
+  const nome=prompt('Nome da turma:');if(!nome)return;
+  const curso=prompt('Curso:','')||'';
+  const anoFormatura=prompt('Ano formatura:','2026')||'';
+  const meta=parseFloat(prompt('Meta arrecadação (R$):','200000'))||0;
+  const turmas=getTurmas();
+  turmas.push({id:crypto.randomUUID(),nome,curso,anoFormatura,meta,arrecadado:0,status:'ativo'});
+  saveTurmas(turmas);renderTab();
+}
+function deleteTurma(i){const t=getTurmas();t.splice(i,1);saveTurmas(t);renderTab()}
 
 // ── PATRIMÔNIO (Gestão Pessoal) ──────────────────────────────────────────
 function getPatrimonio(){ return JSON.parse(localStorage.getItem('orion_pat_gp')||'[]') }
