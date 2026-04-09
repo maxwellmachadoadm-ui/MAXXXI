@@ -186,3 +186,4 @@
 | alertas          | — global   | Conectada |
 | checkins         | — global   | Conectada |
 | categorias       | ✅ SIM     | Conectada |
+teste sync automatico
