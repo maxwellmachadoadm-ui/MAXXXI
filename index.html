@@ -1735,6 +1735,49 @@ textarea:focus{
 .doc-cat-sel{padding:4px 8px !important;font-size:11.5px !important;width:auto !important;min-width:130px}
 .doc-actions{display:flex;gap:6px;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--br);flex-wrap:wrap}
 .doc-actions .btn-sm{padding:6px 10px;font-size:11px}
+
+/* ── FASE J — UTILITIES COMPARTILHADAS ────────────────────────────
+   Empty state, loading spinner, section head, toast, chips
+   ─────────────────────────────────────────────────────────────── */
+.empty-hero{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 24px;border:1px dashed var(--br);border-radius:14px;background:rgba(255,255,255,.015);min-height:180px;gap:6px}
+.empty-hero-icon{font-size:44px;opacity:.5;margin-bottom:6px}
+.empty-hero-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--tx);letter-spacing:-.2px}
+.empty-hero-sub{font-size:12.5px;color:var(--tx3);max-width:380px;line-height:1.5;margin-bottom:10px}
+.empty-hero .btn,.empty-hero .btn-ia,.empty-hero .btn-primary{margin-top:6px}
+
+/* Loading */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(59,130,246,.15);border-top-color:var(--blue);border-radius:50%;animation:orion-spin .7s linear infinite;vertical-align:middle}
+.spinner-lg{width:28px;height:28px;border-width:3px}
+@keyframes orion-spin{to{transform:rotate(360deg)}}
+.loading-hero{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:48px 24px;color:var(--tx3);font-size:12.5px}
+
+/* Section header padrão */
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px;flex-wrap:wrap}
+.section-head-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--tx);letter-spacing:-.2px;display:flex;align-items:center;gap:8px}
+.section-head-sub{font-size:11.5px;color:var(--tx3);margin-top:2px}
+.section-head-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Toast variants — estende o showToast existente para suportar tipos */
+.orion-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:11px 22px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;animation:orion-toast-in .2s ease-out;box-shadow:0 12px 28px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08)}
+.orion-toast.success{background:var(--green);color:#fff;border-color:rgba(16,185,129,.6)}
+.orion-toast.error{background:var(--red);color:#fff;border-color:rgba(239,68,68,.6)}
+.orion-toast.info{background:var(--blue);color:#fff;border-color:rgba(59,130,246,.6)}
+.orion-toast.warn{background:var(--amber);color:#fff;border-color:rgba(245,158,11,.6)}
+@keyframes orion-toast-in{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+
+/* Filter chip bar compartilhada */
+.filter-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.filter-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--s1);border:1px solid var(--br);color:var(--tx2);border-radius:999px;font-size:11.5px;font-weight:600;cursor:pointer;transition:.12s;white-space:nowrap}
+.filter-chip:hover{color:var(--tx);border-color:rgba(59,130,246,.3)}
+.filter-chip.active{background:rgba(59,130,246,.12);color:var(--blue3);border-color:rgba(59,130,246,.45)}
+.filter-chip-n{background:rgba(255,255,255,.08);padding:1px 7px;border-radius:99px;font-size:10px;font-family:'Syne',sans-serif;font-weight:700;min-width:16px;text-align:center}
+.filter-chip.active .filter-chip-n{background:rgba(255,255,255,.2)}
+.filter-chip-clear{color:var(--red);font-size:10px;margin-left:auto;padding:4px 10px;background:transparent;border:1px dashed rgba(239,68,68,.25);border-radius:99px;cursor:pointer}
+.filter-chip-clear:hover{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.5)}
+
+/* Global search overlay (FASE K) — reaproveita cmd-overlay pattern */
+.gsearch-section{padding:6px 12px 4px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);font-weight:700;background:rgba(255,255,255,.02)}
+
 </style>
 </head>
 <body>
@@ -8506,12 +8549,34 @@ function saveLancamentoForm(){
     if(curTab==='Financeiro') renderTab();
   }
 }
-function showToast(msg){
+function showToast(msg, type){
+  // type: 'success' (default) | 'error' | 'info' | 'warn'
   const t = document.createElement('div');
-  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;animation:fadeIn .2s';
-  t.textContent=msg;
+  t.className = 'orion-toast ' + (type||'success');
+  t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300)},2500);
+}
+function showError(msg){ showToast(msg,'error'); }
+function showInfo(msg){ showToast(msg,'info'); }
+function showWarn(msg){ showToast(msg,'warn'); }
+
+// Utilitário: monta HTML de empty state padrão
+function emptyState(opts){
+  const o = opts||{};
+  const icon = o.icon||'📭';
+  const title = o.title||'Nada por aqui ainda';
+  const sub = o.sub||'';
+  const action = o.action||'';
+  return `<div class="empty-hero">
+    <div class="empty-hero-icon">${icon}</div>
+    <div class="empty-hero-title">${escHtml(title)}</div>
+    ${sub?`<div class="empty-hero-sub">${escHtml(sub)}</div>`:''}
+    ${action}
+  </div>`;
+}
+function loadingState(msg){
+  return `<div class="loading-hero"><div class="spinner spinner-lg"></div><div>${escHtml(msg||'Carregando...')}</div></div>`;
 }
 
 // ── CHECKIN ──────────────────────────────────────────────────────────────
