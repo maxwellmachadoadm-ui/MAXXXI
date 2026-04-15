@@ -2400,12 +2400,29 @@ function doLogin(){
   const e=document.getElementById('login-email').value.trim();
   const p=document.getElementById('login-pass').value;
   if(!e||!p){alert('Preencha e-mail e senha');return}
+  // Rate-limit (FASE D)
+  if(typeof secIsBlocked==='function'){
+    const bl = secIsBlocked(e);
+    if(bl.blocked){
+      alert('Conta temporariamente bloqueada por excesso de tentativas.\nTente novamente em '+bl.minutes+' minuto(s).');
+      return;
+    }
+  }
   const users=JSON.parse(LS('users')||'[]');
   const u=users.find(x=>x.email===e&&x.pass===btoa(p));
   if(!u){
-    try{ if(typeof audit==='function') audit('auth.login_fail', {type:'auth', id:e, label:e}, null, {reason:'invalid_credentials'}); }catch(err){}
-    alert('Usuário ou senha incorretos');return;
+    let rec = null;
+    if(typeof secRegisterFailure==='function') rec = secRegisterFailure(e);
+    try{ if(typeof audit==='function') audit('auth.login_fail', {type:'auth', id:e, label:e}, null, {reason:'invalid_credentials', attempts:(rec&&rec.count)||1}); }catch(err){}
+    if(rec && rec.blockedUntil && new Date(rec.blockedUntil)>new Date()){
+      alert('Muitas tentativas falhas. Conta bloqueada por '+SEC_BLOCK_MINUTES+' minutos.');
+    } else {
+      const left = Math.max(0, SEC_MAX_ATTEMPTS-((rec&&rec.count)||1));
+      alert('Usuário ou senha incorretos. Tentativas restantes: '+left);
+    }
+    return;
   }
+  if(typeof secClearAttempts==='function') secClearAttempts(e);
   LS('session',JSON.stringify(u));
   try{ if(typeof audit==='function') audit('auth.login_success', {type:'user', id:u.id, label:u.email}, null, null); }catch(err){}
   enterPlatform(u);
@@ -2438,6 +2455,7 @@ function enterPlatform(u){
   document.getElementById('user-avatar').innerHTML=avatarHTML;
   document.getElementById('user-avatar2').innerHTML=avatarHTML;
   if(typeof updateAdminNavVisibility==='function') updateAdminNavVisibility();
+  if(typeof secInitIdleTimer==='function') secInitIdleTimer();
   initPlatform();
 }
 
@@ -4819,7 +4837,198 @@ function admExportAuditCSV(){
   showToast('CSV exportado');
 }
 
-function renderAdminSecurity(el){ el.innerHTML = `<div class="adm-empty">Segurança — implementada na FASE D</div>`; }
+// ── SEGURANÇA (FASE D) ───────────────────────────────────────────────
+const SEC_MAX_ATTEMPTS = 5;
+const SEC_BLOCK_MINUTES = 15;
+const SEC_IDLE_MINUTES = 30;
+const SEC_WARN_SECONDS = 60; // aviso 60s antes do logout
+
+function secGetAttempts(){ try{ return JSON.parse(localStorage.getItem('orion_login_attempts')||'{}') }catch(e){ return {} } }
+function secSaveAttempts(m){ localStorage.setItem('orion_login_attempts', JSON.stringify(m)) }
+
+function secIsBlocked(email){
+  const m = secGetAttempts();
+  const rec = m[email]; if(!rec) return {blocked:false, rec:null};
+  if(rec.blockedUntil && new Date(rec.blockedUntil) > new Date()){
+    const msRemaining = new Date(rec.blockedUntil)-Date.now();
+    return {blocked:true, rec, minutes:Math.ceil(msRemaining/60000)};
+  }
+  return {blocked:false, rec};
+}
+
+function secRegisterFailure(email){
+  const m = secGetAttempts();
+  const now = Date.now();
+  if(!m[email]) m[email] = {count:0, firstFailAt:null, blockedUntil:null};
+  const rec = m[email];
+  // Reset se a primeira falha foi há mais de 15min e não está bloqueado
+  if(rec.firstFailAt && (now - new Date(rec.firstFailAt).getTime()) > SEC_BLOCK_MINUTES*60000 && !rec.blockedUntil){
+    rec.count = 0; rec.firstFailAt = null;
+  }
+  rec.count = (rec.count||0) + 1;
+  if(!rec.firstFailAt) rec.firstFailAt = new Date().toISOString();
+  if(rec.count >= SEC_MAX_ATTEMPTS){
+    rec.blockedUntil = new Date(now + SEC_BLOCK_MINUTES*60000).toISOString();
+    try{ if(typeof audit==='function') audit('security.login_blocked', {type:'auth',id:email,label:email}, null, {attempts:rec.count,blockedUntil:rec.blockedUntil,minutes:SEC_BLOCK_MINUTES}); }catch(e){}
+  }
+  secSaveAttempts(m);
+  return rec;
+}
+
+function secClearAttempts(email){
+  const m = secGetAttempts();
+  if(m[email]){
+    delete m[email];
+    secSaveAttempts(m);
+  }
+}
+
+// ── SESSION IDLE TIMEOUT ─────────────────────────────────────────────
+let secIdleTimer = null;
+let secIdleWarnTimer = null;
+let secLastActivity = Date.now();
+let secWarnVisible = false;
+
+function secResetIdleTimer(){
+  secLastActivity = Date.now();
+  if(secWarnVisible){
+    const modal = document.getElementById('sec-idle-modal');
+    if(modal) modal.remove();
+    secWarnVisible = false;
+  }
+  if(secIdleTimer) clearTimeout(secIdleTimer);
+  if(secIdleWarnTimer) clearTimeout(secIdleWarnTimer);
+  secIdleTimer = setTimeout(secForceLogout, SEC_IDLE_MINUTES*60000);
+  secIdleWarnTimer = setTimeout(secShowIdleWarning, (SEC_IDLE_MINUTES*60 - SEC_WARN_SECONDS)*1000);
+}
+
+function secShowIdleWarning(){
+  if(secWarnVisible) return;
+  secWarnVisible = true;
+  const modal = document.createElement('div');
+  modal.className='overlay'; modal.id='sec-idle-modal';
+  modal.innerHTML = `<div class="fs-rent2-modal" style="width:420px;border-left-color:var(--red)">
+    <h2>⏰ Sessão expirando</h2>
+    <div style="font-size:13px;color:var(--tx2);line-height:1.5;margin-bottom:12px">
+      Você está inativo há ${SEC_IDLE_MINUTES-1} minutos. Por segurança, sua sessão será encerrada em
+      <b style="color:var(--red);font-family:'Syne',sans-serif" id="sec-idle-count">${SEC_WARN_SECONDS}</b>s.
+    </div>
+    <div style="font-size:11px;color:var(--tx3);margin-bottom:14px">Clique em <b>Continuar</b> para manter a sessão ativa.</div>
+    <div class="fs-rent2-modal-actions">
+      <button class="fs-rent2-btn" onclick="secForceLogout()">Sair agora</button>
+      <button class="fs-rent2-btn fs-rent2-btn-primary" onclick="secResetIdleTimer()">Continuar conectado</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  // Countdown
+  let left = SEC_WARN_SECONDS;
+  const intv = setInterval(()=>{
+    left--;
+    const c = document.getElementById('sec-idle-count');
+    if(c) c.textContent = left;
+    if(left<=0 || !document.getElementById('sec-idle-modal')){
+      clearInterval(intv);
+    }
+  }, 1000);
+}
+
+function secForceLogout(){
+  try{ if(typeof audit==='function'){ const u=currentUser(); audit('security.session_timeout', u?{type:'user',id:u.id,label:u.email}:null, null, {idleMinutes:SEC_IDLE_MINUTES}); } }catch(e){}
+  localStorage.removeItem('orion_session');
+  const modal = document.getElementById('sec-idle-modal'); if(modal) modal.remove();
+  alert('Sessão encerrada por inatividade.');
+  location.reload();
+}
+
+function secInitIdleTimer(){
+  if(!currentUser()) return;
+  ['mousemove','mousedown','keydown','scroll','touchstart'].forEach(ev=>{
+    document.addEventListener(ev, secResetIdleTimer, {passive:true});
+  });
+  secResetIdleTimer();
+}
+
+// ── Screen de Segurança ──────────────────────────────────────────────
+function renderAdminSecurity(el){
+  const attempts = secGetAttempts();
+  const entries = Object.entries(attempts);
+  const blocked = entries.filter(([e,r])=> r.blockedUntil && new Date(r.blockedUntil) > new Date());
+  const logs = admGetAuditLogs().filter(l=>
+    l.action && (l.action.startsWith('security.') || l.action.startsWith('auth.'))
+  );
+  const last30 = logs.filter(l=> (Date.now() - new Date(l.at).getTime()) < 30*86400000);
+  const failed = last30.filter(l=>l.action==='auth.login_fail').length;
+  const success = last30.filter(l=>l.action==='auth.login_success').length;
+  const blockedEvents = last30.filter(l=>l.action==='security.login_blocked').length;
+  const timeouts = last30.filter(l=>l.action==='security.session_timeout').length;
+  el.innerHTML = `
+    <div class="slbl" style="margin-top:0">Visão geral de segurança</div>
+    <div class="adm-sec-grid" style="margin-bottom:18px">
+      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(16,185,129,.15)">✓</div><div class="lbl">Logins bem-sucedidos (30d)</div><div class="val-sm txt-green">${success}</div></div>
+      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(245,158,11,.15)">⚠</div><div class="lbl">Tentativas falhadas (30d)</div><div class="val-sm txt-amber">${failed}</div></div>
+      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(239,68,68,.15)">🔒</div><div class="lbl">Contas bloqueadas (30d)</div><div class="val-sm txt-red">${blockedEvents}</div></div>
+      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(167,139,250,.15)">⏰</div><div class="lbl">Timeouts de sessão (30d)</div><div class="val-sm" style="color:var(--purple)">${timeouts}</div></div>
+    </div>
+
+    <div class="adm-panel" style="margin-bottom:14px">
+      <div class="adm-panel-title">Políticas ativas</div>
+      <div class="adm-summary-line"><span>Máximo de tentativas de login</span><b>${SEC_MAX_ATTEMPTS}</b></div>
+      <div class="adm-summary-line"><span>Duração do bloqueio</span><b>${SEC_BLOCK_MINUTES} min</b></div>
+      <div class="adm-summary-line"><span>Timeout de sessão (inatividade)</span><b>${SEC_IDLE_MINUTES} min</b></div>
+      <div class="adm-summary-line"><span>Aviso antes do logout</span><b>${SEC_WARN_SECONDS}s</b></div>
+      <div class="adm-summary-line"><span>Expiração de convite</span><b>72h</b></div>
+      <div class="adm-summary-line"><span>Token de convite</span><b>Uso único · invalidado ao reenviar</b></div>
+    </div>
+
+    <div class="adm-panel">
+      <div class="adm-panel-title">Contas com tentativas registradas (${entries.length})</div>
+      ${entries.length===0 ? `<div style="font-size:12px;color:var(--tx3)">Nenhuma tentativa falhada registrada.</div>` : `
+      <table class="adm-audit-table" style="border:none;border-radius:0">
+        <thead><tr>
+          <th>E-mail</th><th>Tentativas</th><th>Primeira falha</th><th>Bloqueado até</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${entries.map(([email, rec])=>{
+            const bl = rec.blockedUntil && new Date(rec.blockedUntil) > new Date();
+            const bmin = bl ? Math.ceil((new Date(rec.blockedUntil)-Date.now())/60000) : 0;
+            return `<tr>
+              <td>${escHtml(email)}</td>
+              <td><b>${rec.count||0}</b></td>
+              <td class="adm-audit-when">${rec.firstFailAt?new Date(rec.firstFailAt).toLocaleString('pt-BR'):'—'}</td>
+              <td class="adm-audit-when">${rec.blockedUntil?new Date(rec.blockedUntil).toLocaleString('pt-BR'):'—'}</td>
+              <td>${bl?`<span class="adm-invite-status adm-inv-expired">Bloqueado ${bmin}m</span>`:`<span class="adm-invite-status adm-inv-pending">Em observação</span>`}</td>
+              <td><button class="eia-act-btn eia-act-app" title="Desbloquear" onclick="secUnblock('${escHtml(email)}')">✓</button></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+      `}
+    </div>
+
+    <div class="adm-panel" style="margin-top:14px">
+      <div class="adm-panel-title">Últimos eventos de segurança</div>
+      ${last30.slice().reverse().slice(0,12).length===0 ? `<div style="font-size:12px;color:var(--tx3)">Nenhum evento recente.</div>` : `
+        <table class="adm-audit-table" style="border:none;border-radius:0">
+          <thead><tr><th>Quando</th><th>Usuário</th><th>Ação</th><th>Detalhe</th></tr></thead>
+          <tbody>${last30.slice().reverse().slice(0,12).map(l=>`<tr>
+            <td class="adm-audit-when">${new Date(l.at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
+            <td>${escHtml(l.actor||'—')}</td>
+            <td class="adm-audit-action">${escHtml(l.action)}</td>
+            <td style="font-size:11px;color:var(--tx3);font-family:'Courier New',monospace">${escHtml(l.new?JSON.stringify(l.new).slice(0,80):'—')}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      `}
+    </div>
+  `;
+}
+
+function secUnblock(email){
+  if(!confirm('Desbloquear '+email+' e zerar tentativas?')) return;
+  secClearAttempts(email);
+  try{ if(typeof audit==='function') audit('security.unblock', {type:'auth',id:email,label:email}, null, null); }catch(e){}
+  showToast('Desbloqueado');
+  renderAdmin();
+}
 
 // Helper central de auditoria (preparado p/ FASE C — usado já agora)
 function audit(action, target, oldVal, newVal){
