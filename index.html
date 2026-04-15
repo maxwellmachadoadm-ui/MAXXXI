@@ -1649,6 +1649,21 @@ textarea:focus{
 .home-v2-emp-card,
 .home-v2-side-card{border-radius:14px !important}
 
+/* ── ORION BANNER (workspace topo) ────────────────────────────────── */
+.orion-banner{display:flex;gap:14px;align-items:flex-start;background:linear-gradient(145deg,rgba(59,130,246,.08),rgba(167,139,250,.06));border:1px solid rgba(167,139,250,.25);border-left:3px solid var(--purple);border-radius:14px;padding:14px 16px;margin-bottom:18px}
+.orion-banner-red{border-left-color:var(--red);background:linear-gradient(145deg,rgba(239,68,68,.10),rgba(167,139,250,.04))}
+.orion-banner-amber{border-left-color:var(--amber);background:linear-gradient(145deg,rgba(245,158,11,.10),rgba(167,139,250,.04))}
+.orion-banner-purple{border-left-color:var(--purple)}
+.orion-banner-green{border-left-color:var(--green);background:linear-gradient(145deg,rgba(16,185,129,.10),rgba(167,139,250,.04))}
+.orion-banner-ico{width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,.2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.orion-banner-body{flex:1;min-width:0}
+.orion-banner-head{display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.orion-banner-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--tx);letter-spacing:-.2px}
+.orion-banner-explain{font-size:12px;color:var(--tx2);margin-bottom:4px;line-height:1.4}
+.orion-banner-action{font-size:11.5px;color:var(--purple);font-weight:600}
+.orion-banner-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0}
+@media(max-width:900px){.orion-banner{flex-direction:column}}
+
 /* ── RELATÓRIOS ───────────────────────────────────────────────────── */
 .rel-root{display:flex;flex-direction:column;gap:14px}
 .rel-cat-list{display:flex;flex-direction:column;gap:8px;margin-top:6px}
@@ -2031,6 +2046,7 @@ textarea:focus{
 <!-- WORKSPACE -->
 <div id="page-ws" class="hidden">
   <div class="ws-header" id="ws-header"></div>
+  <div id="ws-orion-banner" class="hidden"></div>
   <div class="tabs" id="ws-tabs"></div>
   <div id="ws-content"></div>
 </div>
@@ -3296,24 +3312,34 @@ function renderEmpGrid(){
 function renderHomeV2Recommend(){
   const el = document.getElementById('home-recommend');
   if(!el) return;
-  const emps = Object.values(EMPS);
-  const dw = emps.find(e=>e.id==='dw');
-  const of = emps.find(e=>e.id==='of');
-  const fs = emps.find(e=>e.id==='fs');
-  const recs = [];
-  if(dw) recs.push({text:`Aumentar investimento em tráfego (${dw.sigla})`, chip:'Impacto alto', cls:'hi'});
-  if(of) recs.push({text:`Reduzir custo fixo na ${of.nome.split(' ')[0]}`, chip:'Urgente', cls:'urg'});
-  if(fs) recs.push({text:`Escalar ${fs.nome.split(' ')[0]} ${fs.nome.split(' ')[1]||''} (janela ativa 30d)`, chip:'Oportunidade', cls:'op'});
+  // Usa ORION Decision Engine (FASE H) se disponível
+  let recs = [];
+  if(typeof orionRecommendAll==='function'){
+    recs = orionRecommendAll().slice(0,4);
+  }
+  // Fallback caso não haja dados reais ainda
+  if(recs.length===0){
+    const emps = Object.values(EMPS);
+    const dw = emps.find(e=>e.id==='dw');
+    const of = emps.find(e=>e.id==='of');
+    const fs = emps.find(e=>e.id==='fs');
+    if(dw) recs.push({empId:'dw', emp:dw.nome, action:'Aumentar investimento em tráfego ('+dw.sigla+')', urgency:'high'});
+    if(of) recs.push({empId:'of', emp:of.nome, action:'Reduzir custo fixo na '+of.nome.split(' ')[0], urgency:'critical'});
+    if(fs) recs.push({empId:'fs', emp:fs.nome, action:'Escalar '+fs.nome+' (janela ativa 30d)', urgency:'low'});
+  }
+  const chipCls = u=>u==='critical'?'hi':u==='high'?'urg':u==='low'?'op':'urg';
+  const chipLabel = u=>u==='critical'?'Crítico':u==='high'?'Alta':u==='low'?'Oportunidade':'Média';
   el.innerHTML = `<div class="home-v2-recommend-head">
       <div class="home-v2-recommend-icon">🤖</div>
       <div class="home-v2-recommend-title">ORION recomenda hoje</div>
       <span style="color:var(--tx3);font-size:14px">»</span>
     </div>
-    ${recs.map(r=>`<div class="home-v2-rec-item">
-      <span class="home-v2-rec-check">✓</span>
-      <span class="home-v2-rec-text">${escHtml(r.text)}</span>
-      <span class="home-v2-rec-chip ${r.cls}">${r.chip}</span>
-    </div>`).join('')}
+    ${recs.length===0 ? '<div style="font-size:11px;color:var(--tx3);padding:10px 0">Nenhuma recomendação crítica agora.</div>' :
+      recs.map(r=>`<div class="home-v2-rec-item" ${r.empId?`onclick="openEmp('${r.empId}')" style="cursor:pointer"`:''}>
+        <span class="home-v2-rec-check">✓</span>
+        <span class="home-v2-rec-text">${escHtml(r.action||r.problem||'')} ${r.emp?`<span style="color:var(--tx3);font-size:10px">· ${escHtml(r.emp)}</span>`:''}</span>
+        <span class="home-v2-rec-chip ${chipCls(r.urgency)}">${chipLabel(r.urgency)}</span>
+      </div>`).join('')}
     <div class="home-v2-recommend-foot">Ver plano completo →</div>`;
 }
 
@@ -3882,6 +3908,8 @@ function renderWS(){
   renderTab();
   // Sync sidebar module list
   if(typeof renderWSSidebarModules==='function') renderWSSidebarModules();
+  // ORION banner no topo
+  if(typeof renderORIONWorkspaceBanner==='function') renderORIONWorkspaceBanner(curEmp);
 }
 
 function switchTab(t){
@@ -6980,6 +7008,141 @@ function renderRelatorios(e,c,co){
 
 function relPrintPDF(){
   window.print();
+}
+
+// ── ORION DECISION ENGINE — FASE H ────────────────────────────────────
+// Gera recomendações rule-based a partir de Extrato IA + dados da empresa.
+function orionRecommendForEmp(empId){
+  const emp = EMPS[empId]; if(!emp) return [];
+  const a = relAggregate(empId);
+  const recs = [];
+
+  // 1) Despesas > Receita
+  if(a.receita > 0 && a.despesas > a.receita){
+    const overBy = ((a.despesas-a.receita)/a.receita*100);
+    recs.push({
+      key:'expense_over_revenue', empId, emp:emp.nome,
+      problem:'Despesas acima da receita',
+      explain:'As despesas aprovadas ('+FMT.brl(a.despesas)+') superaram a receita ('+FMT.brl(a.receita)+') em '+overBy.toFixed(0)+'%.',
+      action:'Revisar custos fixos e categorias com maior impacto',
+      actionTab:'Relatórios',
+      urgency:'critical'
+    });
+  }
+
+  // 2) Muitos pendentes no Extrato IA
+  if(a.pend.length > 10){
+    recs.push({
+      key:'many_pending', empId, emp:emp.nome,
+      problem:a.pend.length+' lançamentos aguardando revisão',
+      explain:'Há mais de 10 lançamentos pendentes no Extrato IA. Aprove os de alta confiança para destravar relatórios.',
+      action:'Abrir Extrato IA e usar Auto-aprovar ≥85%',
+      actionTab:'Extrato IA',
+      urgency:'high'
+    });
+  }
+
+  // 3) Inadimplência > 5% (via KPI)
+  const inad = (emp.kpis||[]).find(k=>/inadim/i.test(k.l||''));
+  if(inad){
+    const raw = String(inad.v).replace(/[^\d,.-]/g,'').replace(',','.');
+    const pct = parseFloat(raw);
+    if(!isNaN(pct) && pct > 5){
+      recs.push({
+        key:'inadimplencia', empId, emp:emp.nome,
+        problem:'Inadimplência em '+pct.toFixed(1)+'%',
+        explain:'Taxa de inadimplência acima de 5% afeta o fluxo de caixa.',
+        action:'Ativar régua de cobrança e revisar crédito',
+        actionTab:'Contratos',
+        urgency:'critical'
+      });
+    }
+  }
+
+  // 4) Crescimento negativo
+  if(emp.cresc !== undefined && emp.cresc < 0){
+    recs.push({
+      key:'negative_growth', empId, emp:emp.nome,
+      problem:'Crescimento negativo ('+emp.cresc.toFixed(1)+'%)',
+      explain:'Empresa apresenta queda no período. Risco de contração.',
+      action:'Diagnosticar causas e traçar plano de recuperação',
+      actionTab:'KPIs',
+      urgency:'high'
+    });
+  }
+
+  // 5) Oportunidade de escala
+  if(emp.cresc !== undefined && emp.cresc >= 15){
+    recs.push({
+      key:'scale', empId, emp:emp.nome,
+      problem:'Oportunidade de escala',
+      explain:'Crescimento acelerado (+'+emp.cresc.toFixed(1)+'%) sugere aumentar investimento.',
+      action:'Aumentar orçamento de marketing/comercial',
+      actionTab:'Financeiro',
+      urgency:'low'
+    });
+  }
+
+  // 6) Alertas encontrados pelo EIA (flags)
+  const flagCount = a.entries.filter(e=>(e.flags||[]).length>0).length;
+  if(flagCount >= 5){
+    recs.push({
+      key:'eia_flags', empId, emp:emp.nome,
+      problem:flagCount+' lançamentos com alertas',
+      explain:'Extrato IA detectou duplicatas, outliers ou categorias ausentes.',
+      action:'Revisar linhas com borda vermelha no Extrato IA',
+      actionTab:'Extrato IA',
+      urgency:'medium'
+    });
+  }
+
+  return recs;
+}
+
+function orionRecommendAll(){
+  return Object.values(EMPS)
+    .filter(e=>!e.id.startsWith('custom_')||true)
+    .flatMap(e=>orionRecommendForEmp(e.id));
+}
+
+function orionUrgencyBadge(urg){
+  const map = {
+    critical:{label:'Crítico', cls:'home-v2-badge-risco'},
+    high:    {label:'Alta',    cls:'home-v2-badge-ajustar'},
+    medium:  {label:'Média',   cls:'home-v2-badge-escalar'},
+    low:     {label:'Oportunidade', cls:'home-v2-badge-oportunidade'}
+  };
+  return map[urg]||map.medium;
+}
+
+function orionUrgencyCls(urg){
+  return urg==='critical'?'red':urg==='high'?'amber':urg==='medium'?'purple':'green';
+}
+
+// Painel no topo do workspace
+function renderORIONWorkspaceBanner(empId){
+  const container = document.getElementById('ws-orion-banner');
+  if(!container) return;
+  const recs = orionRecommendForEmp(empId);
+  if(recs.length===0){ container.classList.add('hidden'); container.innerHTML=''; return; }
+  container.classList.remove('hidden');
+  const top = recs[0];
+  const badge = orionUrgencyBadge(top.urgency);
+  container.innerHTML = `<div class="orion-banner orion-banner-${orionUrgencyCls(top.urgency)}">
+    <div class="orion-banner-ico">🤖</div>
+    <div class="orion-banner-body">
+      <div class="orion-banner-head">
+        <span class="home-v2-badge ${badge.cls}">${badge.label}</span>
+        <span class="orion-banner-title">${escHtml(top.problem)}</span>
+      </div>
+      <div class="orion-banner-explain">${escHtml(top.explain)}</div>
+      <div class="orion-banner-action">→ ${escHtml(top.action)}</div>
+    </div>
+    <div class="orion-banner-actions">
+      ${top.actionTab?`<button class="btn btn-ia" onclick="switchTab('${top.actionTab}')">Resolver →</button>`:''}
+      ${recs.length>1?`<span style="font-size:11px;color:var(--tx3)">+${recs.length-1} outra${recs.length-1===1?'':'s'} recomendação${recs.length-1===1?'':'ões'}</span>`:''}
+    </div>
+  </div>`;
 }
 
 // ── RENTABILIDADE v2: render functions ────────────────────────────────────
