@@ -186,3 +186,80 @@
 | alertas          | — global   | Conectada |
 | checkins         | — global   | Conectada |
 | categorias       | ✅ SIM     | Conectada |
+
+## PADRÃO VISUAL DEFINITIVO
+
+> **Referência CONCLUSIVA** — screenshot "Central do CEO" 15/abr/2026 aprovada.
+> Toda tela / módulo / modal / sidebar / card / tabela / botão / input / tipografia
+> **DEVE** seguir EXATAMENTE este padrão. Nenhuma exceção.
+
+### Layout
+
+| Região    | Dimensão | Background | Borda                       |
+| --------- | -------- | ---------- | --------------------------- |
+| Sidebar   | 220px    | `#0d1225`  | border-right 1px `#1e2a45`  |
+| Topbar    | 56px     | `#0d1225`  | border-bottom 1px `#1e2a45` |
+| Content   | flex:1   | `#080c18`  | padding 24px                |
+| Painel ≫  | 300px    | `#080c18`  | cards internos `#0a0f1e`    |
+
+### Cores (tokens)
+
+| Token            | Hex        |
+| ---------------- | ---------- |
+| bg principal     | `#080c18`  |
+| surface / cards  | `#0d1225`  |
+| surface-deep     | `#0a0f1e`  |
+| border           | `#1e2a45`  |
+| texto principal  | `#f1f5f9`  |
+| texto muted      | `#94a3b8`  |
+| texto hint       | `#4a5568`  |
+| azul             | `#3b82f6`  |
+| verde            | `#10b981`  |
+| vermelho         | `#ef4444`  |
+| âmbar            | `#f59e0b`  |
+| roxo             | `#a78bfa`  |
+
+### Tipografia
+
+| Uso                    | Fonte / peso     | Tamanho          |
+| ---------------------- | ---------------- | ---------------- |
+| Headers / títulos      | Syne 700/800     | —                |
+| Body / labels          | DM Sans 400/500  | —                |
+| Título da página       | Syne 800         | **28px**         |
+| Label de seção         | DM Sans 700      | **11px** uppercase letter-spacing 2px |
+| Valor KPI              | Syne 800         | **24px**         |
+| Body                   | DM Sans 400/500  | **13px**         |
+
+### Componentes
+
+**Cards de empresa**
+- bg `#0d1225`, border 1px `#1e2a45`, **border-left 4px** na cor da empresa
+- border-radius 8px
+- Health Score: círculo SVG 48px com número em Syne bold
+
+**Badges de status** — pill pequeno, uppercase, bg opacidade 15%
+- CRESCIMENTO (verde) · AJUSTAR (âmbar) · ESCALAR (roxo) · ESTÁVEL (azul-claro)
+- RISCO (vermelho) · OPORTUNIDADE (âmbar)
+
+**KPI cards** — bg `#0d1225`, border 1px `#1e2a45`, ícone colorido 32px com bg opacidade 15%, sparkline SVG inline à direita
+
+**Botões**
+- Primário: bg `#3b82f6`, texto `#ffffff`, border-radius 6px
+- Âmbar (destaque): bg `#f59e0b`, texto `#080c18`, border-radius 6px
+- Secundário: bg `#0d1225`, border 1px `#1e2a45`, texto `#f1f5f9`
+
+**Inputs** — bg `#0a0f1e`, border 1px `#1e2a45`, focus border `#3b82f6`
+
+**Sidebar**
+- Item ativo: bg `#f59e0b15`, **border-left 3px `#f59e0b`**
+- Labels de seção: **8px** uppercase letter-spacing 2px `#4a5568`
+- Item regular: hover bg `rgba(255,255,255,.03)`
+
+**Tabelas**
+- Header bg `#0a0f1e`, texto `#94a3b8` 10px uppercase letter-spacing .08em
+- Linhas alternadas `#0d1225` / `#080c18`, hover `#1e2a45`
+- Linhas críticas: border-left 3px `#ef4444`
+
+**Modais**
+- bg `#0d1225`, border 1px `#1e2a45`, **border-left 3px `#f59e0b`**
+- border-radius 16px, backdrop `rgba(2,5,14,.78)` blur 8px

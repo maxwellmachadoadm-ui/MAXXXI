@@ -34,18 +34,18 @@ a{color:inherit;text-decoration:none}
 /* LAYOUT */
 .app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 .topbar{
-  height:58px;flex-shrink:0;
+  height:56px;flex-shrink:0;
   display:flex;align-items:center;justify-content:space-between;
   padding:0 18px;background:var(--s1);
   border-bottom:1px solid var(--br);z-index:200;gap:10px;
 }
 .main{display:flex;flex:1;overflow:hidden}
 .sidebar{
-  width:208px;flex-shrink:0;background:var(--s1);
+  width:220px;flex-shrink:0;background:var(--s1);
   border-right:1px solid var(--br);
   display:flex;flex-direction:column;overflow-y:auto;
 }
-.content{flex:1;overflow-y:auto;padding:24px 28px;background:var(--bg)}
+.content{flex:1;overflow-y:auto;padding:24px;background:var(--bg)}
 
 /* TOPBAR */
 .logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
@@ -1843,6 +1843,169 @@ textarea:focus{
 .eia-rel-emp-bar{display:block;height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
 .eia-rel-emp-bar span{display:block;height:100%;border-radius:3px;transition:width .3s}
 
+/* ═══════════════════════════════════════════════════════════════════
+   PADRÃO VISUAL DEFINITIVO — última camada, vence no cascade
+   Baseado em screenshot "Central do CEO" 15/abr/2026 (referência conclusiva).
+   Não adicionar nada depois deste bloco.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* LAYOUT — dimensões exatas */
+.topbar{height:56px !important;background:#0d1225 !important;border-bottom:1px solid #1e2a45 !important}
+.sidebar{width:220px !important;background:#0d1225 !important;border-right:1px solid #1e2a45 !important}
+.content{padding:24px !important;background:#080c18 !important}
+body{background:#080c18 !important;color:#f1f5f9 !important;font-family:'DM Sans',sans-serif !important;font-size:13px !important;font-weight:400 !important}
+
+/* TIPOGRAFIA — hierarquia exata */
+h1,h2{font-family:'Syne',sans-serif !important}
+.home-v2-title,.adm-title,.eia-title,.fs-rent2-title,.fs-proj-title,.vceo-title{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:28px !important;letter-spacing:-.3px !important
+}
+.slbl{font-family:'DM Sans',sans-serif !important;font-weight:700 !important;font-size:11px !important;letter-spacing:2px !important;text-transform:uppercase !important;color:#94a3b8 !important}
+.val,.kpi-val,.home-v2-kpi-val,.home-v2-metric-val,.eia-rel-val,.vceo-kpi .kpi-val,.ws-kn .nv{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:24px !important;letter-spacing:-.3px !important;color:#f1f5f9
+}
+.lbl,.eia-kpi-sub,.home-v2-metric-lbl,.home-v2-kpi-lbl,.ws-kn .nl{
+  font-family:'DM Sans',sans-serif !important;font-weight:700 !important
+}
+
+/* SIDEBAR — labels de seção e item ativo âmbar */
+.sb-lbl{font-size:8px !important;letter-spacing:2px !important;text-transform:uppercase !important;color:#4a5568 !important;font-weight:700 !important;font-family:'DM Sans',sans-serif !important;padding:0 16px !important;margin-bottom:6px !important}
+.sb-item{font-family:'DM Sans',sans-serif !important;font-size:13px !important;font-weight:500 !important;color:#94a3b8 !important;padding:9px 16px !important;border-left:3px solid transparent !important;transition:.12s !important;display:flex !important;align-items:center !important;gap:9px !important;cursor:pointer !important}
+.sb-item:hover{background:rgba(255,255,255,.03) !important;color:#f1f5f9 !important}
+.sb-item.active{background:rgba(245,158,11,.08) !important;border-left-color:#f59e0b !important;color:#f59e0b !important}
+.sb-module.active{background:rgba(245,158,11,.08) !important;border-left-color:#f59e0b !important;color:#f59e0b !important;padding-left:13px !important}
+.sb-sub-item{padding-left:30px !important;font-size:12.5px !important}
+.sb-sub-add{padding-left:30px !important}
+
+/* CARDS GENÉRICOS — radius 8px, surface #0d1225, border #1e2a45 */
+.card,.kpi-card,.home-v2-kpi-card,.home-v2-prio-card,.home-v2-side-card,
+.eia-kpi,.eia-card,.eia-doc-item,.eia-detail-card,.eia-table-wrap,.eia-learning,.eia-reliability,
+.fs-rent2-kpi,.fs-rent2-panel,.fs-rent2-turma-card,.fs-rent2-table-wrap,.fs-rent2-preview,
+.fs-proj-panel,.fs-proj-kpi,.fs-proj-table-wrap,
+.adm-panel,.adm-user-card,.adm-perm-card,.adm-invite-table,.adm-audit-table,
+.doc-card,.rel-cat-list,.vceo-kpi,.vceo-insight-card,.kan-col,
+.eia-rel-card,.aud-item,.orion-banner{
+  background:#0d1225 !important;border:1px solid #1e2a45 !important;border-radius:8px !important
+}
+
+/* Cards internos no painel direito (home v2) — surface-deep #0a0f1e */
+.home-v2-side .home-v2-side-card,.home-v2-side .home-v2-recommend{
+  background:#0a0f1e !important;border:1px solid #1e2a45 !important
+}
+.home-v2-recommend{background:linear-gradient(145deg,rgba(167,139,250,.10),#0a0f1e) !important;border:1px solid rgba(167,139,250,.25) !important}
+
+/* Card de empresa na home — border-left 4px na cor da empresa */
+.home-v2-emp-card{border-left:4px solid var(--emp-c,#3b82f6) !important;border-radius:8px !important}
+
+/* KPI card — ícone 32px com bg opacidade 15% */
+.kpi-card .kpi-icon,.home-v2-kpi-icon,.eia-kpi .kpi-icon{
+  width:32px !important;height:32px !important;border-radius:8px !important;display:flex !important;align-items:center !important;justify-content:center !important;font-size:14px !important
+}
+
+/* BADGES de status — pill pequeno uppercase bg 15% */
+.home-v2-badge,.stag,.adm-invite-status{
+  font-family:'DM Sans',sans-serif !important;font-weight:700 !important;
+  font-size:10px !important;letter-spacing:1.5px !important;text-transform:uppercase !important;
+  padding:3px 10px !important;border-radius:6px !important;
+}
+.home-v2-badge-crescimento{background:rgba(16,185,129,.15) !important;color:#10b981 !important}
+.home-v2-badge-ajustar{background:rgba(245,158,11,.15) !important;color:#f59e0b !important}
+.home-v2-badge-escalar{background:rgba(167,139,250,.15) !important;color:#a78bfa !important}
+.home-v2-badge-estavel{background:rgba(96,165,250,.15) !important;color:#60a5fa !important}
+.home-v2-badge-risco{background:rgba(239,68,68,.15) !important;color:#ef4444 !important}
+.home-v2-badge-oportunidade{background:rgba(245,158,11,.15) !important;color:#f59e0b !important}
+
+/* BOTÕES — primário azul radius 6, âmbar radius 6, secundário surface */
+.btn-primary,.btn-blue,.fs-rent2-btn-primary,.fs-proj-btn.fs-proj-btn-primary{
+  background:#3b82f6 !important;border:1px solid #3b82f6 !important;color:#fff !important;
+  border-radius:6px !important;font-family:'DM Sans',sans-serif !important;font-weight:600 !important
+}
+.btn-primary:hover,.btn-blue:hover,.fs-rent2-btn-primary:hover{background:#2563eb !important;border-color:#2563eb !important}
+
+.btn-ia,.fs-rent2-btn-amber{
+  background:#f59e0b !important;border:1px solid #f59e0b !important;color:#080c18 !important;
+  border-radius:6px !important;font-family:'DM Sans',sans-serif !important;font-weight:700 !important
+}
+.btn-ia:hover,.fs-rent2-btn-amber:hover{background:#d97706 !important;border-color:#d97706 !important;color:#080c18 !important;box-shadow:0 4px 14px rgba(245,158,11,.3) !important}
+
+.btn,.btn-ghost,.tb-btn,
+.fs-rent2-btn:not(.fs-rent2-btn-primary):not(.fs-rent2-btn-green):not(.fs-rent2-btn-amber):not(.fs-rent2-btn-red),
+.fs-proj-btn:not(.fs-proj-btn-primary):not(.fs-proj-btn-green){
+  background:#0d1225 !important;border:1px solid #1e2a45 !important;color:#f1f5f9 !important;
+  border-radius:6px !important;font-family:'DM Sans',sans-serif !important;font-weight:500 !important
+}
+.btn:hover,.btn-ghost:hover,.tb-btn:hover{border-color:#3b82f6 !important;background:rgba(59,130,246,.06) !important}
+
+.btn-red,.fs-rent2-btn-red{
+  background:rgba(239,68,68,.12) !important;border:1px solid rgba(239,68,68,.35) !important;color:#ef4444 !important;
+  border-radius:6px !important
+}
+
+.fs-rent2-btn-green,.fs-proj-btn-green{
+  background:#10b981 !important;border:1px solid #10b981 !important;color:#fff !important;border-radius:6px !important
+}
+
+/* INPUTS — bg surface-deep #0a0f1e */
+.inp,select.inp,textarea,textarea.inp,
+.fs-rent2-inp,.fs-rent2-sel,.fs-rent2-txt,
+.fs-proj-inp,
+.fs-rent2-rate-btn,.fs-proj-rate-btn,
+.adm-perm-role-sel{
+  background:#0a0f1e !important;border:1px solid #1e2a45 !important;color:#f1f5f9 !important;
+  border-radius:6px !important;font-family:'DM Sans',sans-serif !important;font-size:13px !important
+}
+.inp:focus,select.inp:focus,textarea:focus,.fs-rent2-inp:focus,.fs-rent2-sel:focus,.fs-rent2-txt:focus,.fs-proj-inp:focus{
+  border-color:#3b82f6 !important;box-shadow:0 0 0 3px rgba(59,130,246,.15) !important;outline:none !important
+}
+
+/* HEALTH SCORE ring — 48px com número Syne bold */
+.home-v2-ring{width:48px !important;height:48px !important}
+.home-v2-ring svg{width:48px !important;height:48px !important}
+.home-v2-ring-val{font-family:'Syne',sans-serif !important;font-weight:800 !important;font-size:13px !important}
+
+/* TABELAS — header surface-deep + alternância + hover border */
+.fc-table,.ceo-table,.vceo-table,.eia-table,.adm-audit-table,.adm-invite-table,.adm-perm-table,.fs-rent2-table,.fs-proj-table{
+  font-family:'DM Sans',sans-serif !important
+}
+.fc-table thead th,.ceo-table thead th,.vceo-table thead th,.eia-table thead th,
+.adm-audit-table thead th,.adm-invite-table thead th,.fs-rent2-table thead th,.fs-proj-table thead th{
+  background:#0a0f1e !important;color:#94a3b8 !important;font-family:'DM Sans',sans-serif !important;
+  font-weight:700 !important;font-size:10px !important;letter-spacing:.08em !important;text-transform:uppercase !important;
+  border-bottom:1px solid #1e2a45 !important
+}
+.fc-table tbody tr:nth-child(odd),.ceo-table tbody tr:nth-child(odd),.eia-table tbody tr:nth-child(odd),
+.adm-audit-table tbody tr:nth-child(odd),.adm-invite-table tbody tr:nth-child(odd),.fs-rent2-table tbody tr:nth-child(odd){background:#0d1225 !important}
+.fc-table tbody tr:nth-child(even),.ceo-table tbody tr:nth-child(even),.eia-table tbody tr:nth-child(even),
+.adm-audit-table tbody tr:nth-child(even),.adm-invite-table tbody tr:nth-child(even),.fs-rent2-table tbody tr:nth-child(even){background:#080c18 !important}
+.fc-table tbody tr:hover,.ceo-table tbody tr:hover,.eia-table tbody tr:hover,
+.adm-audit-table tbody tr:hover,.adm-invite-table tbody tr:hover,.fs-rent2-table tbody tr:hover{background:#1e2a45 !important}
+.eia-table tr.eia-row-flagged,.adm-audit-table tr.critical{border-left:3px solid #ef4444 !important;background:rgba(239,68,68,.08) !important}
+
+/* MODAIS — border-left 3px âmbar, bg surface */
+.overlay{background:rgba(2,5,14,.78) !important;backdrop-filter:blur(8px) !important}
+.modal,.fs-rent2-modal{
+  background:#0d1225 !important;border:1px solid #1e2a45 !important;
+  border-left:3px solid #f59e0b !important;border-radius:16px !important;
+  box-shadow:0 28px 60px rgba(0,0,0,.55) !important
+}
+.modal h2,.fs-rent2-modal h2{
+  font-family:'Syne',sans-serif !important;font-weight:800 !important;color:#f1f5f9 !important;letter-spacing:-.3px !important
+}
+
+/* HOME V2 — side panel 300px */
+.home-v2-side{width:auto;min-width:0}
+.home-v2-layout{grid-template-columns:1fr 300px}
+
+/* WORKSPACE header — Syne nos títulos */
+.ws-header{background:#0d1225 !important;border:1px solid #1e2a45 !important;border-radius:8px !important}
+.ws-n{font-family:'Syne',sans-serif !important;font-weight:800 !important;color:#f1f5f9 !important}
+
+/* Tabs inferiores alinhadas */
+.tab.active{color:#3b82f6 !important;border-bottom-color:#3b82f6 !important}
+.adm-tab.active{color:#3b82f6 !important;border-bottom-color:#3b82f6 !important}
+
+/* Selects nativos embutidos (sem .inp) */
+select{background:#0a0f1e !important;border:1px solid #1e2a45 !important;color:#f1f5f9 !important;border-radius:6px !important;font-family:'DM Sans',sans-serif !important}
 </style>
 </head>
 <body>
