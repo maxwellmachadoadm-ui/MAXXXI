@@ -1648,6 +1648,29 @@ textarea:focus{
 .home-v2-prio-card,
 .home-v2-emp-card,
 .home-v2-side-card{border-radius:14px !important}
+
+/* ── DOCUMENTOS ───────────────────────────────────────────────────── */
+.doc-root{display:flex;flex-direction:column;gap:14px}
+.doc-cat-bar{display:flex;flex-wrap:wrap;gap:6px}
+.doc-cat{background:var(--s1);border:1px solid var(--br);color:var(--tx2);padding:7px 14px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.doc-cat:hover{border-color:rgba(59,130,246,.25);color:var(--tx)}
+.doc-cat.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.doc-cat-n{background:rgba(255,255,255,.12);padding:1px 7px;border-radius:99px;font-size:10px;font-family:'Syne',sans-serif;font-weight:700;min-width:18px;text-align:center}
+.doc-cat.active .doc-cat-n{background:rgba(255,255,255,.25)}
+.doc-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.doc-card{background:var(--s1);border:1px solid var(--br);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;transition:.15s}
+.doc-card:hover{border-color:rgba(59,130,246,.25);transform:translateY(-1px)}
+.doc-head{display:flex;align-items:center;gap:10px}
+.doc-icon{width:40px;height:40px;border-radius:10px;background:rgba(59,130,246,.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.doc-info{flex:1;min-width:0}
+.doc-name{font-size:13px;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-meta{font-size:10px;color:var(--tx3);margin-top:2px}
+.doc-body{display:flex;flex-direction:column;gap:6px;padding:8px 0;border-top:1px solid var(--br)}
+.doc-field{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px}
+.doc-cat-sel{padding:4px 8px !important;font-size:11.5px !important;width:auto !important;min-width:130px}
+.doc-actions{display:flex;gap:6px;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--br);flex-wrap:wrap}
+.doc-actions .btn-sm{padding:6px 10px;font-size:11px}
 </style>
 </head>
 <body>
@@ -3769,11 +3792,11 @@ function addEmpresa(){
 function openDrive(){window.open(curEmp?EMPS[curEmp]?.drive:'https://drive.google.com','_blank')}
 
 // ── WORKSPACE ──────────────────────────────────────────────────────────────
-const WS_TABS_ALL=['KPIs','OKRs','Tarefas','Financeiro','Extrato IA','Pipeline','Contratos','Riscos','Decisões','CRM','Notas','Arquivos'];
-const GP_TABS_DEFAULT=['KPIs','Patrimônio','Investimentos','Fluxo Pessoal','Extrato IA','Compromissos','Metas','Notas','Arquivos'];
-const FS_TABS_DEFAULT=['KPIs','OKRs','Tarefas','Financeiro','Extrato IA','Fundos','Projeções','Rentabilidade','Pipeline','Contratos','CRM','Notas','Arquivos'];
-const DW_TABS_DEFAULT=['KPIs','OKRs','Tarefas','Financeiro','Extrato IA','Pacientes','Honorários','Pipeline','Contratos','Riscos','Decisões','CRM','Notas','Arquivos'];
-const OF_TABS_DEFAULT=['KPIs','OKRs','Tarefas','Financeiro','Extrato IA','Projetos','Equipe','Pipeline','Contratos','Riscos','CRM','Notas','Arquivos'];
+const WS_TABS_ALL=['KPIs','OKRs','Tarefas','Financeiro','Extrato IA','Documentos','Relatórios','Pipeline','Contratos','Riscos','Decisões','CRM','Notas'];
+const GP_TABS_DEFAULT=['KPIs','Patrimônio','Investimentos','Fluxo Pessoal','Extrato IA','Documentos','Relatórios','Compromissos','Metas','Notas'];
+const FS_TABS_DEFAULT=['KPIs','OKRs','Tarefas','Financeiro','Extrato IA','Documentos','Relatórios','Fundos','Projeções','Rentabilidade','Pipeline','Contratos','CRM','Notas'];
+const DW_TABS_DEFAULT=['KPIs','OKRs','Tarefas','Financeiro','Extrato IA','Documentos','Relatórios','Pacientes','Honorários','Pipeline','Contratos','Riscos','Decisões','CRM','Notas'];
+const OF_TABS_DEFAULT=['KPIs','OKRs','Tarefas','Financeiro','Extrato IA','Documentos','Relatórios','Projetos','Equipe','Pipeline','Contratos','Riscos','CRM','Notas'];
 
 function getEmpModulos(empresaId){
   const stored=localStorage.getItem('orion_modulos_'+empresaId);
@@ -4101,6 +4124,8 @@ function renderTab(){
   }
   // ── EMPRESA-SPECIFIC TABS ──
   else if(curTab==='Extrato IA'){ renderExtratoIA(e,c,co) }
+  else if(curTab==='Documentos'){ renderDocumentos(e,c,co) }
+  else if(curTab==='Relatórios'){ renderRelatorios(e,c,co) }
   else if(curTab==='Projeções'){ renderProjecoes(e,c,co) }
   else if(curTab==='Rentabilidade'){ renderRentabilidade(e,c,co) }
   else if(curTab==='Fundos'){ renderFundos(e,c,co) }
@@ -5522,6 +5547,7 @@ const TAB_MODULE_MAP = {
   'Fluxo Pessoal':'financeiro','Honorários':'financeiro',
   'Projeções':'analytics',
   'Extrato IA':'extrato_ia',
+  'Documentos':'documentos','Relatórios':'relatorios',
   'Contratos':'documentos','Riscos':'documentos','Decisões':'documentos',
   'Notas':'documentos','Arquivos':'documentos',
   'Metas':'dashboard','Compromissos':'dashboard'
@@ -6594,6 +6620,220 @@ function eiaLogAudit(action, item, extra){
   logs.push({at:eiaNowIso(),actor:sess.name||sess.email||'—',action:'eia.'+action,target:item?item.name:'',targetId:item?item.id:'',empresa:curEmp,extra:extra||null});
   if(logs.length>1000) logs.splice(0, logs.length-1000);
   localStorage.setItem('orion_audit_log', JSON.stringify(logs));
+}
+
+// ── DOCUMENTOS — FASE F ────────────────────────────────────────────────
+// Storage: orion_docs_<empId> = [{id,name,size,type,category,uploadedAt,uploadedBy,dataUrl?,notes}]
+// Evolui o antigo orion_files_<empId> (lidos em conjunto, categoria='Outros' legado)
+const DOC_CATEGORIES = ['Extratos','Contratos','Relatórios','Fiscal','Outros'];
+let docFilter = {category:'', q:''};
+
+function docGet(empId){
+  try{
+    const newer = JSON.parse(localStorage.getItem('orion_docs_'+empId)||'[]');
+    const legacy = JSON.parse(localStorage.getItem('orion_files_'+empId)||'[]').map((f,i)=>({
+      id:'legacy_'+i, name:f.name, size:f.size||0, type:(f.type||f.name.split('.').pop()||'').toUpperCase(),
+      category:'Outros', uploadedAt:f.uploadedAt||new Date().toISOString(),
+      uploadedBy:f.uploadedBy||'—', legacy:true
+    }));
+    const seen = new Set(newer.map(d=>d.name));
+    return [...newer, ...legacy.filter(d=>!seen.has(d.name))];
+  }catch(e){ return [] }
+}
+function docSave(empId, list){ localStorage.setItem('orion_docs_'+empId, JSON.stringify(list.filter(d=>!d.legacy))) }
+
+function docTypeIcon(t){
+  const x = (t||'').toUpperCase();
+  if(x==='PDF') return '📕';
+  if(x==='XLSX'||x==='XLS'||x==='EXCEL') return '📗';
+  if(x==='CSV') return '📊';
+  if(x==='DOC'||x==='DOCX') return '📘';
+  if(['PNG','JPG','JPEG','WEBP'].includes(x)) return '🖼️';
+  if(x==='TXT') return '📝';
+  return '📄';
+}
+function docHumanSize(bytes){
+  if(!bytes) return '—';
+  if(bytes<1024) return bytes+' B';
+  if(bytes<1024*1024) return (bytes/1024).toFixed(1)+' KB';
+  return (bytes/1048576).toFixed(2)+' MB';
+}
+
+function renderDocumentos(e,c,co){
+  const all = docGet(e.id);
+  const categoryCounts = DOC_CATEGORIES.reduce((m,k)=>(m[k]=all.filter(d=>d.category===k).length,m),{Todas:all.length});
+  const filtered = all.filter(d=>{
+    if(docFilter.category && d.category!==docFilter.category) return false;
+    if(docFilter.q){
+      const q = docFilter.q.toLowerCase();
+      const s = (d.name+' '+d.category+' '+(d.notes||'')).toLowerCase();
+      if(!s.includes(q)) return false;
+    }
+    return true;
+  });
+  c.innerHTML = `<div class="doc-root">
+    <div class="eia-head">
+      <div>
+        <div class="eia-title">Documentos</div>
+        <div class="eia-sub">Repositório central · Upload · Categorização · Envio para Extrato IA</div>
+      </div>
+      <div>
+        <span class="home-v2-badge home-v2-badge-escalar">${all.length} documento(s)</span>
+      </div>
+    </div>
+
+    <div class="doc-cat-bar">
+      ${['Todas',...DOC_CATEGORIES].map(k=>{
+        const active = (k==='Todas' && !docFilter.category) || k===docFilter.category;
+        return `<button class="doc-cat ${active?'active':''}" onclick="docFilter.category=${k==='Todas'?"''":"'"+k+"'"};renderTab()">
+          ${escHtml(k)} <span class="doc-cat-n">${categoryCounts[k]||0}</span>
+        </button>`;
+      }).join('')}
+    </div>
+
+    <div class="doc-toolbar">
+      <input class="inp" style="flex:1;max-width:360px" placeholder="🔎 Buscar por nome, categoria ou nota..." value="${escHtml(docFilter.q)}" oninput="docFilter.q=this.value;renderTab()"/>
+      <button class="btn btn-ia" onclick="document.getElementById('doc-file-inp').click()">📤 Upload</button>
+      <input type="file" id="doc-file-inp" hidden multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.jpg,.jpeg,.png,.webp" onchange="docUpload(event)"/>
+    </div>
+
+    ${filtered.length===0 ? `<div class="eia-empty">${all.length===0?'Nenhum documento ainda. Clique em <b>Upload</b> para começar.':'Nenhum documento encontrado com esse filtro.'}</div>` : `
+    <div class="doc-grid">
+      ${filtered.map(d=>`<div class="doc-card">
+        <div class="doc-head">
+          <div class="doc-icon">${docTypeIcon(d.type)}</div>
+          <div class="doc-info">
+            <div class="doc-name" title="${escHtml(d.name)}">${escHtml(d.name)}</div>
+            <div class="doc-meta">${escHtml(d.type||'—')} · ${docHumanSize(d.size)} · ${eiaFormatWhen(d.uploadedAt)}</div>
+          </div>
+        </div>
+        <div class="doc-body">
+          <div class="doc-field"><span class="eia-fl">Categoria</span>
+            <select class="inp doc-cat-sel" onchange="docSetCategory('${d.id}',this.value)">
+              ${DOC_CATEGORIES.map(k=>`<option ${d.category===k?'selected':''}>${k}</option>`).join('')}
+            </select>
+          </div>
+          <div class="doc-field"><span class="eia-fl">Enviado por</span><span class="eia-fv">${escHtml(d.uploadedBy||'—')}</span></div>
+          ${d.legacy?'<div class="doc-field" style="color:var(--amber);font-size:10px">◇ legado (orion_files_*)</div>':''}
+        </div>
+        <div class="doc-actions">
+          ${d.dataUrl?`<button class="btn-sm btn-ghost" onclick="docPreview('${d.id}')">👁️ Preview</button>`:''}
+          <button class="btn-sm btn-ia" onclick="docAnalyzeORION('${d.id}')">🤖 Analisar com ORION</button>
+          ${!d.legacy?`<button class="btn-sm btn-red" onclick="docDelete('${d.id}')">🗑</button>`:''}
+        </div>
+      </div>`).join('')}
+    </div>
+    `}
+  </div>`;
+}
+
+function docUpload(ev){
+  const files = Array.from(ev.target.files||[]);
+  if(files.length===0) return;
+  const sess = JSON.parse(localStorage.getItem('orion_session')||'{}');
+  const uploader = sess.name||sess.email||'usuário';
+  const list = docGet(curEmp).filter(d=>!d.legacy);
+  let pending = files.length;
+  files.forEach(f=>{
+    const reader = new FileReader();
+    reader.onload = evt=>{
+      const ext = (f.name.split('.').pop()||'').toUpperCase();
+      const autoCat = /extrato|bancario|ofx/i.test(f.name)?'Extratos':
+                      /contrato|contrat/i.test(f.name)?'Contratos':
+                      /relatorio|relatório|report/i.test(f.name)?'Relatórios':
+                      /imposto|das|darf|iss|nfe|nota|fiscal/i.test(f.name)?'Fiscal':'Outros';
+      list.push({
+        id:'doc_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),
+        name:f.name, size:f.size, type:ext,
+        category:autoCat,
+        uploadedAt:new Date().toISOString(),
+        uploadedBy:uploader,
+        dataUrl: f.size<1024*1024?evt.target.result:null,  // Só salva ≤1MB para preview
+        notes:''
+      });
+      pending--;
+      if(pending===0){
+        docSave(curEmp, list);
+        audit('document.upload', {type:'document',id:list[list.length-1].id,label:f.name}, null, {category:autoCat, size:f.size});
+        showToast(files.length+' documento(s) enviado(s)');
+        renderTab();
+      }
+    };
+    if(f.size<1024*1024) reader.readAsDataURL(f);
+    else { reader.onload({target:{result:null}}); }
+  });
+  ev.target.value='';
+}
+
+function docSetCategory(id, cat){
+  const list = docGet(curEmp).filter(d=>!d.legacy);
+  const d = list.find(x=>x.id===id); if(!d) return;
+  const prev = d.category;
+  d.category = cat;
+  docSave(curEmp, list);
+  audit('document.recategorize', {type:'document',id, label:d.name}, {category:prev}, {category:cat});
+  renderTab();
+}
+
+function docDelete(id){
+  if(!confirm('Remover este documento?')) return;
+  const list = docGet(curEmp).filter(d=>!d.legacy && d.id!==id);
+  docSave(curEmp, list);
+  audit('document.delete', {type:'document',id}, null, null);
+  showToast('Documento removido');
+  renderTab();
+}
+
+function docPreview(id){
+  const d = docGet(curEmp).find(x=>x.id===id); if(!d||!d.dataUrl){ showToast('Preview indisponível'); return; }
+  const modal = document.createElement('div');
+  modal.className='overlay'; modal.id='doc-preview-modal';
+  modal.onclick=function(ev){ if(ev.target===modal) modal.remove(); };
+  const isImg = /^image\//i.test(d.dataUrl.slice(5,25));
+  modal.innerHTML = `<div class="fs-rent2-modal" style="width:720px;max-width:94vw;max-height:90vh;overflow:auto">
+    <button class="fs-rent2-modal-close" onclick="document.getElementById('doc-preview-modal').remove()">&times;</button>
+    <h2>${escHtml(d.name)}</h2>
+    <div style="font-size:11px;color:var(--tx3);margin-bottom:12px">${escHtml(d.category)} · ${docHumanSize(d.size)} · ${eiaFormatWhen(d.uploadedAt)}</div>
+    ${isImg ? `<img src="${d.dataUrl}" style="max-width:100%;border-radius:10px"/>` : `<iframe src="${d.dataUrl}" style="width:100%;height:60vh;border:1px solid var(--br);border-radius:10px;background:#fff"></iframe>`}
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+// Envia documento ao módulo Extrato IA (cria doc EIA e navega)
+function docAnalyzeORION(id){
+  const d = docGet(curEmp).find(x=>x.id===id); if(!d){ showToast('Documento não encontrado'); return; }
+  if(typeof hasEiaPerm==='function' && !hasEiaPerm('upload')){ showToast('Sem permissão para enviar ao Extrato IA'); return; }
+  const sess = JSON.parse(localStorage.getItem('orion_session')||'{}');
+  const reviewer = sess.name||sess.email||'usuário';
+  const eiaList = eiaGet(curEmp);
+  const cls = eiaFakeClassify(d.name);
+  const entries = eiaParseEntries(d.name, d.type, d.size);
+  const agg = entries.reduce((s,e)=>s+e.amount,0);
+  const doc = {
+    id:'eia_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+    name:d.name, type:d.type||eiaTypeFromFile(d.name), size:d.size,
+    uploadedAt:new Date().toISOString(), uploadedBy:reviewer,
+    status:'pending', confidence:cls.conf,
+    source:EIA_BANKS[Math.floor(Math.random()*EIA_BANKS.length)],
+    detectedCompany:EMPS[curEmp]?EMPS[curEmp].nome:'—',
+    detectedPeriod:new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'}),
+    detectedValue:agg, detectedType:'extrato', classification:cls.cat,
+    reviewer:null, reviewedAt:null, notes:'Originado de Documentos: '+d.name,
+    entries:entries, sourceDocId:d.id
+  };
+  eiaList.push(doc);
+  eiaList.forEach(x=>eiaDetectFlags(x, eiaList));
+  eiaSave(curEmp, eiaList);
+  eiaSelectedDocId = doc.id;
+  audit('document.analyze', {type:'document',id, label:d.name}, null, {eiaDocId:doc.id});
+  showToast('Enviado ao Extrato IA — '+entries.length+' lançamentos detectados');
+  curTab = 'Extrato IA';
+  renderWS();
+}
+
+// ── RELATÓRIOS — FASE G (placeholder até a fase) ────────────────
+function renderRelatorios(e,c,co){
+  c.innerHTML = `<div class="adm-empty" style="padding:40px 20px">Relatórios — implementado na FASE G</div>`;
 }
 
 // ── RENTABILIDADE v2: render functions ────────────────────────────────────
