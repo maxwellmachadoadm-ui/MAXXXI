@@ -1778,6 +1778,30 @@ textarea:focus{
 /* Global search overlay (FASE K) — reaproveita cmd-overlay pattern */
 .gsearch-section{padding:6px 12px 4px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);font-weight:700;background:rgba(255,255,255,.02)}
 
+/* Confiabilidade da IA (FASE M) */
+.eia-reliability{background:var(--s1);border:1px solid var(--br);border-radius:14px;padding:16px;margin-bottom:4px}
+.eia-rel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.eia-rel-card{background:var(--s0);border:1px solid var(--br);border-radius:12px;padding:12px}
+.eia-rel-lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);margin-bottom:6px;font-weight:700}
+.eia-rel-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.3px;color:var(--tx)}
+.eia-rel-sub{font-size:10.5px;color:var(--tx3);margin-top:4px}
+.eia-rel-bar{margin-top:8px;height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
+.eia-rel-bar-fill{height:100%;border-radius:3px;transition:width .3s}
+.eia-rel-hist{display:flex;align-items:flex-end;gap:6px;margin-top:6px;height:80px}
+.eia-rel-hist-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.eia-rel-hist-bar{width:100%;border-radius:4px 4px 0 0;min-height:4px;transition:height .25s}
+.eia-rel-hist-lbl{font-size:9px;color:var(--tx3);font-weight:600}
+.eia-rel-per-emp{margin-top:14px;padding-top:12px;border-top:1px solid var(--br)}
+.eia-rel-per-emp-title{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);font-weight:700;margin-bottom:8px}
+.eia-rel-per-emp-list{display:flex;flex-direction:column;gap:4px}
+.eia-rel-emp-row{display:grid;grid-template-columns:12px 1fr 80px 120px;gap:10px;align-items:center;padding:6px 8px;border-radius:8px;cursor:pointer;transition:.1s}
+.eia-rel-emp-row:hover{background:rgba(59,130,246,.04)}
+.eia-rel-emp-dot{width:8px;height:8px;border-radius:50%}
+.eia-rel-emp-name{font-size:12px;color:var(--tx);font-weight:500}
+.eia-rel-emp-val{font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--tx2);text-align:right}
+.eia-rel-emp-bar{display:block;height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
+.eia-rel-emp-bar span{display:block;height:100%;border-radius:3px;transition:width .3s}
+
 </style>
 </head>
 <body>
@@ -6018,6 +6042,108 @@ function eiaStatusBadge(status){
   return `<span class="home-v2-badge ${m.cls}">${m.label}</span>`;
 }
 
+// ── CONFIABILIDADE DA IA — FASE M ───────────────────────────────────
+function eiaReliabilityMetrics(empId){
+  const docs = eiaGet(empId);
+  const entries = docs.flatMap(d=>d.entries||[]);
+  const processed = entries.length;
+  const approved = entries.filter(e=>e.status==='approved').length;
+  const rejected = entries.filter(e=>e.status==='rejected').length;
+  const pending = entries.filter(e=>e.status==='pending').length;
+  const corrected = entries.filter(e=>e.correctedFrom).length;
+  const autoApproved = entries.filter(e=>e.status==='approved' && !e.correctedFrom).length;
+  const avgConf = processed ? Math.round(entries.reduce((s,e)=>s+(e.confidence||0),0)/processed) : 0;
+  const taxaAutoApp = approved ? Math.round((autoApproved/approved)*100) : 0;
+  const taxaHumana = approved ? Math.round((corrected/approved)*100) : 0;
+  // Pendentes por empresa (cross-empresa visão)
+  const perEmp = {};
+  Object.values(EMPS).forEach(emp=>{
+    try{
+      const ents = eiaGet(emp.id).flatMap(d=>d.entries||[]);
+      perEmp[emp.id] = {nome:emp.nome, cor:emp.cor, pending:ents.filter(e=>e.status==='pending').length, total:ents.length};
+    }catch(err){ perEmp[emp.id]={nome:emp.nome, cor:emp.cor, pending:0, total:0}; }
+  });
+  return {processed, approved, rejected, pending, corrected, autoApproved, avgConf, taxaAutoApp, taxaHumana, perEmp};
+}
+
+function eiaReliabilityPanel(emp, docs){
+  const m = eiaReliabilityMetrics(emp.id);
+  if(m.processed===0) return '';
+  // Mini bar chart: distribuição de confiança por faixa
+  const buckets = [
+    {label:'<60%', count:0, col:'var(--red)'},
+    {label:'60-70', count:0, col:'var(--amber)'},
+    {label:'70-85', count:0, col:'var(--blue3)'},
+    {label:'≥85%', count:0, col:'var(--green)'}
+  ];
+  (docs||[]).flatMap(d=>d.entries||[]).forEach(en=>{
+    const c = en.confidence||0;
+    if(c<60) buckets[0].count++;
+    else if(c<70) buckets[1].count++;
+    else if(c<85) buckets[2].count++;
+    else buckets[3].count++;
+  });
+  const maxB = Math.max(1, ...buckets.map(b=>b.count));
+  const empOrdered = Object.entries(m.perEmp).sort((a,b)=>b[1].pending-a[1].pending).slice(0,6);
+  return `<div class="eia-reliability">
+    <div class="section-head">
+      <div>
+        <div class="section-head-title">🧠 Confiabilidade da IA</div>
+        <div class="section-head-sub">Métricas de desempenho do classificador automático</div>
+      </div>
+    </div>
+    <div class="eia-rel-grid">
+      <div class="eia-rel-card">
+        <div class="eia-rel-lbl">Processados</div>
+        <div class="eia-rel-val">${m.processed}</div>
+        <div class="eia-rel-sub">lançamentos totais</div>
+      </div>
+      <div class="eia-rel-card">
+        <div class="eia-rel-lbl">Aprovados</div>
+        <div class="eia-rel-val" style="color:var(--green)">${m.approved}</div>
+        <div class="eia-rel-sub">${m.pending} pendentes · ${m.rejected} rejeitados</div>
+      </div>
+      <div class="eia-rel-card">
+        <div class="eia-rel-lbl">Corrigidos por humano</div>
+        <div class="eia-rel-val" style="color:var(--purple)">${m.corrected}</div>
+        <div class="eia-rel-sub">correções no vocabulário</div>
+      </div>
+      <div class="eia-rel-card">
+        <div class="eia-rel-lbl">Aprovação sem edição</div>
+        <div class="eia-rel-val" style="color:var(--green)">${m.taxaAutoApp}%</div>
+        <div class="eia-rel-bar"><div class="eia-rel-bar-fill" style="width:${m.taxaAutoApp}%;background:var(--green)"></div></div>
+      </div>
+      <div class="eia-rel-card">
+        <div class="eia-rel-lbl">Taxa de correção humana</div>
+        <div class="eia-rel-val" style="color:var(--amber)">${m.taxaHumana}%</div>
+        <div class="eia-rel-bar"><div class="eia-rel-bar-fill" style="width:${m.taxaHumana}%;background:var(--amber)"></div></div>
+      </div>
+      <div class="eia-rel-card">
+        <div class="eia-rel-lbl">Distribuição de confiança</div>
+        <div class="eia-rel-hist">
+          ${buckets.map(b=>`<div class="eia-rel-hist-col" title="${b.label}: ${b.count}">
+            <div class="eia-rel-hist-bar" style="height:${Math.max(4,(b.count/maxB)*70)}px;background:${b.col}"></div>
+            <div class="eia-rel-hist-lbl">${b.label}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+    ${empOrdered.length>0 ? `
+      <div class="eia-rel-per-emp">
+        <div class="eia-rel-per-emp-title">Pendentes por empresa</div>
+        <div class="eia-rel-per-emp-list">
+          ${empOrdered.map(([id,d])=>`<div class="eia-rel-emp-row" onclick="openEmp('${id}')">
+            <span class="eia-rel-emp-dot" style="background:${d.cor}"></span>
+            <span class="eia-rel-emp-name">${escHtml(d.nome)}</span>
+            <span class="eia-rel-emp-val">${d.pending} / ${d.total}</span>
+            <span class="eia-rel-emp-bar"><span style="width:${d.total?(d.pending/d.total)*100:0}%;background:${d.pending>0?'var(--amber)':'var(--green)'}"></span></span>
+          </div>`).join('')}
+        </div>
+      </div>
+    ` : ''}
+  </div>`;
+}
+
 function renderExtratoIA(e,c,co){
   const list = eiaGet(e.id);
   // Auto-seleciona primeiro doc se nenhum selecionado
@@ -6057,6 +6183,8 @@ function renderExtratoIA(e,c,co){
       <div class="kpi-card eia-kpi"><div class="kpi-icon" style="background:rgba(239,68,68,.15)">⚠️</div><div class="lbl">Alertas Encontrados</div><div class="val-sm txt-red">${alertEntries}</div><div class="eia-kpi-sub">flags detectadas</div></div>
       <div class="kpi-card eia-kpi"><div class="kpi-icon" style="background:rgba(16,185,129,.15)">🧠</div><div class="lbl">Aprendizado</div><div class="val-sm txt-green">${corrTokens} tokens</div><div class="eia-kpi-sub">${escHtml(lastTrainDelta)}</div></div>
     </div>
+
+    ${eiaReliabilityPanel(e, list)}
 
     <!-- DROP ZONE -->
     ${(typeof hasEiaPerm!=='function' || hasEiaPerm('upload')) ? `
