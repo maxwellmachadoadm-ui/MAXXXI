@@ -809,6 +809,94 @@ a{color:inherit;text-decoration:none}
   .home-v2-title{font-size:28px}
   .home-v2-emp-card.full{flex-direction:column;align-items:stretch}
 }
+/* ── PREMIUM POLISH (global) ─────────────────────────────────────── */
+/* Cards ganham transição e hover com glow sutil */
+.card{border-radius:14px;transition:border-color .15s,transform .15s,box-shadow .15s;position:relative}
+.card:hover{border-color:rgba(59,130,246,.16)}
+.card-sm{border-radius:10px}
+
+/* Tabs premium — pill active state + linha inferior refinada */
+.tabs{gap:2px;overflow-x:auto;padding-bottom:0;scrollbar-width:thin}
+.tab{border-radius:8px 8px 0 0;transition:color .12s,border-color .15s,background .15s}
+.tab:hover{background:rgba(255,255,255,.03)}
+.tab.active{background:linear-gradient(180deg,rgba(59,130,246,.08),transparent);color:var(--blue3);border-bottom-color:var(--blue);box-shadow:0 1px 0 0 var(--blue)}
+
+/* Workspace header com gradiente lateral sutil */
+.ws-header{border-radius:14px;background:linear-gradient(100deg,var(--s1) 0%,var(--s1) 60%,rgba(59,130,246,.04) 100%);position:relative;overflow:hidden}
+.ws-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 100% 0%,rgba(167,139,250,.06),transparent 50%);pointer-events:none}
+.ws-kn{position:relative;z-index:1}
+
+/* Inputs premium */
+.inp{background:rgba(8,12,24,.5);border:1px solid var(--br);border-radius:10px;padding:11px 14px;transition:border-color .15s,box-shadow .15s,background .15s}
+.inp:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.12);background:rgba(8,12,24,.7)}
+.inp:hover:not(:focus){border-color:rgba(255,255,255,.12)}
+textarea.inp,textarea{font-family:'DM Sans',sans-serif;line-height:1.5}
+textarea{background:rgba(8,12,24,.5);border:1px solid var(--br);border-radius:10px;padding:11px 14px;color:var(--tx);outline:none;transition:.15s;width:100%;box-sizing:border-box;margin-bottom:12px;font-size:13px}
+textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+select.inp{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%2394a3b8' d='M6 8L0 0h12z'/></svg>");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+
+/* Botões premium */
+.btn-sm{border:1px solid transparent;font-weight:600;letter-spacing:.01em;box-shadow:0 1px 0 rgba(0,0,0,.08)}
+.btn-blue{background:linear-gradient(180deg,var(--blue),var(--blue2));border-color:rgba(59,130,246,.6)}
+.btn-blue:hover{background:linear-gradient(180deg,#60a5fa,var(--blue));box-shadow:0 4px 14px rgba(59,130,246,.25)}
+.btn-ghost{background:rgba(255,255,255,.03)}
+.btn-ghost:hover{background:rgba(59,130,246,.08);color:var(--tx)}
+.btn-primary{border-radius:10px;box-shadow:0 4px 14px rgba(59,130,246,.18),0 1px 0 rgba(255,255,255,.04) inset}
+.btn-primary:hover{box-shadow:0 6px 20px rgba(59,130,246,.3),0 1px 0 rgba(255,255,255,.06) inset;opacity:1;filter:brightness(1.08)}
+.tb-btn{border-radius:10px;transition:all .15s}
+.tb-btn:hover{border-color:rgba(59,130,246,.35);color:var(--tx);background:rgba(59,130,246,.06)}
+
+/* Modais premium */
+.overlay{background:rgba(2,5,14,.78);backdrop-filter:blur(8px)}
+.modal{border-radius:18px;box-shadow:0 28px 60px rgba(0,0,0,.55),0 0 0 1px rgba(59,130,246,.04),0 0 80px rgba(167,139,250,.04);padding:26px 28px}
+.modal h2{letter-spacing:-.3px}
+.modal-close{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.modal-close:hover{background:rgba(255,255,255,.06);color:var(--tx)}
+
+/* Dropdowns premium */
+.dropdown{border-radius:12px;box-shadow:0 24px 48px rgba(0,0,0,.55),0 0 0 1px rgba(59,130,246,.05);backdrop-filter:blur(6px)}
+.dd-item{transition:background .12s,color .12s}
+
+/* Tabelas genéricas — row hover premium */
+table.fc-table,table.ceo-table,table.vceo-table{font-size:12.5px}
+table.fc-table th,table.ceo-table th,table.vceo-table th{font-family:'DM Sans',sans-serif;font-weight:600;font-size:10px;letter-spacing:.08em}
+.fc-table tbody tr,.ceo-table tbody tr,.vceo-table tbody tr{transition:background .12s}
+.fc-table tbody tr:hover,.ceo-table tbody tr:hover{background:rgba(59,130,246,.04)}
+
+/* File drop zone premium */
+.file-zone{border-radius:14px;border-width:1.5px;background:rgba(59,130,246,.025);transition:all .2s}
+.file-zone:hover,.file-zone.dragover{border-color:var(--blue3);background:rgba(59,130,246,.08);transform:translateY(-1px);box-shadow:0 8px 24px rgba(59,130,246,.12)}
+.file-zone.dragover{border-style:solid;border-color:var(--purple);background:rgba(167,139,250,.1)}
+.file-item{border-radius:10px;background:rgba(255,255,255,.02);transition:.15s}
+.file-item:hover{border-color:rgba(59,130,246,.25);background:rgba(255,255,255,.04)}
+
+/* KPI cards padronizados */
+.kpi-card{background:var(--s1);border:1px solid var(--br);border-radius:14px;padding:16px;position:relative;overflow:hidden;transition:.15s}
+.kpi-card:hover{border-color:rgba(59,130,246,.18)}
+.kpi-card .kpi-icon{font-size:16px;margin-bottom:6px;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:rgba(59,130,246,.12)}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+
+/* Status tags premium */
+.stag{font-family:'DM Sans',sans-serif;font-weight:700;letter-spacing:.08em}
+
+/* Task item premium */
+.task-item{border-radius:10px;background:rgba(255,255,255,.02);border:1px solid var(--br);transition:.15s}
+.task-item:hover{background:rgba(255,255,255,.04);border-color:rgba(59,130,246,.2)}
+
+/* Login premium */
+.login-box{border-radius:20px;box-shadow:0 32px 80px rgba(0,0,0,.6),0 0 0 1px rgba(59,130,246,.04);backdrop-filter:blur(10px)}
+
+/* Scrollbar premium (mantém compat + leve refinamento) */
+::-webkit-scrollbar-thumb{background:#1e2a45;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#263457}
+
+/* Section headers com acentos sutis */
+.slbl{color:var(--tx2)}
+.slbl::before{content:'';width:3px;height:12px;background:linear-gradient(180deg,var(--blue),var(--purple));border-radius:2px;margin-right:2px;display:inline-block}
+
+/* Button base .btn (usado em alguns lugares) */
+.btn{padding:9px 14px;border-radius:10px;border:1px solid var(--br);background:var(--s1);color:var(--tx);font-weight:600;font-size:13px;cursor:pointer;transition:.15s}
+.btn:hover{border-color:rgba(59,130,246,.35);background:rgba(59,130,246,.06)}
 </style>
 </head>
 <body>
