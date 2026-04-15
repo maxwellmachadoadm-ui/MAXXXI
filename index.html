@@ -1294,6 +1294,154 @@ textarea:focus{
 /* Linhas flagged na tabela de EIA mantêm seu acento vermelho */
 .eia-table tr.eia-row-flagged{background:rgba(239,68,68,.08) !important}
 .eia-table tr.eia-row-flagged:hover{background:rgba(239,68,68,.14) !important}
+
+/* ── MODAIS / OVERLAYS (toda a plataforma) ────────────────────────── */
+.overlay{
+  background:rgba(2,5,14,.78) !important;
+  backdrop-filter:blur(8px) !important;
+  -webkit-backdrop-filter:blur(8px) !important;
+}
+.modal,
+.fs-rent2-modal{
+  background:var(--s1) !important;
+  border:1px solid var(--br) !important;
+  border-left:3px solid var(--amber) !important;
+  border-radius:16px !important;
+  box-shadow:0 28px 60px rgba(0,0,0,.55),0 0 0 1px rgba(59,130,246,.04),0 0 80px rgba(167,139,250,.04) !important;
+}
+.modal h2,
+.fs-rent2-modal h2{
+  font-family:'Syne',sans-serif !important;
+  font-weight:800 !important;
+  color:var(--tx) !important;
+  letter-spacing:-.3px !important;
+}
+.modal-close,
+.fs-rent2-modal-close{
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  transition:.15s;color:var(--tx3);background:transparent;border:none;cursor:pointer;
+}
+.modal-close:hover,
+.fs-rent2-modal-close:hover{
+  background:rgba(255,255,255,.06);color:var(--tx);
+}
+.modal-actions,
+.fs-rent2-modal-actions{
+  display:flex;justify-content:flex-end;gap:8px;margin-top:18px;
+}
+
+/* ── BOTÕES — hierarquia uniforme ─────────────────────────────────── */
+/* Primary azul: btn-primary, btn-blue, fs-rent2-btn-primary */
+.btn-primary,
+.btn-blue,
+.fs-rent2-btn-primary,
+.fs-proj-btn.fs-proj-btn-primary{
+  background:var(--blue) !important;
+  border:1px solid var(--blue) !important;
+  color:#fff !important;
+  border-radius:10px !important;
+  font-weight:600 !important;
+  box-shadow:0 4px 14px rgba(59,130,246,.18),0 1px 0 rgba(255,255,255,.04) inset !important;
+  transition:.15s !important;
+}
+.btn-primary:hover,
+.btn-blue:hover,
+.fs-rent2-btn-primary:hover,
+.fs-proj-btn.fs-proj-btn-primary:hover{
+  background:#2563eb !important;
+  border-color:#2563eb !important;
+  box-shadow:0 6px 20px rgba(59,130,246,.3) !important;
+  filter:brightness(1.06);
+}
+
+/* Secondary (ghost): btn, btn-ghost, tb-btn, fs-rent2-btn (base) */
+.btn,
+.btn-ghost,
+.fs-rent2-btn:not(.fs-rent2-btn-primary):not(.fs-rent2-btn-green):not(.fs-rent2-btn-amber):not(.fs-rent2-btn-red),
+.fs-proj-btn:not(.fs-proj-btn-primary):not(.fs-proj-btn-green){
+  background:var(--s1) !important;
+  border:1px solid var(--br) !important;
+  color:var(--tx) !important;
+  border-radius:10px !important;
+  font-weight:600 !important;
+  transition:.15s !important;
+}
+.btn:hover,
+.btn-ghost:hover,
+.fs-rent2-btn:not(.fs-rent2-btn-primary):not(.fs-rent2-btn-green):not(.fs-rent2-btn-amber):not(.fs-rent2-btn-red):hover,
+.fs-proj-btn:not(.fs-proj-btn-primary):not(.fs-proj-btn-green):hover{
+  background:rgba(59,130,246,.06) !important;
+  border-color:rgba(59,130,246,.35) !important;
+  color:var(--tx) !important;
+}
+
+/* Destaque âmbar: btn-ia, fs-rent2-btn-amber */
+.btn-ia,
+.fs-rent2-btn-amber{
+  background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(167,139,250,.12)) !important;
+  border:1px solid rgba(245,158,11,.35) !important;
+  color:var(--amber) !important;
+  border-radius:10px !important;
+  font-weight:700 !important;
+}
+.btn-ia:hover,
+.fs-rent2-btn-amber:hover{
+  background:linear-gradient(135deg,rgba(245,158,11,.25),rgba(167,139,250,.18)) !important;
+  border-color:var(--amber) !important;
+  color:#fff !important;
+  box-shadow:0 4px 14px rgba(245,158,11,.22) !important;
+}
+
+/* Verde: fs-rent2-btn-green, fs-proj-btn-green */
+.fs-rent2-btn-green,
+.fs-proj-btn-green{
+  background:var(--green) !important;
+  border:1px solid var(--green) !important;
+  color:#fff !important;
+  border-radius:10px !important;
+  font-weight:600 !important;
+}
+.fs-rent2-btn-green:hover,
+.fs-proj-btn-green:hover{background:#059669 !important;border-color:#059669 !important}
+
+/* Vermelho: btn-red, fs-rent2-btn-red */
+.btn-red,
+.fs-rent2-btn-red{
+  background:rgba(239,68,68,.12) !important;
+  border:1px solid rgba(239,68,68,.35) !important;
+  color:var(--red) !important;
+  border-radius:10px !important;
+  font-weight:600 !important;
+}
+.btn-red:hover,
+.fs-rent2-btn-red:hover{
+  background:rgba(239,68,68,.22) !important;
+  border-color:var(--red) !important;
+  color:#fff !important;
+}
+
+/* ── BADGES — alinhados com a home v2 ────────────────────────────── */
+.stag{
+  font-family:'DM Sans',sans-serif !important;
+  font-weight:700 !important;
+  font-size:10px !important;
+  letter-spacing:.08em !important;
+  text-transform:uppercase !important;
+  padding:3px 9px !important;
+  border-radius:6px !important;
+}
+/* Status extras no repertório: RISCO / OPORTUNIDADE (reuso das
+   classes home-v2-badge existentes CRESCIMENTO/AJUSTAR/ESCALAR/ESTAVEL) */
+.home-v2-badge-risco{background:rgba(239,68,68,.15);color:var(--red)}
+.home-v2-badge-oportunidade{background:rgba(245,158,11,.15);color:var(--amber)}
+
+/* ── SIDEBAR — seções com labels refinados ───────────────────────── */
+.sb-lbl{
+  font-family:'DM Sans',sans-serif;
+  color:var(--tx3);
+  font-weight:700;
+}
 </style>
 </head>
 <body>
