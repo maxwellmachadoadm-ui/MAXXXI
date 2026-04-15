@@ -1649,6 +1649,37 @@ textarea:focus{
 .home-v2-emp-card,
 .home-v2-side-card{border-radius:14px !important}
 
+/* ── KANBAN TAREFAS (FASE I) ─────────────────────────────────────── */
+.kan-root{display:flex;flex-direction:column;gap:14px}
+.kan-board{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:flex-start}
+.kan-col{background:var(--s1);border:1px solid var(--br);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;min-height:400px;max-height:70vh;overflow:hidden}
+.kan-col-pending{border-top:3px solid var(--amber)}
+.kan-col-progress{border-top:3px solid var(--blue)}
+.kan-col-done{border-top:3px solid var(--green)}
+.kan-col.drop-target{background:rgba(59,130,246,.05);border-color:rgba(59,130,246,.4)}
+.kan-col-head{display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx2);font-weight:700;padding:2px 4px}
+.kan-col-n{background:rgba(255,255,255,.06);padding:2px 10px;border-radius:99px;font-family:'Syne',sans-serif;font-size:11px;color:var(--tx)}
+.kan-col-body{display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1;padding-right:4px}
+.kan-card{background:var(--s0);border:1px solid var(--br);border-radius:10px;padding:11px;cursor:grab;transition:.12s;display:flex;flex-direction:column;gap:6px}
+.kan-card:hover{border-color:rgba(59,130,246,.3);transform:translateY(-1px)}
+.kan-card.dragging{opacity:.4;transform:rotate(1deg)}
+.kan-card.done{opacity:.75}
+.kan-card-head{display:flex;align-items:center;gap:6px;justify-content:space-between}
+.kan-prio{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:5px}
+.kan-prio-alta{background:rgba(239,68,68,.15);color:var(--red)}
+.kan-prio-media{background:rgba(245,158,11,.15);color:var(--amber)}
+.kan-prio-baixa{background:rgba(100,116,139,.15);color:var(--tx3)}
+.kan-source{font-size:13px}
+.kan-card-actions{display:flex;gap:3px;margin-left:auto}
+.kan-title{font-size:13px;font-weight:600;color:var(--tx);line-height:1.35}
+.kan-title.done{text-decoration:line-through;color:var(--tx3)}
+.kan-desc{font-size:11.5px;color:var(--tx2);line-height:1.4}
+.kan-resp,.kan-prazo{font-size:11px;color:var(--tx3)}
+.kan-tag{display:inline-block;font-size:9.5px;padding:2px 7px;border-radius:4px;background:rgba(167,139,250,.12);color:var(--purple);letter-spacing:.04em;width:fit-content}
+@media(max-width:900px){
+  .kan-board{grid-template-columns:1fr}
+}
+
 /* ── ORION BANNER (workspace topo) ────────────────────────────────── */
 .orion-banner{display:flex;gap:14px;align-items:flex-start;background:linear-gradient(145deg,rgba(59,130,246,.08),rgba(167,139,250,.06));border:1px solid rgba(167,139,250,.25);border-left:3px solid var(--purple);border-radius:14px;padding:14px 16px;margin-bottom:18px}
 .orion-banner-red{border-left-color:var(--red);background:linear-gradient(145deg,rgba(239,68,68,.10),rgba(167,139,250,.04))}
@@ -2151,11 +2182,25 @@ textarea:focus{
   <div class="modal" style="position:relative">
     <button class="modal-close" onclick="closeModal('modal-task')">&times;</button>
     <h2>Nova Tarefa</h2>
-    <input class="inp" id="task-text" placeholder="Descrição da tarefa"/>
+    <div class="lbl">Título</div>
+    <input class="inp" id="task-text" placeholder="Título da tarefa"/>
+    <div class="lbl">Descrição</div>
+    <textarea id="task-desc" placeholder="Detalhes (opcional)" rows="2"></textarea>
+    <div class="g2" style="gap:10px">
+      <div>
+        <div class="lbl">Responsável</div>
+        <input class="inp" id="task-responsavel" placeholder="Nome"/>
+      </div>
+      <div>
+        <div class="lbl">Prazo</div>
+        <input class="inp" id="task-prazo" type="date"/>
+      </div>
+    </div>
+    <div class="lbl">Prioridade</div>
     <select class="inp" id="task-prio">
-      <option value="alta">Alta prioridade</option>
-      <option value="media">Média prioridade</option>
-      <option value="baixa">Baixa prioridade</option>
+      <option value="alta">Alta</option>
+      <option value="media" selected>Média</option>
+      <option value="baixa">Baixa</option>
     </select>
     <div class="modal-actions">
       <button class="btn-sm btn-ghost" onclick="closeModal('modal-task')">Cancelar</button>
@@ -4041,18 +4086,7 @@ function renderTab(){
       </div>`;
     }).join('');
   }
-  else if(curTab==='Tarefas'){
-    c.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <div style="font-size:13px;color:var(--tx3)">${e.tarefas.filter(t=>t.k).length}/${e.tarefas.length} concluídas</div>
-      <button class="btn-sm btn-blue" onclick="openModal('modal-task')">+ Nova Tarefa</button>
-    </div>`+e.tarefas.map((t,i)=>`
-      <div class="task-item ${t.k?'done':t.p}">
-        <button class="task-check" onclick="toggleTask(${i})">${t.k?'✅':'⬜'}</button>
-        <span style="flex:1;font-size:14px;font-weight:500;${t.k?'text-decoration:line-through;color:var(--tx3)':''}">${t.t}</span>
-        ${!t.k?`<span class="ptag" style="color:${t.p==='alta'?'var(--red)':t.p==='media'?'var(--amber)':'var(--tx3)'};background:${t.p==='alta'?'rgba(239,68,68,.15)':t.p==='media'?'rgba(245,158,11,.15)':'rgba(100,116,139,.15)'}">${t.p}</span>`:''}
-        <button class="task-del" onclick="deleteTask(${i})">🗑</button>
-      </div>`).join('');
-  }
+  else if(curTab==='Tarefas'){ renderTarefasKanban(e,c,co) }
   else if(curTab==='Contratos'){
     const cts=getContratos(curEmp);
     const ativos=cts.filter(c=>c.status==='ativo').length;
@@ -9397,11 +9431,168 @@ function saveNewTask(){
   const prio=document.getElementById('task-prio').value;
   if(!text){alert('Preencha a descrição');return}
   const id=crypto.randomUUID();
-  EMPS[curEmp].tarefas.push({t:text,p:prio,k:false,_id:id});
+  const desc = (document.getElementById('task-desc')||{}).value || '';
+  const responsavel = (document.getElementById('task-responsavel')||{}).value || '';
+  const prazo = (document.getElementById('task-prazo')||{}).value || '';
+  EMPS[curEmp].tarefas.push({t:text,p:prio,k:false,_id:id,status:'pendente',desc,responsavel,prazo,source:'manual'});
   saveTasks(EMPS[curEmp].tarefas);
   sbInsert('tarefas',{id,empresa_id:curEmp,texto:text,prioridade:prio,concluida:false});
+  if(typeof audit==='function') audit('task.create', {type:'task', id, label:text}, null, {priority:prio, responsavel});
   closeModal('modal-task');
   document.getElementById('task-text').value='';
+  if((document.getElementById('task-desc')||{}).value!==undefined) document.getElementById('task-desc').value='';
+  if((document.getElementById('task-responsavel')||{}).value!==undefined) document.getElementById('task-responsavel').value='';
+  if((document.getElementById('task-prazo')||{}).value!==undefined) document.getElementById('task-prazo').value='';
+  renderTab();
+}
+
+// ── KANBAN TAREFAS — FASE I ──────────────────────────────────────────
+function taskStatusOf(t){
+  if(t.k) return 'concluido';
+  return t.status || 'pendente';
+}
+
+function renderTarefasKanban(e,c,co){
+  const tasks = (e.tarefas||[]).map((t,i)=>({...t, _idx:i}));
+  const cols = [
+    {key:'pendente',  label:'Pendente',     cls:'kan-col-pending'},
+    {key:'andamento', label:'Em andamento', cls:'kan-col-progress'},
+    {key:'concluido', label:'Concluído',    cls:'kan-col-done'}
+  ];
+  const byCol = {pendente:[], andamento:[], concluido:[]};
+  tasks.forEach(t=>{ (byCol[taskStatusOf(t)]||byCol.pendente).push(t); });
+  const totalPend = tasks.filter(t=>!t.k).length;
+  const totalDone = tasks.filter(t=>t.k).length;
+  c.innerHTML = `<div class="kan-root">
+    <div class="eia-head">
+      <div>
+        <div class="eia-title">Tarefas</div>
+        <div class="eia-sub">${totalPend} pendente(s) · ${totalDone} concluída(s) · kanban com drag & drop</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-ia" onclick="taskGenerateFromORION()">🤖 Gerar pela IA</button>
+        <button class="btn btn-blue" onclick="openModal('modal-task')">+ Nova Tarefa</button>
+      </div>
+    </div>
+    <div class="kan-board">
+      ${cols.map(col=>`
+      <div class="kan-col ${col.cls}" data-status="${col.key}"
+        ondragover="taskDragOver(event)" ondragleave="taskDragLeave(event)" ondrop="taskDrop(event,'${col.key}')">
+        <div class="kan-col-head">
+          <span>${col.label}</span>
+          <span class="kan-col-n">${byCol[col.key].length}</span>
+        </div>
+        <div class="kan-col-body">
+          ${byCol[col.key].map(t=>taskCardHtml(t,col.key)).join('')}
+        </div>
+      </div>
+      `).join('')}
+    </div>
+  </div>`;
+}
+
+function taskCardHtml(t, status){
+  const prioCls = t.p==='alta'?'kan-prio-alta':t.p==='media'?'kan-prio-media':'kan-prio-baixa';
+  const prioLabel = t.p==='alta'?'Alta':t.p==='media'?'Média':'Baixa';
+  const sourceIcon = t.source==='orion'?'🤖':'';
+  const prazo = t.prazo?`<div class="kan-prazo">📅 ${escHtml(t.prazo)}</div>`:'';
+  const resp = t.responsavel?`<div class="kan-resp">👤 ${escHtml(t.responsavel)}</div>`:'';
+  const desc = t.desc?`<div class="kan-desc">${escHtml(t.desc)}</div>`:'';
+  const done = status==='concluido';
+  return `<div class="kan-card ${done?'done':''}" draggable="true"
+    ondragstart="taskDragStart(event,${t._idx})" ondragend="taskDragEnd(event)">
+    <div class="kan-card-head">
+      <span class="kan-prio ${prioCls}">${prioLabel}</span>
+      ${sourceIcon?`<span class="kan-source" title="Gerado pelo ORION">${sourceIcon}</span>`:''}
+      <div class="kan-card-actions">
+        <button class="eia-act-btn eia-act-edit" title="Editar" onclick="taskEdit(${t._idx})">✎</button>
+        <button class="eia-act-btn eia-act-rej" title="Remover" onclick="deleteTask(${t._idx})">🗑</button>
+      </div>
+    </div>
+    <div class="kan-title ${done?'done':''}">${escHtml(t.t)}</div>
+    ${desc}
+    ${resp}
+    ${prazo}
+    ${t.recKey?`<div class="kan-tag">Origem: ${escHtml(t.recKey)}</div>`:''}
+  </div>`;
+}
+
+function taskDragStart(ev, idx){
+  ev.dataTransfer.effectAllowed = 'move';
+  ev.dataTransfer.setData('text/plain', String(idx));
+  ev.currentTarget.classList.add('dragging');
+}
+function taskDragEnd(ev){
+  ev.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.kan-col').forEach(c=>c.classList.remove('drop-target'));
+}
+function taskDragOver(ev){
+  ev.preventDefault();
+  ev.dataTransfer.dropEffect = 'move';
+  ev.currentTarget.classList.add('drop-target');
+}
+function taskDragLeave(ev){
+  ev.currentTarget.classList.remove('drop-target');
+}
+function taskDrop(ev, newStatus){
+  ev.preventDefault();
+  ev.currentTarget.classList.remove('drop-target');
+  const idx = parseInt(ev.dataTransfer.getData('text/plain'),10);
+  if(isNaN(idx)) return;
+  const tasks = EMPS[curEmp].tarefas;
+  const t = tasks[idx]; if(!t) return;
+  const prev = taskStatusOf(t);
+  if(prev===newStatus) return;
+  t.status = newStatus;
+  t.k = (newStatus==='concluido');
+  saveTasks(tasks);
+  if(t._id) sbUpdate('tarefas', t._id, {concluida:t.k, status:newStatus});
+  if(typeof audit==='function') audit('task.move', {type:'task', id:t._id||t.t, label:t.t}, {status:prev}, {status:newStatus});
+  renderTab();
+}
+
+function taskEdit(idx){
+  const t = EMPS[curEmp].tarefas[idx]; if(!t) return;
+  document.getElementById('task-text').value = t.t||'';
+  if(document.getElementById('task-desc')) document.getElementById('task-desc').value = t.desc||'';
+  if(document.getElementById('task-responsavel')) document.getElementById('task-responsavel').value = t.responsavel||'';
+  if(document.getElementById('task-prazo')) document.getElementById('task-prazo').value = t.prazo||'';
+  document.getElementById('task-prio').value = t.p||'media';
+  openModal('modal-task');
+  // Rebind save to update
+  window._taskEditIdx = idx;
+}
+
+function taskGenerateFromORION(){
+  if(!curEmp) return;
+  const recs = (typeof orionRecommendForEmp==='function')?orionRecommendForEmp(curEmp):[];
+  if(recs.length===0){ showToast('Nenhuma recomendação ativa — ORION sem sugestões agora.'); return; }
+  const tasks = EMPS[curEmp].tarefas;
+  let created = 0;
+  recs.forEach(r=>{
+    // Evita duplicatas por recKey
+    if(tasks.find(t=>t.recKey===r.key && !t.k)) return;
+    const id = (typeof crypto!=='undefined' && crypto.randomUUID)?crypto.randomUUID():'t'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
+    const prio = r.urgency==='critical'?'alta':r.urgency==='high'?'alta':r.urgency==='medium'?'media':'baixa';
+    const task = {
+      t: r.action||r.problem,
+      desc: r.explain,
+      responsavel: '',
+      prazo: '',
+      p: prio,
+      status: 'pendente',
+      k: false,
+      _id: id,
+      source: 'orion',
+      recKey: r.key
+    };
+    tasks.push(task);
+    try{ sbInsert('tarefas',{id, empresa_id:curEmp, texto:task.t, prioridade:prio, concluida:false}); }catch(e){}
+    if(typeof audit==='function') audit('task.orion_create', {type:'task', id, label:task.t}, null, {recKey:r.key, urgency:r.urgency});
+    created++;
+  });
+  saveTasks(tasks);
+  showToast(created>0?(created+' tarefa(s) criada(s) pelo ORION'):'Nenhuma recomendação nova — tarefas já existentes.');
   renderTab();
 }
 
