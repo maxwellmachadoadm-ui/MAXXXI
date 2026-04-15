@@ -3397,35 +3397,24 @@ function renderEmpGrid(){
 function renderHomeV2Recommend(){
   const el = document.getElementById('home-recommend');
   if(!el) return;
-  // Usa ORION Decision Engine (FASE H) se disponível
   let recs = [];
   if(typeof orionRecommendAll==='function'){
-    recs = orionRecommendAll().slice(0,4);
-  }
-  // Fallback caso não haja dados reais ainda
-  if(recs.length===0){
-    const emps = Object.values(EMPS);
-    const dw = emps.find(e=>e.id==='dw');
-    const of = emps.find(e=>e.id==='of');
-    const fs = emps.find(e=>e.id==='fs');
-    if(dw) recs.push({empId:'dw', emp:dw.nome, action:'Aumentar investimento em tráfego ('+dw.sigla+')', urgency:'high'});
-    if(of) recs.push({empId:'of', emp:of.nome, action:'Reduzir custo fixo na '+of.nome.split(' ')[0], urgency:'critical'});
-    if(fs) recs.push({empId:'fs', emp:fs.nome, action:'Escalar '+fs.nome+' (janela ativa 30d)', urgency:'low'});
+    recs = orionRecommendAll().slice(0,5);
   }
   const chipCls = u=>u==='critical'?'hi':u==='high'?'urg':u==='low'?'op':'urg';
-  const chipLabel = u=>u==='critical'?'Crítico':u==='high'?'Alta':u==='low'?'Oportunidade':'Média';
+  const chipLabel = u=>u==='critical'?'Crítico':u==='high'?'Alta':u==='medium'?'Média':'Oportunidade';
   el.innerHTML = `<div class="home-v2-recommend-head">
       <div class="home-v2-recommend-icon">🤖</div>
       <div class="home-v2-recommend-title">ORION recomenda hoje</div>
       <span style="color:var(--tx3);font-size:14px">»</span>
     </div>
-    ${recs.length===0 ? '<div style="font-size:11px;color:var(--tx3);padding:10px 0">Nenhuma recomendação crítica agora.</div>' :
-      recs.map(r=>`<div class="home-v2-rec-item" ${r.empId?`onclick="openEmp('${r.empId}')" style="cursor:pointer"`:''}>
-        <span class="home-v2-rec-check">✓</span>
+    ${recs.length===0 ? '<div style="font-size:11px;color:var(--tx3);padding:10px 0">Sem alertas críticos. Operação saudável. 🎉</div>' :
+      recs.map(r=>`<div class="home-v2-rec-item" onclick="openEmp('${r.empId}')" style="cursor:pointer" title="${escHtml(r.explain||'')}">
+        <span class="home-v2-rec-check">${r.urgency==='critical'?'!':r.urgency==='high'?'▲':'✓'}</span>
         <span class="home-v2-rec-text">${escHtml(r.action||r.problem||'')} ${r.emp?`<span style="color:var(--tx3);font-size:10px">· ${escHtml(r.emp)}</span>`:''}</span>
         <span class="home-v2-rec-chip ${chipCls(r.urgency)}">${chipLabel(r.urgency)}</span>
       </div>`).join('')}
-    <div class="home-v2-recommend-foot">Ver plano completo →</div>`;
+    <div class="home-v2-recommend-foot" onclick="navOpenEmpTab('Extrato IA')" style="cursor:pointer">Ver plano completo →</div>`;
 }
 
 function renderHomeV2Alerts(){
@@ -7239,9 +7228,49 @@ function orionRecommendForEmp(empId){
 }
 
 function orionRecommendAll(){
-  return Object.values(EMPS)
+  const all = Object.values(EMPS)
     .filter(e=>!e.id.startsWith('custom_')||true)
     .flatMap(e=>orionRecommendForEmp(e.id));
+  // Dedup por (empId+key) + ordena por urgência (critical > high > medium > low)
+  const seen = new Set();
+  const uniq = [];
+  all.forEach(r=>{
+    const k = r.empId+'|'+r.key;
+    if(seen.has(k)) return;
+    seen.add(k);
+    uniq.push(r);
+  });
+  const urgRank = {critical:0, high:1, medium:2, low:3};
+  uniq.sort((a,b)=> (urgRank[a.urgency]||9) - (urgRank[b.urgency]||9));
+  return uniq;
+}
+
+// Agrupa por urgência (para painéis)
+function orionGroupByUrgency(recs){
+  const groups = {critical:[], high:[], medium:[], low:[]};
+  (recs||[]).forEach(r=>{ (groups[r.urgency]||groups.medium).push(r); });
+  return groups;
+}
+
+// Quick action: cria uma tarefa a partir da recomendação
+function orionCreateTaskFromRec(empId, recKey){
+  const recs = orionRecommendForEmp(empId);
+  const rec = recs.find(r=>r.key===recKey); if(!rec){ showError('Recomendação não encontrada'); return; }
+  const prev = curEmp;
+  curEmp = empId;
+  const tasks = EMPS[curEmp].tarefas || (EMPS[curEmp].tarefas=[]);
+  // Dedup por recKey + status != concluído
+  if(tasks.find(t=>t.recKey===rec.key && !t.k)){ showInfo('Tarefa desta recomendação já existe'); curEmp=prev; return; }
+  const id = (typeof crypto!=='undefined' && crypto.randomUUID)?crypto.randomUUID():'t'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
+  const prio = rec.urgency==='critical'?'alta':rec.urgency==='high'?'alta':rec.urgency==='medium'?'media':'baixa';
+  const task = {t:rec.action||rec.problem, desc:rec.explain, responsavel:'', prazo:'', p:prio, status:'pendente', k:false, _id:id, source:'orion', recKey:rec.key};
+  tasks.push(task);
+  try{ sbInsert('tarefas',{id, empresa_id:empId, texto:task.t, prioridade:prio, concluida:false}); }catch(e){}
+  saveTasks(tasks);
+  if(typeof audit==='function') audit('task.orion_create', {type:'task', id, label:task.t}, null, {recKey:rec.key, urgency:rec.urgency});
+  showToast('Tarefa criada pelo ORION');
+  curEmp = prev;
+  if(typeof renderHomeV2Recommend==='function') renderHomeV2Recommend();
 }
 
 function orionUrgencyBadge(urg){
@@ -7258,15 +7287,34 @@ function orionUrgencyCls(urg){
   return urg==='critical'?'red':urg==='high'?'amber':urg==='medium'?'purple':'green';
 }
 
-// Painel no topo do workspace
+// Painel no topo do workspace — FASE L: ordena por urgência + CTAs ricos
 function renderORIONWorkspaceBanner(empId){
   const container = document.getElementById('ws-orion-banner');
   if(!container) return;
-  const recs = orionRecommendForEmp(empId);
+  let recs = orionRecommendForEmp(empId);
   if(recs.length===0){ container.classList.add('hidden'); container.innerHTML=''; return; }
+  // Ordena por urgência
+  const urgRank = {critical:0, high:1, medium:2, low:3};
+  recs = recs.slice().sort((a,b)=> (urgRank[a.urgency]||9) - (urgRank[b.urgency]||9));
   container.classList.remove('hidden');
   const top = recs[0];
   const badge = orionUrgencyBadge(top.urgency);
+  // CTAs contextuais por tipo de recomendação
+  const ctas = [];
+  // Criar tarefa sempre
+  ctas.push(`<button class="btn btn-ghost btn-sm" onclick="orionCreateTaskFromRec('${empId}','${top.key}')">＋ Tarefa</button>`);
+  // Ir para Extrato IA quando regra envolve EIA
+  if(['many_pending','eia_flags'].includes(top.key) || top.actionTab==='Extrato IA'){
+    ctas.push(`<button class="btn btn-ghost btn-sm" onclick="switchTab('Extrato IA')">🤖 Extrato IA</button>`);
+  }
+  // Ver relatório
+  if(['expense_over_revenue','negative_growth','inadimplencia'].includes(top.key)){
+    ctas.push(`<button class="btn btn-ghost btn-sm" onclick="switchTab('Relatórios')">📊 Relatório</button>`);
+  }
+  // Resolver (aba do actionTab)
+  if(top.actionTab && top.actionTab!=='Extrato IA' && top.actionTab!=='Relatórios'){
+    ctas.push(`<button class="btn btn-ia btn-sm" onclick="switchTab('${top.actionTab}')">Resolver →</button>`);
+  }
   container.innerHTML = `<div class="orion-banner orion-banner-${orionUrgencyCls(top.urgency)}">
     <div class="orion-banner-ico">🤖</div>
     <div class="orion-banner-body">
@@ -7278,8 +7326,8 @@ function renderORIONWorkspaceBanner(empId){
       <div class="orion-banner-action">→ ${escHtml(top.action)}</div>
     </div>
     <div class="orion-banner-actions">
-      ${top.actionTab?`<button class="btn btn-ia" onclick="switchTab('${top.actionTab}')">Resolver →</button>`:''}
-      ${recs.length>1?`<span style="font-size:11px;color:var(--tx3)">+${recs.length-1} outra${recs.length-1===1?'':'s'} recomendação${recs.length-1===1?'':'ões'}</span>`:''}
+      ${ctas.join('')}
+      ${recs.length>1?`<span style="font-size:11px;color:var(--tx3)">+${recs.length-1} outra${recs.length-1===1?'':'s'}</span>`:''}
     </div>
   </div>`;
 }
