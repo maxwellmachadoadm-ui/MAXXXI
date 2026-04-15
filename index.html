@@ -3069,6 +3069,308 @@ function fsProjExportCSV(){
 // Legacy entrypoint
 function editProjecoes(){ /* no-op: agora é inline */ }
 
+// ── RENTABILIDADE v2 (Forme Seguro) ───────────────────────────────────────
+// Implementação fiel ao FORME_SEGURO_RENTABILIDADE.html original
+// Storage: localStorage 'fs2-turmas'
+// Struct turma: {id, nome, curso, inicio, prev, representante, alunos,
+//                meses:[{mes, boletos, eventos, taxa, cerimonial, rifa,
+//                        devolucao, outras, rend, obs}]}
+// Engine calcMes(m, saldoAnt):
+//   desp         = taxa + cerimonial + rifa + devolucao + outras
+//   entrada      = boletos + eventos
+//   saldoParcial = saldoAnt + entrada - desp
+//   rendDec      = m.rend > 1 ? m.rend/100 : m.rend   (aceita dec ou pct)
+//   rentab       = saldoParcial * rendDec
+//   saldoBruto   = saldoParcial + rentab
+//   honorario    = rentab * 0.5
+//   saldoFinal   = saldoBruto - honorario
+let fsRent2SubTab = 'painel';
+let fsRent2LancTurmaId = '';
+const FS_RENT2_RATES = {cdi:1.065, selic:1.072, poup:0.565};
+
+function fsRent2GetTurmas(){
+  try{ return JSON.parse(localStorage.getItem('fs2-turmas')||'[]') }
+  catch(e){ return [] }
+}
+function fsRent2SaveTurmas(t){ localStorage.setItem('fs2-turmas', JSON.stringify(t)) }
+
+function fsRent2CalcMes(m, saldoAnt){
+  const boletos = FMT.num(m.boletos);
+  const eventos = FMT.num(m.eventos);
+  const taxa = FMT.num(m.taxa);
+  const cerimonial = FMT.num(m.cerimonial);
+  const rifa = FMT.num(m.rifa);
+  const devolucao = FMT.num(m.devolucao);
+  const outras = FMT.num(m.outras);
+  const rendRaw = FMT.num(m.rend);
+  const rendDec = rendRaw > 1 ? rendRaw/100 : rendRaw;
+  const desp = taxa + cerimonial + rifa + devolucao + outras;
+  const entrada = boletos + eventos;
+  const saldoParcial = saldoAnt + entrada - desp;
+  const rentab = saldoParcial * rendDec;
+  const saldoBruto = saldoParcial + rentab;
+  const honorario = rentab * 0.5;
+  const saldoFinal = saldoBruto - honorario;
+  return {mes:m.mes, boletos, eventos, taxa, cerimonial, rifa, devolucao, outras,
+          rendDec, rendPct:rendDec*100, desp, entrada, saldoAnt, saldoParcial,
+          rentab, saldoBruto, honorario, saldoFinal, obs:m.obs||''};
+}
+
+function fsRent2Calc(turma){
+  const meses = (turma.meses||[]).slice().sort((a,b)=>String(a.mes).localeCompare(String(b.mes)));
+  let saldoAnt = 0;
+  const rows = meses.map(m=>{
+    const row = fsRent2CalcMes(m, saldoAnt);
+    saldoAnt = row.saldoFinal;
+    return row;
+  });
+  const totBol = rows.reduce((s,r)=>s+r.boletos,0);
+  const totEvt = rows.reduce((s,r)=>s+r.eventos,0);
+  const totDesp = rows.reduce((s,r)=>s+r.desp,0);
+  const totRent = rows.reduce((s,r)=>s+r.rentab,0);
+  const totHon = rows.reduce((s,r)=>s+r.honorario,0);
+  const saldo = rows.length ? rows[rows.length-1].saldoFinal : 0;
+  return {rows, totBol, totEvt, totDesp, totRent, totHon, saldo};
+}
+
+function fsRent2Status(turma){
+  const prev = (turma.prev||'').slice(0,7);
+  if(!prev) return {key:'ativo', label:'Ativa', cls:'fs-rent2-tag-green'};
+  const now = new Date();
+  const curYM = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  if(curYM > prev) return {key:'encerrado', label:'Encerrada', cls:'fs-rent2-tag-gray'};
+  // within 6 months of end = proximo
+  const [py,pm] = prev.split('-').map(Number);
+  const prevDate = new Date(py, pm-1, 1);
+  const diffMonths = (prevDate.getFullYear()-now.getFullYear())*12 + (prevDate.getMonth()-now.getMonth());
+  if(diffMonths <= 6) return {key:'proximo', label:'Formatura Próxima', cls:'fs-rent2-tag-amber'};
+  return {key:'ativo', label:'Ativa', cls:'fs-rent2-tag-green'};
+}
+
+// Dados históricos reais — turma Medicina Veterinária UVV 2026.2
+// Injetados automaticamente na primeira carga se 'medvet-uvv' não existir
+const FS_RENT2_HISTORICO_MEDVET = {
+  id:'medvet-uvv',
+  nome:'Medicina Veterinária UVV 2026.2',
+  curso:'Med. Veterinária — UVV',
+  inicio:'2023-03',
+  prev:'2026-12',
+  representante:'',
+  alunos:0,
+  meses:[
+    {mes:"2023-03",boletos:1250,eventos:0,taxa:9.90,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0},
+    {mes:"2023-04",boletos:7643.43,eventos:0,taxa:59.40,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0},
+    {mes:"2023-05",boletos:10315.91,eventos:0,taxa:79.20,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0102},
+    {mes:"2023-06",boletos:4340.63,eventos:0,taxa:33.66,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0102},
+    {mes:"2023-07",boletos:5360.04,eventos:0,taxa:41.58,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0102},
+    {mes:"2023-08",boletos:9405.33,eventos:0,taxa:73.26,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0102},
+    {mes:"2023-09",boletos:5227.60,eventos:0,taxa:39.60,cerimonial:2571.42,rifa:140,devolucao:750,outras:0,rend:0.0097},
+    {mes:"2023-10",boletos:8171.10,eventos:0,taxa:63.36,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0074},
+    {mes:"2023-11",boletos:5320.43,eventos:0,taxa:39.60,cerimonial:0,rifa:140,devolucao:0,outras:0,rend:0.0103},
+    {mes:"2023-12",boletos:13811.30,eventos:0,taxa:91.08,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0098},
+    {mes:"2024-01",boletos:8954.68,eventos:0,taxa:69.30,cerimonial:0,rifa:0,devolucao:1150,outras:0,rend:0.0108},
+    {mes:"2024-02",boletos:7694.78,eventos:0,taxa:57.42,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0080},
+    {mes:"2024-03",boletos:11402.21,eventos:0,taxa:69.30,cerimonial:0,rifa:295,devolucao:0,outras:711.63,rend:0.008317},
+    {mes:"2024-04",boletos:11838.52,eventos:0,taxa:81.18,cerimonial:0,rifa:0,devolucao:0,outras:4000.23,rend:0.008874},
+    {mes:"2024-05",boletos:10697.50,eventos:0,taxa:71.28,cerimonial:2571.42,rifa:0,devolucao:0,outras:3907.68,rend:0.008324},
+    {mes:"2024-06",boletos:14600.72,eventos:0,taxa:110.88,cerimonial:0,rifa:1000,devolucao:0,outras:1469.50,rend:0.007883},
+    {mes:"2024-07",boletos:23117.35,eventos:0,taxa:146.52,cerimonial:2571.42,rifa:0,devolucao:0,outras:17102.29,rend:0.009071},
+    {mes:"2024-08",boletos:7414.91,eventos:6750,taxa:51.48,cerimonial:0,rifa:0,devolucao:2975,outras:15686.57,rend:0.008675},
+    {mes:"2024-09",boletos:6475.15,eventos:1872.65,taxa:70.59,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.008352},
+    {mes:"2024-10",boletos:9632.94,eventos:0,taxa:87.15,cerimonial:0,rifa:0,devolucao:0,outras:6310,rend:0.009280},
+    {mes:"2024-11",boletos:3938.38,eventos:0,taxa:38.02,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.007930},
+    {mes:"2024-12",boletos:9510.93,eventos:0,taxa:93.60,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.009314},
+    {mes:"2025-01",boletos:4864.02,eventos:0,taxa:42.58,cerimonial:4191.43,rifa:0,devolucao:4480.50,outras:0,rend:0.0101},
+    {mes:"2025-02",boletos:7521.90,eventos:0,taxa:64.98,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0098},
+    {mes:"2025-03",boletos:4110.11,eventos:0,taxa:36.76,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0096},
+    {mes:"2025-04",boletos:7180.67,eventos:0,taxa:73.06,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0105},
+    {mes:"2025-05",boletos:5438.73,eventos:0,taxa:62.03,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0113},
+    {mes:"2025-06",boletos:7686.05,eventos:0,taxa:45.19,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0109},
+    {mes:"2025-07",boletos:5370.13,eventos:0,taxa:88.40,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0127},
+    {mes:"2025-08",boletos:10354.15,eventos:0,taxa:60.82,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0116},
+    {mes:"2025-09",boletos:7757.56,eventos:0,taxa:72.02,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0121},
+    {mes:"2025-10",boletos:6035.00,eventos:0,taxa:77.40,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0127},
+    {mes:"2025-11",boletos:3502.97,eventos:0,taxa:18.32,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0105},
+    {mes:"2025-12",boletos:8941.09,eventos:0,taxa:85.22,cerimonial:0,rifa:0,devolucao:0,outras:0,rend:0.0121},
+    {mes:"2026-01",boletos:4052.56,eventos:0,taxa:59.46,cerimonial:0,rifa:0,devolucao:6441.26,outras:0,rend:0.0116},
+    {mes:"2026-02",boletos:6960.90,eventos:0,taxa:65.13,cerimonial:0,rifa:0,devolucao:2875.00,outras:0,rend:0.0099}
+  ]
+};
+
+function fsRent2EnsureHistorico(){
+  const turmas = fsRent2GetTurmas();
+  if(!turmas.find(t=>t.id==='medvet-uvv')){
+    turmas.unshift(JSON.parse(JSON.stringify(FS_RENT2_HISTORICO_MEDVET)));
+    fsRent2SaveTurmas(turmas);
+  }
+}
+
+// ── CRUD TURMAS ────────────────────────────────────────────────────────────
+function fsRent2OpenNovaTurma(){
+  document.getElementById('fs-rent2-turma-id').value='';
+  document.getElementById('fs-rent2-turma-nome').value='';
+  document.getElementById('fs-rent2-turma-curso').value='';
+  document.getElementById('fs-rent2-turma-inicio').value='';
+  document.getElementById('fs-rent2-turma-prev').value='';
+  document.getElementById('fs-rent2-turma-rep').value='';
+  document.getElementById('fs-rent2-turma-alunos').value='';
+  document.getElementById('fs-rent2-turma-title').textContent='Nova Turma';
+  openModal('modal-fs-rent2-turma');
+}
+
+function fsRent2OpenEditTurma(id){
+  const t = fsRent2GetTurmas().find(x=>x.id===id);
+  if(!t) return;
+  document.getElementById('fs-rent2-turma-id').value=t.id;
+  document.getElementById('fs-rent2-turma-nome').value=t.nome||'';
+  document.getElementById('fs-rent2-turma-curso').value=t.curso||'';
+  document.getElementById('fs-rent2-turma-inicio').value=t.inicio||'';
+  document.getElementById('fs-rent2-turma-prev').value=t.prev||'';
+  document.getElementById('fs-rent2-turma-rep').value=t.representante||'';
+  document.getElementById('fs-rent2-turma-alunos').value=t.alunos||'';
+  document.getElementById('fs-rent2-turma-title').textContent='Editar Turma';
+  openModal('modal-fs-rent2-turma');
+}
+
+function fsRent2SaveTurma(){
+  const id = document.getElementById('fs-rent2-turma-id').value;
+  const nome = document.getElementById('fs-rent2-turma-nome').value.trim();
+  const curso = document.getElementById('fs-rent2-turma-curso').value.trim();
+  const inicio = document.getElementById('fs-rent2-turma-inicio').value;
+  const prev = document.getElementById('fs-rent2-turma-prev').value;
+  const representante = document.getElementById('fs-rent2-turma-rep').value.trim();
+  const alunos = parseInt(document.getElementById('fs-rent2-turma-alunos').value)||0;
+  if(!nome){ showToast('Informe o nome da turma'); return; }
+  const turmas = fsRent2GetTurmas();
+  if(id){
+    const t = turmas.find(x=>x.id===id);
+    if(t){ t.nome=nome; t.curso=curso; t.inicio=inicio; t.prev=prev; t.representante=representante; t.alunos=alunos; }
+  } else {
+    turmas.push({id:'t'+Date.now(), nome, curso, inicio, prev, representante, alunos, meses:[]});
+  }
+  fsRent2SaveTurmas(turmas);
+  closeModal('modal-fs-rent2-turma');
+  showToast(id?'Turma atualizada':'Turma criada');
+  renderTab();
+}
+
+function fsRent2DeleteTurma(id){
+  if(!confirm('Excluir a turma e todos os lançamentos?')) return;
+  fsRent2SaveTurmas(fsRent2GetTurmas().filter(t=>t.id!==id));
+  showToast('Turma excluída');
+  renderTab();
+}
+
+// ── CRUD LANÇAMENTOS ───────────────────────────────────────────────────────
+function fsRent2SaveLanc(){
+  const turmaId = document.getElementById('fs-rent2-lanc-turma').value;
+  const mes = document.getElementById('fs-rent2-lanc-mes').value;
+  if(!turmaId){ showToast('Selecione uma turma'); return; }
+  if(!mes){ showToast('Informe o mês'); return; }
+  const turmas = fsRent2GetTurmas();
+  const t = turmas.find(x=>x.id===turmaId);
+  if(!t) return;
+  t.meses = t.meses||[];
+  const lanc = {
+    mes,
+    boletos: FMT.num(document.getElementById('fs-rent2-lanc-boletos').value),
+    eventos: FMT.num(document.getElementById('fs-rent2-lanc-eventos').value),
+    rend: FMT.num(document.getElementById('fs-rent2-lanc-rend').value),
+    taxa: FMT.num(document.getElementById('fs-rent2-lanc-taxa').value),
+    cerimonial: FMT.num(document.getElementById('fs-rent2-lanc-ceri').value),
+    rifa: FMT.num(document.getElementById('fs-rent2-lanc-rifa').value),
+    devolucao: FMT.num(document.getElementById('fs-rent2-lanc-devol').value),
+    outras: FMT.num(document.getElementById('fs-rent2-lanc-outras').value),
+    obs: document.getElementById('fs-rent2-lanc-obs').value.trim()
+  };
+  const existing = t.meses.findIndex(m=>m.mes===mes);
+  if(existing>=0) t.meses[existing]=lanc; else t.meses.push(lanc);
+  fsRent2SaveTurmas(turmas);
+  showToast('Lançamento salvo');
+  renderTab();
+}
+
+function fsRent2DeleteLanc(turmaId, mes){
+  if(!confirm('Excluir este lançamento ('+mes+')?')) return;
+  const turmas = fsRent2GetTurmas();
+  const t = turmas.find(x=>x.id===turmaId);
+  if(!t||!t.meses) return;
+  t.meses = t.meses.filter(m=>m.mes!==mes);
+  fsRent2SaveTurmas(turmas);
+  showToast('Lançamento excluído');
+  renderTab();
+}
+
+function fsRent2SetRate(k){
+  ['cdi','selic','poup','man'].forEach(x=>{
+    const b = document.getElementById('fs-rent2-rate-'+x);
+    if(b) b.classList.remove('active');
+  });
+  const btn = document.getElementById('fs-rent2-rate-'+k);
+  if(btn) btn.classList.add('active');
+  const inp = document.getElementById('fs-rent2-lanc-rend');
+  if(k==='man'){ inp.readOnly=false; inp.focus(); }
+  else { inp.value = FS_RENT2_RATES[k]; inp.readOnly=true; }
+  fsRent2LancPreview();
+}
+
+function fsRent2LancPreview(){
+  const turmaId = document.getElementById('fs-rent2-lanc-turma').value;
+  const mes = document.getElementById('fs-rent2-lanc-mes').value;
+  const m = {
+    boletos: FMT.num(document.getElementById('fs-rent2-lanc-boletos').value),
+    eventos: FMT.num(document.getElementById('fs-rent2-lanc-eventos').value),
+    rend: FMT.num(document.getElementById('fs-rent2-lanc-rend').value),
+    taxa: FMT.num(document.getElementById('fs-rent2-lanc-taxa').value),
+    cerimonial: FMT.num(document.getElementById('fs-rent2-lanc-ceri').value),
+    rifa: FMT.num(document.getElementById('fs-rent2-lanc-rifa').value),
+    devolucao: FMT.num(document.getElementById('fs-rent2-lanc-devol').value),
+    outras: FMT.num(document.getElementById('fs-rent2-lanc-outras').value)
+  };
+  let saldoAnt = 0;
+  const t = fsRent2GetTurmas().find(x=>x.id===turmaId);
+  if(t && mes){
+    const prev = (t.meses||[]).filter(x=>String(x.mes)<String(mes));
+    saldoAnt = fsRent2Calc({meses:prev}).saldo;
+  }
+  const r = fsRent2CalcMes(m, saldoAnt);
+  const box = document.getElementById('fs-rent2-lanc-preview');
+  if(!box) return;
+  box.innerHTML = `
+    <div class="fs-rent2-preview-title">Prévia do Cálculo</div>
+    <div class="fs-rent2-preview-row"><span>Saldo Anterior</span><span>${FMT.brl(saldoAnt)}</span></div>
+    <div class="fs-rent2-preview-row"><span>+ Entradas (boletos + eventos)</span><span style="color:#10b981">${FMT.brl(r.entrada)}</span></div>
+    <div class="fs-rent2-preview-row"><span>− Despesas (taxa+cerim.+rifa+devol.+outras)</span><span style="color:#ef4444">${FMT.brl(r.desp)}</span></div>
+    <div class="fs-rent2-preview-row"><span>Saldo Parcial</span><span>${FMT.brl(r.saldoParcial)}</span></div>
+    <div class="fs-rent2-preview-row"><span>Rentabilidade (${r.rendPct.toFixed(4)}%/mês)</span><span style="color:#3b82f6">${FMT.brl(r.rentab)}</span></div>
+    <div class="fs-rent2-preview-row"><span>Saldo Bruto</span><span>${FMT.brl(r.saldoBruto)}</span></div>
+    <div class="fs-rent2-preview-row"><span>Honorário Forme (50%)</span><span style="color:#f59e0b">${FMT.brl(r.honorario)}</span></div>
+    <div class="fs-rent2-preview-row total"><span>Saldo Final</span><span style="color:#10b981">${FMT.brl(r.saldoFinal)}</span></div>`;
+}
+
+// ── EXPORTAÇÕES ────────────────────────────────────────────────────────────
+function fsRent2ExportCSV(){
+  const turmas = fsRent2GetTurmas();
+  const rows = [['Turma','Curso','Mes','Boletos','Eventos','Taxa','Cerimonial','Rifa','Devolucao','Outras','RendPct','SaldoAnt','SaldoParcial','Rentab','Honorario','SaldoFinal','Obs']];
+  turmas.forEach(t=>{
+    const calc = fsRent2Calc(t);
+    calc.rows.forEach(r=>{
+      rows.push([t.nome, t.curso||'', r.mes,
+        r.boletos.toFixed(2), r.eventos.toFixed(2), r.taxa.toFixed(2),
+        r.cerimonial.toFixed(2), r.rifa.toFixed(2), r.devolucao.toFixed(2), r.outras.toFixed(2),
+        r.rendPct.toFixed(4), r.saldoAnt.toFixed(2), r.saldoParcial.toFixed(2),
+        r.rentab.toFixed(2), r.honorario.toFixed(2), r.saldoFinal.toFixed(2), r.obs||'']);
+    });
+  });
+  const csv = rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n');
+  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='rentabilidade-fs.csv'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV exportado');
+}
+
 // ── RENTABILIDADE (Forme Seguro) ──────────────────────────────────────────
 // Gestão de turmas universitárias com fundo de formatura
 // Storage: localStorage 'fs_turmas'
