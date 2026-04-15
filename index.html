@@ -1192,6 +1192,108 @@ table.fc-table th,table.ceo-table th,table.vceo-table th{font-family:'DM Sans',s
   .adm-form-layout{grid-template-columns:1fr}
   .adm-form-side{order:-1}
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   STANDARDIZATION LAYER — padroniza TODA a plataforma no padrão
+   "Central do CEO". Este bloco fica por último p/ vencer no cascade.
+   Paleta:
+     bg:#080c18 · surface:#0d1225 · surface-deep:#0a0f1e · border:#1e2a45
+     tx:#f1f5f9 · tx2:#94a3b8 · tx3:#4a5568
+     blue:#3b82f6 · green:#10b981 · red:#ef4444 · amber:#f59e0b · purple:#a78bfa
+   ═══════════════════════════════════════════════════════════════════ */
+:root{--s0:#0a0f1e}
+
+/* ── INPUTS / TEXTAREAS / SELECTS (toda a plataforma) ─────────────── */
+.inp,
+input[type="text"].inp,
+input[type="email"].inp,
+input[type="password"].inp,
+input[type="number"].inp,
+input[type="tel"].inp,
+input[type="month"].inp,
+input[type="date"].inp,
+select.inp,
+textarea,
+textarea.inp{
+  background:var(--s0) !important;
+  border:1px solid var(--br) !important;
+  border-radius:10px !important;
+  color:var(--tx) !important;
+}
+.inp:hover:not(:focus),
+select.inp:hover:not(:focus),
+textarea:hover:not(:focus){
+  border-color:rgba(255,255,255,.12) !important;
+}
+.inp:focus,
+select.inp:focus,
+textarea:focus{
+  border-color:var(--blue) !important;
+  box-shadow:0 0 0 3px rgba(59,130,246,.15) !important;
+  background:var(--s0) !important;
+  outline:none !important;
+}
+
+/* ── TABELAS — header #0a0f1e, linhas #0d1225/#080c18, hover #1e2a45 ── */
+.fc-table,
+.ceo-table,
+.vceo-table,
+.eia-table,
+.adm-audit-table,
+.adm-invite-table,
+.adm-perm-table,
+.fs-rent2-table,
+.fs-proj-table{
+  font-family:'DM Sans',sans-serif;
+}
+.fc-table thead th,
+.ceo-table thead th,
+.vceo-table thead th,
+.eia-table thead th,
+.adm-audit-table thead th,
+.adm-invite-table thead th,
+.fs-rent2-table thead th,
+.fs-proj-table thead th{
+  background:var(--s0) !important;
+  color:var(--tx2) !important;
+  font-family:'DM Sans',sans-serif;
+  font-weight:600;
+  font-size:10px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  border-bottom:1px solid var(--br) !important;
+}
+.fc-table tbody tr:nth-child(odd),
+.ceo-table tbody tr:nth-child(odd),
+.vceo-table tbody tr:nth-child(odd),
+.eia-table tbody tr:nth-child(odd),
+.adm-audit-table tbody tr:nth-child(odd),
+.adm-invite-table tbody tr:nth-child(odd),
+.fs-rent2-table tbody tr:nth-child(odd){
+  background:var(--s1);
+}
+.fc-table tbody tr:nth-child(even),
+.ceo-table tbody tr:nth-child(even),
+.vceo-table tbody tr:nth-child(even),
+.eia-table tbody tr:nth-child(even),
+.adm-audit-table tbody tr:nth-child(even),
+.adm-invite-table tbody tr:nth-child(even),
+.fs-rent2-table tbody tr:nth-child(even){
+  background:var(--bg);
+}
+.fc-table tbody tr:hover,
+.ceo-table tbody tr:hover,
+.vceo-table tbody tr:hover,
+.eia-table tbody tr:hover,
+.adm-audit-table tbody tr:hover,
+.adm-invite-table tbody tr:hover,
+.fs-rent2-table tbody tr:hover,
+.fs-proj-table tbody tr:hover{
+  background:var(--s3) !important;
+}
+/* Linhas flagged na tabela de EIA mantêm seu acento vermelho */
+.eia-table tr.eia-row-flagged{background:rgba(239,68,68,.08) !important}
+.eia-table tr.eia-row-flagged:hover{background:rgba(239,68,68,.14) !important}
 </style>
 </head>
 <body>
