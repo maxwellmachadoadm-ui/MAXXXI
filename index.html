@@ -13,8 +13,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet">
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#080c18;--s1:#0d1225;--s2:#141a2e;--s3:#1e2a45;
@@ -2143,6 +2146,30 @@ select{background:#0a0f1e !important;border:1px solid #1e2a45 !important;color:#
 
 /* Sidebar — garantir label exato */
 .sb-lbl{padding:14px 16px 6px !important;font-size:8px !important;letter-spacing:2px !important;color:#4a5568 !important}
+
+/* ═══════════════════════════════════════════════════════════════════
+   FORCE FONTS — garantir Syne + DM Sans em toda a plataforma
+   mesmo se Google Fonts demorar ou cair
+   ═══════════════════════════════════════════════════════════════════ */
+*{font-family:'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif !important}
+h1,h2,h3,h4,h5,h6,
+.logo-name,.logo-text,
+.val,.val-sm,
+.kpi-val,.home-v2-kpi-val,.home-v2-metric-val,
+.emp-name,.home-v2-emp-name,.home-v2-turma-nome,
+.home-v2-title,.adm-title,.eia-title,.fs-rent2-title,.fs-proj-title,.vceo-title,
+.ws-n,.ws-kn .nv,
+.eia-rel-val,.home-v2-ring-val,
+.section-head-title,.adm-panel-title,.eia-detail-name,.eia-drop-title,
+.home-v2-prio-name,.doc-name,.kan-title,.aud-day-label,.eia-summary-title,
+.fs-rent2-turma-nome,.fs-rent2-turma-saldo,.orion-banner-title,
+.empty-hero-title,.login-title,.modal h2,.fs-rent2-modal h2,
+[class*="title"],[class*="heading"]{
+  font-family:'Syne',system-ui,-apple-system,sans-serif !important
+}
+/* Alguns campos numéricos em Syne (valores) não são títulos — mantêm */
+.eia-conf-val,.eia-bstat-n,.eia-lstat-n,.kan-col-n,.filter-chip-n,.doc-cat-n,
+.rel-cat-val,.eia-cell-amount{font-family:'Syne',system-ui,sans-serif !important}
 </style>
 </head>
 <body>
@@ -2280,7 +2307,7 @@ select{background:#0a0f1e !important;border:1px solid #1e2a45 !important;color:#
       </div>
       <div class="sb-item sb-sub-item" id="sb-cdl" onclick="openEmp('cdl')">
         <div class="sb-dot" style="background:#10b981"></div>
-        <span style="flex:1;font-size:13px">CDL Divinópolis</span>
+        <span style="flex:1;font-size:13px">CDL Itaperuna</span>
         <span class="sb-score good">88</span>
       </div>
       <div class="sb-item sb-sub-item" id="sb-gp" onclick="openEmp('gp')">
@@ -2852,7 +2879,7 @@ const EMPS = {
     riscos:[{r:'Concorrência de bancos tradicionais nos fundos',n:'medio'},{r:'Dependência total de captação via indicação',n:'alto'}],
     decisoes:[{d:'Contratar comercial dedicado para novas turmas',dt:'Abr/2026'},{d:'Criar landing page Forme Seguro',dt:'Mar/2026'}],
     crm:[{fase:'Lead',cor:'#3b82f6',itens:[{n:'UNIFAL Medicina 2027',v:'Projeto 5 anos'},{n:'UFLA Medicina 2026',v:'Projeto 4 anos'}]},{fase:'Proposta',cor:'#8b5cf6',itens:[{n:'UNIFENAS Odonto 2026',v:'Projeto 3 anos'}]},{fase:'Negociação',cor:'#f59e0b',itens:[{n:'UNIMONTES Med 2026',v:'Projeto 4 anos'}]},{fase:'Fechado',cor:'#10b981',itens:[{n:'UNIFENAS Med 2026',v:'R$ 5.000/mês'}]}]},
-  cdl:{id:'cdl',nome:'CDL Divinópolis',sigla:'CDL',desc:'Câmara de Dirigentes Lojistas',
+  cdl:{id:'cdl',nome:'CDL Itaperuna',sigla:'CDL',desc:'Câmara de Dirigentes Lojistas Itaperuna',
     cor:'#10b981',rgb:'16,185,129',score:88,status:'Estável',statusCor:'#10b981',
     fat:35000,meta:40000,result:12000,cresc:5.3,
     drive:'https://drive.google.com',
@@ -10020,7 +10047,7 @@ const CMD_ITEMS=[
   {icon:'💼',label:'Doctor Wealth',hint:'Empresa',action:()=>{openEmp('dw');closeCmdPalette()}},
   {icon:'📸',label:'Original Fotografia',hint:'Empresa',action:()=>{openEmp('of');closeCmdPalette()}},
   {icon:'🎓',label:'Forme Seguro',hint:'Empresa',action:()=>{openEmp('fs');closeCmdPalette()}},
-  {icon:'🏪',label:'CDL Divinópolis',hint:'Empresa',action:()=>{openEmp('cdl');closeCmdPalette()}},
+  {icon:'🏪',label:'CDL Itaperuna',hint:'Empresa',action:()=>{openEmp('cdl');closeCmdPalette()}},
   {icon:'💰',label:'Gestão Pessoal',hint:'Finanças pessoais',action:()=>{openEmp('gp');closeCmdPalette()}},
   {icon:'➕',label:'Nova Empresa',hint:'Criar empresa',action:()=>{closeCmdPalette();addEmpresa()}},
   {icon:'✅',label:'Nova Tarefa',hint:'Adicionar tarefa',action:()=>{closeCmdPalette();openModal('modal-task')}},
