@@ -2006,6 +2006,143 @@ h1,h2{font-family:'Syne',sans-serif !important}
 
 /* Selects nativos embutidos (sem .inp) */
 select{background:#0a0f1e !important;border:1px solid #1e2a45 !important;color:#f1f5f9 !important;border-radius:6px !important;font-family:'DM Sans',sans-serif !important}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PRECISION REFINEMENT — spacing, typography, noise removal
+   Último passe, reutiliza tokens. Sem novos valores hardcoded.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* SPACING — ritmo vertical consistente (16/24) */
+.card,.kpi-card,.home-v2-kpi-card,.home-v2-prio-card,.home-v2-side-card,
+.eia-kpi,.eia-card,.eia-detail-card,.eia-reliability,.eia-learning,.eia-summary,
+.fs-rent2-kpi,.fs-rent2-panel,.fs-rent2-turma-card,
+.fs-proj-panel,.fs-proj-kpi,
+.adm-panel,.adm-user-card,
+.doc-card,.eia-rel-card,
+.kan-card,.orion-banner{
+  padding:16px !important;
+}
+.kan-col{padding:12px !important}
+.home-v2-emp-card{padding:16px !important}
+.mb,.mb-sm{margin-bottom:16px !important}
+.section-head,.eia-head{margin-bottom:16px !important}
+.g2,.g3,.g4,.kpi-grid,.eia-kpis,.eia-rel-grid,.home-v2-kpi-grid,.home-v2-prio-grid,.home-v2-emp-grid{gap:12px !important}
+.eia-layout,.home-v2-layout,.adm-form-layout,.doc-grid{gap:16px !important}
+
+/* TABLES — row height + cell padding uniforme 10x12 */
+.fc-table td,.ceo-table td,.vceo-table td,.eia-table td,
+.adm-audit-table td,.adm-invite-table td,.adm-perm-table td,
+.fs-rent2-table td,.fs-proj-table td{
+  padding:10px 12px !important;border-bottom:1px solid #1e2a45 !important;color:#f1f5f9 !important;font-size:13px !important
+}
+.fc-table th,.ceo-table th,.vceo-table th,.eia-table th,
+.adm-audit-table th,.adm-invite-table th,.adm-perm-table th,
+.fs-rent2-table th,.fs-proj-table th{padding:10px 12px !important}
+
+/* TYPOGRAPHY — labels e texto body consistentes */
+.lbl,.eia-kpi-sub,.home-v2-metric-lbl,.home-v2-kpi-lbl,.ws-kn .nl,
+.eia-fl,.eia-dfl,.eia-rel-lbl,.adm-summary-line span:first-child{
+  font-family:'DM Sans',sans-serif !important;font-weight:500 !important;
+  font-size:11px !important;letter-spacing:.08em !important;text-transform:uppercase !important;
+  color:#94a3b8 !important
+}
+.section-head-title,.adm-panel-title,.eia-drop-title,.eia-detail-name,
+.home-v2-prio-name,.home-v2-emp-name,.home-v2-turma-nome,
+.doc-name,.kan-title,.aud-day-label,.eia-summary-title,
+.fs-rent2-turma-nome,.orion-banner-title{
+  font-family:'Syne',sans-serif !important;font-weight:700 !important
+}
+.home-v2-emp-desc,.doc-meta,.eia-file-meta,.eia-detail-meta,
+.home-v2-prio-metric,.eia-rel-sub,.kan-desc,.kan-resp,.kan-prazo,
+.home-v2-recommend-foot,.eia-sub,.adm-sub{
+  font-family:'DM Sans',sans-serif !important;font-size:12px !important;color:#94a3b8 !important
+}
+
+/* BUTTONS — padding/font-size uniformes */
+.btn,.btn-primary,.btn-blue,.btn-ghost,.btn-ia,.btn-red,
+.fs-rent2-btn,.fs-rent2-btn-primary,.fs-rent2-btn-green,.fs-rent2-btn-amber,.fs-rent2-btn-red,
+.fs-proj-btn,.tb-btn{
+  padding:8px 14px !important;font-size:13px !important;
+  border-radius:6px !important;line-height:1.2 !important
+}
+.btn-sm,.fs-rent2-btn-sm,.fs-proj-btn-sm{padding:6px 10px !important;font-size:12px !important;border-radius:6px !important}
+
+/* RIGHT PANEL — 300px com cards internos no padrão */
+.home-v2-layout{grid-template-columns:1fr 300px !important}
+.home-v2-side{width:300px !important;max-width:300px !important;gap:14px !important}
+.home-v2-side-card,.home-v2-recommend{padding:16px !important;border-radius:8px !important}
+
+/* EIA LOW CONFIDENCE — border esquerda vermelha + bg suave #ef444408 */
+.eia-table tr.eia-row-low{background:rgba(239,68,68,.03) !important}
+.eia-table tr.eia-row-low td:first-child{box-shadow:inset 3px 0 0 #ef4444 !important}
+.eia-table tr.eia-row-low:hover{background:rgba(239,68,68,.06) !important}
+
+/* REMOVE VISUAL NOISE */
+/* Kill hover lifts */
+.home-v2-emp-card:hover,.home-v2-prio-card:hover,.eia-card:hover,
+.doc-card:hover,.adm-user-card:hover,.kan-card:hover,.eia-doc-item:hover,
+.home-v2-quick-btn:hover,.kpi-card:hover,.adm-user-card.active,
+.eia-kpi:hover,.fs-rent2-turma-card:hover,.aud-item:hover{
+  transform:none !important
+}
+/* Kill button glow shadows */
+.btn,.btn-primary,.btn-blue,.btn-ia,.btn-ghost,.btn-red,.btn-sm,
+.fs-rent2-btn,.fs-rent2-btn-primary,.fs-rent2-btn-green,.fs-rent2-btn-amber,
+.fs-proj-btn,.tb-btn{box-shadow:none !important}
+.btn:hover,.btn-primary:hover,.btn-blue:hover,.btn-ia:hover,.btn-ghost:hover,.btn-red:hover,
+.fs-rent2-btn:hover,.fs-rent2-btn-primary:hover,.fs-rent2-btn-green:hover,.fs-rent2-btn-amber:hover,
+.fs-proj-btn:hover,.tb-btn:hover{box-shadow:none !important}
+/* Kill card shadows (manter só modais) */
+.card,.kpi-card,.home-v2-kpi-card,.home-v2-prio-card,.home-v2-emp-card,.home-v2-side-card,
+.eia-kpi,.eia-card,.eia-detail-card,.eia-reliability,.eia-learning,.eia-summary,
+.eia-table-wrap,.fs-rent2-panel,.fs-rent2-turma-card,.fs-rent2-table-wrap,.fs-rent2-kpi,
+.fs-proj-panel,.fs-proj-kpi,.fs-proj-table-wrap,
+.adm-panel,.adm-user-card,.adm-perm-card,.adm-invite-table,.adm-audit-table,
+.doc-card,.eia-rel-card,.kan-col,.kan-card,.vceo-kpi,
+.orion-banner,.aud-item{box-shadow:none !important}
+/* Manter shadow discreta só no modal + cmd palette */
+.modal,.fs-rent2-modal{box-shadow:0 24px 48px rgba(0,0,0,.45) !important}
+.cmd-box{box-shadow:0 24px 48px rgba(0,0,0,.5) !important}
+
+/* Hover de cards: apenas border muda, sem glow */
+.home-v2-emp-card:hover,.home-v2-prio-card:hover,.eia-card:hover,
+.doc-card:hover,.adm-user-card:hover,.kan-card:hover,.eia-doc-item:hover,
+.kpi-card:hover,.eia-kpi:hover,.fs-rent2-turma-card:hover,.aud-item:hover{
+  border-color:rgba(59,130,246,.25) !important
+}
+
+/* Hover tabela — highlight sutil (já definido, reforço apenas cor do token) */
+.fc-table tbody tr:hover,.ceo-table tbody tr:hover,.eia-table tbody tr:hover,
+.adm-audit-table tbody tr:hover,.adm-invite-table tbody tr:hover,.fs-rent2-table tbody tr:hover{
+  background:rgba(59,130,246,.04) !important
+}
+
+/* Kill background gradients em recommend/insight que viraram ruído */
+.home-v2-recommend{background:#0a0f1e !important;border:1px solid rgba(167,139,250,.25) !important}
+.eia-summary{background:#0d1225 !important;border:1px solid rgba(167,139,250,.25) !important}
+.orion-banner{background:#0d1225 !important}
+.orion-banner-red{border-left-color:#ef4444 !important;background:#0d1225 !important}
+.orion-banner-amber{border-left-color:#f59e0b !important;background:#0d1225 !important}
+.orion-banner-purple{border-left-color:#a78bfa !important;background:#0d1225 !important}
+.orion-banner-green{border-left-color:#10b981 !important;background:#0d1225 !important}
+
+/* Header premium gradient — simplificar p/ surface uniforme */
+.home-v2-header::before{display:none !important}
+.ws-header::before{display:none !important}
+.ws-header{background:#0d1225 !important}
+
+/* Normalizar preview/modal heading âmbar intensidade */
+.modal h2,.fs-rent2-modal h2{margin-bottom:16px !important}
+.modal,.fs-rent2-modal{padding:20px 22px !important}
+.modal-actions,.fs-rent2-modal-actions{margin-top:20px !important}
+
+/* Border-left cards que exageravam peso — padronizar 3px (ou 4px em emp-card da home) */
+.home-v2-prio-card{border-left-width:3px !important}
+.home-v2-emp-card{border-left-width:4px !important}
+.orion-banner{border-left-width:3px !important}
+
+/* Sidebar — garantir label exato */
+.sb-lbl{padding:14px 16px 6px !important;font-size:8px !important;letter-spacing:2px !important;color:#4a5568 !important}
 </style>
 </head>
 <body>
