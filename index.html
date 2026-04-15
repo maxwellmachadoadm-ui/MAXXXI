@@ -17,11 +17,11 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0f172a;--s1:#1e293b;--s2:#243044;--s3:#2d3f5a;
+  --bg:#080c18;--s1:#0d1225;--s2:#141a2e;--s3:#1e2a45;
   --blue:#3b82f6;--blue2:#1d4ed8;--blue3:#60a5fa;
-  --green:#10b981;--red:#ef4444;--amber:#f59e0b;--purple:#8b5cf6;--pink:#ec4899;
+  --green:#10b981;--red:#ef4444;--amber:#f59e0b;--purple:#a78bfa;--pink:#ec4899;
   --tx:#f1f5f9;--tx2:#94a3b8;--tx3:#64748b;
-  --br:rgba(255,255,255,0.07);--br2:rgba(59,130,246,0.3);
+  --br:#1e2a45;--br2:rgba(59,130,246,0.3);
   --r:12px;--r2:8px;
 }
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;font-size:15px}
@@ -654,6 +654,158 @@ a{color:inherit;text-decoration:none}
   #fs-rent2-print-area .fs-rent2-table td,#fs-rent2-print-area .fs-rent2-kpi-val,#fs-rent2-print-area .fs-rent2-turma-nome,#fs-rent2-print-area .fs-rent2-turma-saldo,#fs-rent2-print-area .fs-rent2-title,#fs-rent2-print-area .fs-rent2-preview-row{color:#000 !important}
   .fs-rent2-actions,.fs-rent2-subtabs,.fs-rent2-modal-actions{display:none !important}
 }
+/* ── HOME V2 — CENTRAL DO CEO ─────────────────────────────────── */
+#page-home.home-v2-root{padding:0;margin:0}
+.home-v2-header{display:flex;justify-content:space-between;align-items:flex-start;padding:22px 28px 0;gap:18px;flex-wrap:wrap;position:relative;overflow:hidden}
+.home-v2-header::before{content:'';position:absolute;top:-60px;left:60px;width:260px;height:260px;background:radial-gradient(circle,rgba(167,139,250,.12),transparent 65%);pointer-events:none}
+.home-v2-header-left{position:relative;z-index:1}
+.home-v2-greeting{color:#a78bfa;letter-spacing:4px;font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:4px}
+.home-v2-title{font-family:'Syne',sans-serif;font-size:38px;font-weight:800;letter-spacing:-1px;margin:0;background:linear-gradient(92deg,#f1f5f9 0%,#c4b5fd 35%,#f59e0b 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.home-v2-header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;z-index:1}
+.home-v2-date-pill{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;border:1px solid var(--br);background:rgba(13,18,37,.7);color:var(--tx2);font-size:12px;font-weight:500}
+.home-v2-header-icons{display:flex;gap:10px;font-size:17px;opacity:.7}
+.home-v2-layout{display:grid;grid-template-columns:1fr 300px;gap:22px;padding:20px 28px 32px}
+.home-v2-main{min-width:0}
+.home-v2-side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.home-v2-section-label{font-size:10px;letter-spacing:3px;color:var(--tx3);text-transform:uppercase;font-weight:700;margin:4px 0 10px;display:flex;justify-content:space-between;align-items:center}
+.home-v2-section-label:not(:first-of-type){margin-top:22px}
+.home-v2-order{font-size:11px;color:var(--tx2);letter-spacing:0;text-transform:none;font-weight:500;padding:4px 10px;border-radius:6px;border:1px solid var(--br);background:var(--s1);cursor:pointer}
+
+/* Prioridades cards */
+.home-v2-prio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.home-v2-prio-card{background:var(--s1);border:1px solid var(--br);border-left:3px solid var(--amber);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;transition:.15s;cursor:pointer}
+.home-v2-prio-card:hover{border-color:var(--br2);transform:translateY(-1px)}
+.home-v2-prio-card.risco{border-left-color:var(--red)}
+.home-v2-prio-card.oport{border-left-color:var(--amber)}
+.home-v2-prio-card.estavel{border-left-color:var(--green)}
+.home-v2-prio-tag{display:inline-block;padding:2px 9px;border-radius:6px;font-size:9px;font-weight:800;letter-spacing:2px;margin-bottom:8px;text-transform:uppercase}
+.home-v2-prio-tag.risco{background:rgba(239,68,68,.15);color:var(--red)}
+.home-v2-prio-tag.oport{background:rgba(245,158,11,.15);color:var(--amber)}
+.home-v2-prio-tag.estavel{background:rgba(16,185,129,.15);color:var(--green)}
+.home-v2-prio-name{font-size:15px;font-weight:700;color:var(--tx);margin-bottom:3px}
+.home-v2-prio-metric{font-size:13px;color:var(--tx2);margin-bottom:10px}
+.home-v2-prio-action{font-size:11px;color:var(--tx3);padding-top:8px;border-top:1px solid var(--br)}
+.home-v2-prio-spark{position:absolute;top:14px;right:14px;opacity:.6}
+.home-v2-prio-arrow{position:absolute;bottom:14px;right:14px;color:var(--tx3);font-size:13px;transition:.15s}
+.home-v2-prio-card:hover .home-v2-prio-arrow{color:var(--amber);transform:translateX(2px)}
+
+/* KPI cards */
+.home-v2-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.home-v2-kpi-card{background:var(--s1);border:1px solid var(--br);border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;min-height:110px}
+.home-v2-kpi-head{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx2);margin-bottom:4px;font-weight:600}
+.home-v2-kpi-icon{width:24px;height:24px;border-radius:7px;background:rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.home-v2-kpi-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.3px;margin:2px 0 6px;color:var(--tx)}
+.home-v2-kpi-delta{font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px}
+.home-v2-kpi-delta.up{color:var(--green)}
+.home-v2-kpi-delta.down{color:var(--red)}
+.home-v2-kpi-delta.neu{color:var(--tx3)}
+.home-v2-kpi-visual{flex-shrink:0}
+
+/* Portfolio empresa cards */
+.home-v2-emp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.home-v2-emp-card{background:var(--s1);border:1px solid var(--br);border-left:4px solid var(--emp-c,var(--blue));border-radius:12px;padding:16px;position:relative;overflow:hidden;transition:.15s;cursor:pointer;display:flex;flex-direction:column;gap:12px;min-height:200px}
+.home-v2-emp-card:hover{transform:translateY(-2px);border-color:var(--br2)}
+.home-v2-emp-card.full{grid-column:1/-1;flex-direction:row;align-items:center;gap:18px;min-height:auto}
+.home-v2-emp-card.full > *{flex-shrink:0}
+.home-v2-emp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.home-v2-emp-id{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.home-v2-emp-sigla{width:36px;height:36px;border-radius:8px;background:var(--emp-c,var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:900;letter-spacing:.5px;flex-shrink:0}
+.home-v2-emp-info{min-width:0}
+.home-v2-emp-name{font-size:14px;font-weight:700;color:var(--tx);line-height:1.15;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-v2-emp-desc{font-size:10px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-v2-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+.home-v2-badge-crescimento{background:rgba(16,185,129,.15);color:var(--green)}
+.home-v2-badge-ajustar{background:rgba(245,158,11,.15);color:var(--amber)}
+.home-v2-badge-escalar{background:rgba(167,139,250,.15);color:var(--purple)}
+.home-v2-badge-estavel{background:rgba(96,165,250,.15);color:var(--blue3)}
+.home-v2-emp-metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:2px 0}
+.home-v2-emp-card.full .home-v2-emp-metrics{display:flex;gap:24px;flex:1}
+.home-v2-metric-lbl{font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;font-weight:600}
+.home-v2-metric-val{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--tx);letter-spacing:-.3px}
+.home-v2-metric-val.pos{color:var(--green)}
+.home-v2-metric-val.neg{color:var(--red)}
+.home-v2-emp-progress{margin-top:2px}
+.home-v2-emp-progress-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-bottom:4px}
+.home-v2-emp-progress-bar{height:6px;background:rgba(255,255,255,.04);border-radius:3px;overflow:hidden}
+.home-v2-emp-progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--emp-c,var(--blue)),var(--emp-c2,var(--emp-c,var(--blue))));transition:width .4s}
+.home-v2-emp-footer{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--br);margin-top:auto}
+.home-v2-emp-card.full .home-v2-emp-footer{border-top:none;padding-top:0;margin-top:0;gap:16px}
+.home-v2-emp-score{display:flex;align-items:center;gap:8px}
+.home-v2-score-text{display:flex;flex-direction:column}
+.home-v2-score-lbl{font-size:10px;color:var(--tx3)}
+.home-v2-score-status{font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px}
+.home-v2-score-status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--emp-c,var(--blue))}
+.home-v2-emp-go{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;color:var(--tx2);font-size:14px;transition:.15s}
+.home-v2-emp-card:hover .home-v2-emp-go{background:var(--emp-c,var(--blue));color:#fff}
+
+/* Health ring SVG */
+.home-v2-ring{position:relative;width:48px;height:48px;flex-shrink:0}
+.home-v2-ring svg{transform:rotate(-90deg)}
+.home-v2-ring-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--tx)}
+.home-v2-ring-big{width:56px;height:56px}
+.home-v2-ring-big .home-v2-ring-val{font-size:15px}
+
+/* Side panel cards */
+.home-v2-side-card{background:var(--s1);border:1px solid var(--br);border-radius:12px;padding:14px 16px}
+.home-v2-side-title{font-size:11px;color:var(--tx2);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.home-v2-side-badge{display:inline-block;padding:1px 8px;border-radius:6px;font-size:10px;font-weight:800;background:var(--red);color:#fff}
+.home-v2-recommend{background:linear-gradient(145deg,rgba(167,139,250,.12),rgba(13,18,37,.9));border:1px solid rgba(167,139,250,.25);border-radius:14px;padding:16px}
+.home-v2-recommend-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.home-v2-recommend-icon{width:28px;height:28px;border-radius:8px;background:rgba(167,139,250,.2);display:flex;align-items:center;justify-content:center;font-size:14px}
+.home-v2-recommend-title{font-size:13px;font-weight:700;color:var(--tx);flex:1}
+.home-v2-rec-item{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:12px;color:var(--tx);border-bottom:1px solid rgba(255,255,255,.04)}
+.home-v2-rec-item:last-of-type{border-bottom:none}
+.home-v2-rec-check{width:18px;height:18px;border-radius:50%;background:rgba(167,139,250,.2);color:var(--purple);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.home-v2-rec-text{flex:1;line-height:1.25}
+.home-v2-rec-chip{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;white-space:nowrap;letter-spacing:.3px}
+.home-v2-rec-chip.hi{background:rgba(239,68,68,.15);color:var(--red)}
+.home-v2-rec-chip.urg{background:rgba(245,158,11,.15);color:var(--amber)}
+.home-v2-rec-chip.op{background:rgba(16,185,129,.15);color:var(--green)}
+.home-v2-recommend-foot{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.05);font-size:11px;color:var(--purple);font-weight:600}
+.home-v2-alert-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
+.home-v2-alert-item:last-of-type{border-bottom:none}
+.home-v2-alert-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.home-v2-alert-icon.crit{background:rgba(239,68,68,.15);color:var(--red)}
+.home-v2-alert-icon.warn{background:rgba(245,158,11,.15);color:var(--amber)}
+.home-v2-alert-icon.op{background:rgba(16,185,129,.15);color:var(--green)}
+.home-v2-alert-body{flex:1;line-height:1.25}
+.home-v2-alert-lbl{font-size:11px;color:var(--tx);font-weight:600}
+.home-v2-alert-sub{font-size:10px;color:var(--tx3)}
+.home-v2-quick-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.home-v2-quick-btn{background:rgba(255,255,255,.03);border:1px solid var(--br);border-radius:10px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--tx2);font-size:10px;font-weight:600;cursor:pointer;transition:.15s;text-align:center}
+.home-v2-quick-btn:hover{border-color:var(--br2);color:var(--tx);background:rgba(59,130,246,.05)}
+.home-v2-quick-btn span:first-child{font-size:16px}
+.home-v2-meet-row{display:flex;align-items:center;gap:10px}
+.home-v2-meet-cal{width:32px;height:32px;border-radius:8px;background:rgba(59,130,246,.15);color:var(--blue3);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.home-v2-meet-info{flex:1;min-width:0}
+.home-v2-meet-title{font-size:12px;font-weight:700;color:var(--tx)}
+.home-v2-meet-time{font-size:10px;color:var(--tx3)}
+.home-v2-meet-btn{padding:5px 10px;border-radius:7px;background:var(--blue);color:#fff;border:none;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:3px}
+.home-v2-meet-btn:hover{background:var(--blue2)}
+.home-v2-act-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;font-size:12px;color:var(--tx)}
+.home-v2-act-item + .home-v2-act-item{border-top:1px solid rgba(255,255,255,.04)}
+.home-v2-act-dot{width:6px;height:6px;border-radius:50%;background:var(--blue3);flex-shrink:0}
+.home-v2-act-text{flex:1;font-size:11px;color:var(--tx);line-height:1.3}
+.home-v2-act-time{font-size:10px;color:var(--tx3);white-space:nowrap}
+
+/* Sidebar additions */
+.sb-pill-new{background:var(--purple);color:#fff;font-size:9px;font-weight:800;padding:1px 7px;border-radius:4px;letter-spacing:.5px;margin-left:auto}
+.sb-arrow{margin-left:auto;color:var(--tx3);font-size:12px}
+.sb-quick-item{display:flex;align-items:center;gap:7px;padding:7px 14px;font-size:12px;color:var(--tx2);cursor:pointer;transition:.12s;border-radius:0}
+.sb-quick-item:hover{color:var(--tx);background:rgba(255,255,255,.03)}
+
+@media (max-width:1200px){
+  .home-v2-layout{grid-template-columns:1fr}
+  .home-v2-side{flex-direction:row;flex-wrap:wrap}
+  .home-v2-side-card,.home-v2-recommend{flex:1 1 280px}
+}
+@media (max-width:900px){
+  .home-v2-prio-grid{grid-template-columns:1fr}
+  .home-v2-kpi-grid{grid-template-columns:1fr 1fr}
+  .home-v2-emp-grid{grid-template-columns:1fr}
+  .home-v2-title{font-size:28px}
+  .home-v2-emp-card.full{flex-direction:column;align-items:stretch}
+}
 </style>
 </head>
 <body>
@@ -772,36 +924,20 @@ a{color:inherit;text-decoration:none}
   <div class="sb-section">
     <div class="sb-lbl">Navegação</div>
     <div class="sb-item active" id="nav-home" onclick="goHome()">🏠 Home</div>
-    <div class="sb-item" id="nav-ceo" onclick="goCEO()">📊 Visão CEO</div>
+    <div class="sb-item" id="nav-orion-ai" onclick="toggleMXDrawer()">🤖 ORION (IA) <span class="sb-pill-new">Novo</span></div>
+    <div class="sb-item" id="nav-ceo" onclick="goCEO()">🏢 Empresas <span class="sb-arrow">›</span></div>
+    <div class="sb-item" id="nav-analytics" onclick="goCEO()">📈 Analytics</div>
+    <div class="sb-item" id="nav-fin" onclick="showToast('Financeiro Consolidado — em breve')">💰 Financeiro Consolidado</div>
+    <div class="sb-item" id="sb-gp" onclick="openEmp('gp')">👤 Gestão Pessoal</div>
+    <div class="sb-item" id="nav-docs" onclick="openDrive()">📁 Documentos & Drive</div>
   </div>
   <div class="sb-div"></div>
   <div class="sb-section">
-    <div class="sb-lbl">Portfólio</div>
-    <div class="sb-item" id="sb-dw" onclick="openEmp('dw')">
-      <div class="sb-dot" style="background:#3b82f6"></div>
-      <span style="flex:1;font-size:13px">Doctor Wealth</span>
-      <span class="sb-score good">80</span>
-    </div>
-    <div class="sb-item" id="sb-of" onclick="openEmp('of')">
-      <div class="sb-dot" style="background:#f59e0b"></div>
-      <span style="flex:1;font-size:13px">Original Foto.</span>
-      <span class="sb-score warn">52</span>
-    </div>
-    <div class="sb-item" id="sb-fs" onclick="openEmp('fs')">
-      <div class="sb-dot" style="background:#8b5cf6"></div>
-      <span style="flex:1;font-size:13px">Forme Seguro</span>
-      <span class="sb-score txt-blue">65</span>
-    </div>
-    <div class="sb-item" id="sb-cdl" onclick="openEmp('cdl')">
-      <div class="sb-dot" style="background:#10b981"></div>
-      <span style="flex:1;font-size:13px">CDL Divinópolis</span>
-      <span class="sb-score good">88</span>
-    </div>
-    <div class="sb-add" onclick="addEmpresa()">+ Nova empresa</div>
-  </div>
-  <div class="sb-div"></div>
-  <div class="sb-section">
-    <div class="sb-item" id="sb-gp" onclick="openEmp('gp')">💰 Gestão Pessoal</div>
+    <div class="sb-lbl">Atalhos</div>
+    <div class="sb-quick-item" onclick="addEmpresa()">➕ Nova Empresa</div>
+    <div class="sb-quick-item" onclick="showToast('Relatório rápido — em breve')">📄 Relatório Rápido</div>
+    <div class="sb-quick-item" onclick="showToast('Simulação — em breve')">⚡ Simular Cenário</div>
+    <div class="sb-quick-item" onclick="toggleMXDrawer()">🤖 Perguntar ao ORION</div>
   </div>
   <div class="sb-maxxxi" style="cursor:pointer" onclick="toggleMXDrawer()">
     <div class="maxxxi-pill">
@@ -818,62 +954,60 @@ a{color:inherit;text-decoration:none}
 <!-- CONTENT -->
 <main class="content" id="content">
 
-<!-- HOME — VISÃO CONSOLIDADA -->
-<div id="page-home">
-  <div style="margin-bottom:20px">
-    <div style="font-size:12px;color:var(--blue3);font-weight:600;letter-spacing:4px;text-transform:uppercase;margin-bottom:4px" id="home-greeting">BOM DIA, MAXWELL</div>
-    <h1 style="font-family:'Syne',sans-serif;font-size:26px;font-weight:900;color:#fff;line-height:1.1">Qual empresa vamos trabalhar agora?</h1>
-    <div style="font-size:13px;color:var(--tx3);margin-top:4px" id="home-date"></div>
-  </div>
-
-  <!-- KPIs -->
-  <div class="g4 mb">
-    <div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="lbl">Faturamento do Ecossistema</div><div class="val txt-blue" id="kpi-fat">R$ 126,5k</div><div class="delta-up">▲ +8,2% vs mês anterior</div></div><div class="spark" id="spark-fat"></div></div></div>
-    <div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="lbl">Resultado Líquido</div><div class="val txt-green">R$ 46,7k</div><div class="delta-up">▲ +12,1% vs mês anterior</div></div><div class="spark" id="spark-res"></div></div></div>
-    <div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="lbl">Health Score Médio</div><div class="val" style="color:#a78bfa" id="kpi-health">71</div><div class="delta-neu" id="kpi-emp-count">5 empresas ativas</div></div><div class="prog-ring" id="health-ring"></div></div></div>
-    <div class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="lbl">Alertas Ativos</div><div class="val txt-red" id="kpi-alerts">4</div><div class="delta-neu">2 críticos · 2 atenção</div></div><div class="spark" id="spark-alerts"></div></div></div>
-  </div>
-
-  <!-- PORTFÓLIO -->
-  <div class="emp-section-title">Portfólio de Empresas</div>
-  <div class="emp-grid" id="emp-grid-portfolio"></div>
-
-  <!-- PESSOAL -->
-  <div class="emp-section-title emp-pessoal">Gestão Pessoal</div>
-  <div class="emp-grid" id="emp-grid-pessoal" style="grid-template-columns:1fr 1fr"></div>
-
-  <!-- AGENDA -->
-  <div class="card mb">
-    <div class="flex aic jsb mb-sm">
-      <div class="flex aic gap8">
-        <span style="font-size:16px">📅</span>
-        <div>
-          <div class="lbl" style="margin:0">Agenda</div>
-          <div style="font-size:11px;color:var(--green);font-weight:600;letter-spacing:1px">Google Calendar</div>
-        </div>
-      </div>
-      <div class="flex gap8">
-        <button class="tb-btn" style="font-size:11px;padding:5px 10px">🔗 Link</button>
-        <button class="tb-btn" style="font-size:11px;padding:5px 10px;color:var(--blue3);border-color:var(--br2)" onclick="openModal('modal-evento')">+ Evento</button>
-      </div>
+<!-- HOME — CENTRAL DO CEO (v2) -->
+<div id="page-home" class="home-v2-root">
+  <!-- HEADER -->
+  <div class="home-v2-header">
+    <div class="home-v2-header-left">
+      <div class="home-v2-greeting" id="home-greeting">BOA TARDE, MAXWELL</div>
+      <h1 class="home-v2-title">Central do CEO</h1>
     </div>
+    <div class="home-v2-header-right">
+      <div class="home-v2-date-pill"><span>📅</span><span id="home-date">—</span></div>
+      <div class="home-v2-header-icons"><span>🎯</span><span>🚀</span><span>⭐</span></div>
+    </div>
+  </div>
+
+  <!-- LAYOUT -->
+  <div class="home-v2-layout">
+    <div class="home-v2-main">
+      <div class="home-v2-section-label">Prioridades do Dia</div>
+      <div class="home-v2-prio-grid" id="home-prio-grid"></div>
+
+      <div class="home-v2-section-label">KPIs Consolidados</div>
+      <div class="home-v2-kpi-grid" id="home-kpi-grid"></div>
+
+      <div class="home-v2-section-label">
+        <span>Portfólio de Empresas</span>
+        <span class="home-v2-order">Ordenar: Health Score ▾</span>
+      </div>
+      <div class="home-v2-emp-grid" id="home-emp-grid"></div>
+    </div>
+
+    <div class="home-v2-side">
+      <div class="home-v2-recommend" id="home-recommend"></div>
+      <div class="home-v2-side-card" id="home-alerts"></div>
+      <div class="home-v2-side-card" id="home-quick"></div>
+      <div class="home-v2-side-card" id="home-meeting"></div>
+      <div class="home-v2-side-card" id="home-activity"></div>
+    </div>
+  </div>
+
+  <!-- Compat: manter IDs ocultos para funções legadas -->
+  <div style="display:none" aria-hidden="true">
+    <div id="checkin-date"></div>
+    <textarea id="ci1"></textarea>
+    <textarea id="ci2"></textarea>
+    <textarea id="ci3"></textarea>
     <div id="agenda-list"></div>
-  </div>
-
-  <!-- CHECKIN -->
-  <div class="checkin mb">
-    <div class="flex aic gap12" style="margin-bottom:14px">
-      <div class="checkin-bar"></div>
-      <div>
-        <div style="font-size:10px;letter-spacing:4px;color:var(--tx3);text-transform:uppercase">Check-in do Dia</div>
-        <div style="font-size:12px;color:var(--blue3);font-weight:600" id="checkin-date"></div>
-      </div>
-    </div>
-    <div class="g3">
-      <div><div class="lbl">O que é prioridade hoje?</div><textarea rows="3" placeholder="Digite aqui..." id="ci1" oninput="saveCI()"></textarea></div>
-      <div><div class="lbl">Qual decisão não pode esperar?</div><textarea rows="3" placeholder="Digite aqui..." id="ci2" oninput="saveCI()"></textarea></div>
-      <div><div class="lbl">Que resultado vou entregar hoje?</div><textarea rows="3" placeholder="Digite aqui..." id="ci3" oninput="saveCI()"></textarea></div>
-    </div>
+    <div id="emp-grid-portfolio"></div>
+    <div id="emp-grid-pessoal"></div>
+    <div class="val" id="kpi-fat"></div>
+    <div class="val" id="kpi-health"></div>
+    <div class="val" id="kpi-alerts"></div>
+    <div id="kpi-emp-count"></div>
+    <div id="spark-fat"></div><div id="spark-res"></div><div id="spark-alerts"></div>
+    <div id="health-ring"></div>
   </div>
 </div>
 
@@ -1994,7 +2128,7 @@ async function initPlatform(){
     loadStoredCRM();
   }
   // render
-  renderEmpGrid();
+  renderHomeV2();
   renderVisaoConsolidada();
   renderAgenda();
   renderCEO();
@@ -2028,66 +2162,288 @@ function renderAgenda(){
 }
 
 // ── EMP GRID ──────────────────────────────────────────────────────────────
+// ── HOME V2 — CENTRAL DO CEO ─────────────────────────────────────────────
+function homeV2EmpStatus(e){
+  // Deriva o status operacional da empresa a partir de cresc e score
+  if(e.cresc>=10) return {key:'crescimento', label:'Crescimento', cls:'home-v2-badge-crescimento'};
+  if(e.score<60)  return {key:'ajustar',    label:'Ajustar',    cls:'home-v2-badge-ajustar'};
+  if(e.score>=85) return {key:'estavel',    label:'Estável',    cls:'home-v2-badge-estavel'};
+  return {key:'escalar', label:'Escalar', cls:'home-v2-badge-escalar'};
+}
+
+function homeV2ScoreColor(score){
+  if(score>=80) return 'var(--green)';
+  if(score>=65) return 'var(--blue3)';
+  if(score>=50) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+function homeV2ScoreLabel(score){
+  if(score>=80) return 'Saudável';
+  if(score>=65) return 'Oportunidade';
+  if(score>=50) return 'Atenção';
+  return 'Crítico';
+}
+
+function homeV2Ring(score, size){
+  const s = size||48;
+  const r = s/2 - 4;
+  const c = 2*Math.PI*r;
+  const pct = Math.max(0,Math.min(100,score))/100;
+  const col = homeV2ScoreColor(score);
+  return `<div class="home-v2-ring${s>=54?' home-v2-ring-big':''}" style="width:${s}px;height:${s}px">
+    <svg width="${s}" height="${s}">
+      <circle cx="${s/2}" cy="${s/2}" r="${r}" stroke="rgba(255,255,255,.06)" stroke-width="3" fill="none"/>
+      <circle cx="${s/2}" cy="${s/2}" r="${r}" stroke="${col}" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-pct)}"/>
+    </svg>
+    <div class="home-v2-ring-val">${score}</div>
+  </div>`;
+}
+
+function homeV2Spark(points, color, w, h){
+  w = w||60; h = h||26;
+  const max = Math.max(...points), min = Math.min(...points);
+  const rng = (max-min)||1;
+  const step = w/(points.length-1);
+  const path = points.map((v,i)=>{
+    const x = (i*step).toFixed(1);
+    const y = (h - ((v-min)/rng)*(h-4) - 2).toFixed(1);
+    return (i===0?'M':'L')+x+','+y;
+  }).join(' ');
+  const last = points[points.length-1];
+  const lastX = ((points.length-1)*step).toFixed(1);
+  const lastY = (h - ((last-min)/rng)*(h-4) - 2).toFixed(1);
+  return `<svg width="${w}" height="${h}" style="display:block">
+    <path d="${path}" stroke="${color}" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${lastX}" cy="${lastY}" r="2" fill="${color}"/>
+  </svg>`;
+}
+
+function homeV2EmpSpark(e){
+  // Sintetiza um mini sparkline a partir do cresc
+  const base = 40 + (e.score||50)/3;
+  const trend = (e.cresc||0)/10;
+  const pts = [];
+  for(let i=0;i<10;i++){
+    pts.push(base + trend*i + Math.sin(i*1.3 + e.id.length)*4);
+  }
+  return pts;
+}
+
+function renderHomeV2Prioridades(){
+  const el = document.getElementById('home-prio-grid');
+  if(!el) return;
+  const all = Object.values(EMPS).filter(e=>e.id!=='gp'&&!e.id.startsWith('custom_'));
+  if(all.length===0){ el.innerHTML = ''; return; }
+  const sorted = [...all].sort((a,b)=>a.cresc-b.cresc);
+  const risco = sorted[0];
+  const oport = sorted[sorted.length-1];
+  const estavel = sorted.find(x=>x!==risco && x!==oport && x.score>=70) || sorted[Math.floor(sorted.length/2)];
+  const mk = (e, tipo, label, metric, acao) => `<div class="home-v2-prio-card ${tipo}" onclick="openEmp('${e.id}')">
+    <span class="home-v2-prio-tag ${tipo}">${label}</span>
+    <div class="home-v2-prio-spark">${homeV2Spark(homeV2EmpSpark(e), tipo==='risco'?'var(--red)':tipo==='oport'?'var(--amber)':'var(--green)', 54, 22)}</div>
+    <div class="home-v2-prio-name">${escHtml(e.nome)}</div>
+    <div class="home-v2-prio-metric">${metric}</div>
+    <div class="home-v2-prio-action">Ação sugerida: ${acao}</div>
+    <div class="home-v2-prio-arrow">→</div>
+  </div>`;
+  const txtRisco = risco.cresc<0?`Margem caiu ${Math.abs(risco.cresc).toFixed(1)}%`:'Score baixo — requer atenção';
+  const txtOport = oport.cresc>0?`Crescimento +${oport.cresc.toFixed(0)}%`:'Oportunidade de expansão';
+  el.innerHTML = [
+    mk(risco,   'risco',   'Risco',         txtRisco,  'Revisar custos fixos'),
+    mk(oport,   'oport',   'Oportunidade',  txtOport,  'Escalar operação'),
+    mk(estavel, 'estavel', 'Estável',       'Performance sólida', 'Manter estratégia atual')
+  ].join('');
+}
+
+function renderHomeV2Kpis(){
+  const el = document.getElementById('home-kpi-grid');
+  if(!el) return;
+  const emps = Object.values(EMPS).filter(e=>e.id!=='gp'&&!e.id.startsWith('custom_'));
+  const totFat = emps.reduce((s,e)=>s+(e.fat||0),0);
+  const totRes = emps.reduce((s,e)=>s+(e.result||0),0);
+  const avgScore = emps.length? Math.round(emps.reduce((s,e)=>s+(e.score||0),0)/emps.length) : 0;
+  const avgCresc = emps.length? (emps.reduce((s,e)=>s+(e.cresc||0),0)/emps.length) : 0;
+  const tendLabel = avgCresc>=8?'Positiva':avgCresc>=0?'Neutra':'Negativa';
+  const tendCol = avgCresc>=8?'var(--green)':avgCresc>=0?'var(--amber)':'var(--red)';
+  const sparkFat = [100,105,108,112,118,121,125,126.5].map(v=>v);
+  const sparkRes = [35,37,38,41,42,44,46,46.7];
+  const kpis = [
+    {icon:'💰', bg:'rgba(59,130,246,.15)', lbl:'Faturamento do Ecossistema', val:FMT.brlK(totFat), delta:'▲ +8,2% vs mês anterior', cls:'up', spark:homeV2Spark(sparkFat, 'var(--blue3)', 70, 34)},
+    {icon:'📈', bg:'rgba(16,185,129,.15)', lbl:'Resultado Líquido',          val:FMT.brlK(totRes), delta:'▲ +12,1% vs mês anterior', cls:'up', spark:homeV2Spark(sparkRes, 'var(--green)', 70, 34)},
+    {icon:'🎯', bg:'rgba(167,139,250,.15)', lbl:'Health Score Médio',         val:String(avgScore), delta:emps.length+' empresas ativas', cls:'neu', spark:homeV2Ring(avgScore, 42)},
+    {icon:'📊', bg:'rgba(245,158,11,.15)', lbl:'Tendência Geral',             val:`<span style="color:${tendCol}">${tendLabel}</span>`, delta:`Projeção 30d: ${avgCresc>=0?'+':''}${avgCresc.toFixed(1)}%`, cls:avgCresc>=0?'up':'down', spark:homeV2Spark([50,52,54,56,58,60,62,64], tendCol, 70, 34)}
+  ];
+  el.innerHTML = kpis.map(k=>`<div class="home-v2-kpi-card">
+    <div>
+      <div class="home-v2-kpi-head"><span class="home-v2-kpi-icon" style="background:${k.bg}">${k.icon}</span><span>${k.lbl}</span></div>
+      <div class="home-v2-kpi-val">${k.val}</div>
+      <div class="home-v2-kpi-delta ${k.cls}">${k.delta}</div>
+    </div>
+    <div class="home-v2-kpi-visual">${k.spark}</div>
+  </div>`).join('');
+}
+
+function renderHomeV2EmpCard(e, fullWidth){
+  const st = homeV2EmpStatus(e);
+  const metaPct = e.meta>0 ? Math.min(100, (e.fat/e.meta)*100) : 0;
+  const margem = (e.fat>0) ? ((e.result/e.fat)*100).toFixed(0)+'%' : '—';
+  const crescC = e.cresc>=0?'pos':'neg';
+  const crescS = e.cresc>=0?'▲':'▼';
+  const logoHtml = (typeof empLogoHTML==='function') ? empLogoHTML(e.id,36) : '';
+  const sigla = logoHtml || escHtml(e.sigla||(e.nome||'').slice(0,2).toUpperCase());
+  return `<div class="home-v2-emp-card${fullWidth?' full':''}" style="--emp-c:${e.cor};--emp-c2:${e.cor}88" onclick="openEmp('${e.id}')">
+    <div class="home-v2-emp-head">
+      <div class="home-v2-emp-id">
+        <div class="home-v2-emp-sigla" style="background:${e.cor}">${sigla}</div>
+        <div class="home-v2-emp-info">
+          <div class="home-v2-emp-name">${escHtml(e.nome)}</div>
+          <div class="home-v2-emp-desc">${escHtml(e.desc||'')}</div>
+        </div>
+      </div>
+      <span class="home-v2-badge ${st.cls}">${st.label}</span>
+    </div>
+    <div class="home-v2-emp-metrics">
+      <div><div class="home-v2-metric-lbl">Resultado</div><div class="home-v2-metric-val ${e.result>=0?'pos':'neg'}">${FMT.brlK(e.result)}</div></div>
+      <div><div class="home-v2-metric-lbl">Margem</div><div class="home-v2-metric-val">${margem}</div></div>
+      <div><div class="home-v2-metric-lbl">Tendência</div><div class="home-v2-metric-val ${crescC}">${crescS} ${Math.abs(e.cresc||0).toFixed(1)}%</div></div>
+    </div>
+    <div class="home-v2-emp-progress">
+      <div class="home-v2-emp-progress-labels">
+        <span>${FMT.brlK(e.fat)}</span><span>Meta ${FMT.brlK(e.meta)}</span>
+      </div>
+      <div class="home-v2-emp-progress-bar"><div class="home-v2-emp-progress-fill" style="width:${metaPct}%"></div></div>
+    </div>
+    <div class="home-v2-emp-footer">
+      <div class="home-v2-emp-score">
+        ${homeV2Ring(e.score||50)}
+        <div class="home-v2-score-text">
+          <span class="home-v2-score-lbl">Health Score</span>
+          <span class="home-v2-score-status" style="color:${homeV2ScoreColor(e.score||50)}">${homeV2ScoreLabel(e.score||50)}</span>
+        </div>
+      </div>
+      <div class="home-v2-emp-go">→</div>
+    </div>
+  </div>`;
+}
+
+// Mantém nome legado; agora popula o grid v2
 function renderEmpGrid(){
-  const gPortfolio=document.getElementById('emp-grid-portfolio');
-  const gPessoal=document.getElementById('emp-grid-pessoal');
-  if(!gPortfolio||!gPessoal)return;
-  const allEmps=Object.values(EMPS);
-  const portfolio=allEmps.filter(e=>e.id!=='gp'&&!e.id.startsWith('custom_'));
-  const pessoal=allEmps.filter(e=>e.id==='gp');
-  const custom=allEmps.filter(e=>e.id.startsWith('custom_'));
-  const bestId=portfolio.length>0?[...portfolio].sort((a,b)=>b.result-a.result)[0].id:null;
-  const worstId=portfolio.length>0?[...portfolio].sort((a,b)=>a.score-b.score)[0].id:null;
-  const renderCards=(emps)=>emps.map(e=>{
-    const pct=e.meta>0?Math.min(e.fat/e.meta*100,100).toFixed(0):0;
-    const crescC=e.cresc>=0?'var(--green)':'var(--red)';
-    const crescS=e.cresc>=0?'▲':'▼';
-    const isBest=e.id===bestId;
-    const isWorst=e.id===worstId&&e.id!==bestId;
-    const borderStyle=isBest?'border:2px solid #f59e0b;box-shadow:0 0 12px rgba(245,158,11,.2)':isWorst?'border:2px solid var(--red);animation:pulse 2s infinite':'';
-    const margem=(e.fat>0&&e.result!==0)?((e.result/e.fat)*100).toFixed(0)+'%':'—';
-    return `
-    <div class="emp-card" id="card-${e.id}" onclick="openEmp('${e.id}')"
-      style="--emp-c:${e.cor};--emp-rgb:${e.rgb};${borderStyle}"
-      onmouseenter="this.style.borderColor='${e.cor}55'"
-      onmouseleave="this.style.borderColor='${isBest?'#f59e0b':isWorst?'var(--red)':'rgba(255,255,255,0.07)'}'">
-      ${isBest?'<div style="position:absolute;top:8px;right:8px;font-size:14px">🏆</div>':''}
-      ${isWorst?'<div style="position:absolute;top:8px;right:8px;font-size:14px">⚠️</div>':''}
-      <div class="emp-top"></div>
-      <div class="emp-header">
-        <div class="flex aic gap12">
-          <div class="emp-sig">${empLogoHTML(e.id,36)||e.sigla}</div>
-          <div>
-            <div class="emp-name">${e.nome}</div>
-            <div class="emp-desc">${e.desc}</div>
-          </div>
-        </div>
-        <span class="stag" style="color:${e.statusCor};background:${e.statusCor}18">${e.status}</span>
-      </div>
-      ${e.id!=='gp'?`
-      <div class="emp-nums">
-        <div><div class="emp-nlbl">Resultado</div><div class="emp-nval" style="color:${e.result>=0?'var(--green)':'var(--red)'}">${fmt(e.result)}</div></div>
-        <div><div class="emp-nlbl">Margem</div><div class="emp-nval">${margem}</div></div>
-        <div><div class="emp-nlbl">Tendência</div><div class="emp-nval" style="color:${crescC}">${crescS} ${Math.abs(e.cresc)}%</div></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--tx3);margin-bottom:4px"><span>${fmt(e.fat)}</span><span>Meta ${fmt(e.meta)}</span></div>
-      <div class="pbar"><div class="pfill" style="width:${pct}%;background:${e.cor}"></div></div>`:`
-      <div class="emp-nums">
-        <div><div class="emp-nlbl">Patrimônio</div><div class="emp-nval" style="color:${e.cor}">R$ 1,2M</div></div>
-        <div><div class="emp-nlbl">Renda</div><div class="emp-nval">R$ 52k/mês</div></div>
-        <div><div class="emp-nlbl">Poupança</div><div class="emp-nval txt-green">42%</div></div>
-      </div>`}
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
-        <div class="flex aic gap8">
-          <div class="hring">${e.score}</div>
-          <span style="font-size:11px;color:var(--tx3)">Health Score</span>
-        </div>
-        <span style="font-size:12px;color:var(--tx3)">Clique para abrir →</span>
-      </div>
-    </div>`;
+  const el = document.getElementById('home-emp-grid');
+  if(!el) return;
+  const all = Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&e.id!=='gp');
+  const custom = Object.values(EMPS).filter(e=>e.id.startsWith('custom_'));
+  const list = [...all, ...custom].sort((a,b)=>(b.score||0)-(a.score||0));
+  el.innerHTML = list.map((e,i)=>{
+    const full = (list.length%3!==0 && i===list.length-1) || (list.length===4 && i===3);
+    return renderHomeV2EmpCard(e, full);
   }).join('');
-  gPortfolio.innerHTML=renderCards([...portfolio,...custom]);
-  gPessoal.innerHTML=renderCards(pessoal);
+}
+
+function renderHomeV2Recommend(){
+  const el = document.getElementById('home-recommend');
+  if(!el) return;
+  const emps = Object.values(EMPS);
+  const dw = emps.find(e=>e.id==='dw');
+  const of = emps.find(e=>e.id==='of');
+  const fs = emps.find(e=>e.id==='fs');
+  const recs = [];
+  if(dw) recs.push({text:`Aumentar investimento em tráfego (${dw.sigla})`, chip:'Impacto alto', cls:'hi'});
+  if(of) recs.push({text:`Reduzir custo fixo na ${of.nome.split(' ')[0]}`, chip:'Urgente', cls:'urg'});
+  if(fs) recs.push({text:`Escalar ${fs.nome.split(' ')[0]} ${fs.nome.split(' ')[1]||''} (janela ativa 30d)`, chip:'Oportunidade', cls:'op'});
+  el.innerHTML = `<div class="home-v2-recommend-head">
+      <div class="home-v2-recommend-icon">🤖</div>
+      <div class="home-v2-recommend-title">ORION recomenda hoje</div>
+      <span style="color:var(--tx3);font-size:14px">»</span>
+    </div>
+    ${recs.map(r=>`<div class="home-v2-rec-item">
+      <span class="home-v2-rec-check">✓</span>
+      <span class="home-v2-rec-text">${escHtml(r.text)}</span>
+      <span class="home-v2-rec-chip ${r.cls}">${r.chip}</span>
+    </div>`).join('')}
+    <div class="home-v2-recommend-foot">Ver plano completo →</div>`;
+}
+
+function renderHomeV2Alerts(){
+  const el = document.getElementById('home-alerts');
+  if(!el) return;
+  const emps = Object.values(EMPS);
+  const dw = emps.find(e=>e.id==='dw');
+  const fs = emps.find(e=>e.id==='fs');
+  const items = [
+    {kind:'crit', n:'2 críticos', sub: dw?dw.nome+': Margem abaixo do ideal':'—'},
+    {kind:'warn', n:'1 atenção',  sub: dw?dw.nome+': CAC elevado':'—'},
+    {kind:'op',   n:'1 oportunidade', sub: fs?fs.nome+': Alta demanda':'—'}
+  ];
+  el.innerHTML = `<div class="home-v2-side-title"><span>Alertas Ativos</span><span class="home-v2-side-badge">4</span></div>
+    ${items.map(a=>`<div class="home-v2-alert-item">
+      <div class="home-v2-alert-icon ${a.kind}">${a.kind==='crit'?'!':a.kind==='warn'?'▲':'★'}</div>
+      <div class="home-v2-alert-body">
+        <div class="home-v2-alert-lbl">${escHtml(a.n)}</div>
+        <div class="home-v2-alert-sub">${escHtml(a.sub)}</div>
+      </div>
+    </div>`).join('')}
+    <div style="font-size:11px;color:var(--blue3);margin-top:8px;cursor:pointer;font-weight:600" onclick="toggleAlertsDd()">Ver todos os alertas →</div>`;
+}
+
+function renderHomeV2Quick(){
+  const el = document.getElementById('home-quick');
+  if(!el) return;
+  const actions = [
+    {i:'📄', l:'Relatório', a:"showToast('Relatório — em breve')"},
+    {i:'⚡', l:'Simular', a:"showToast('Simulação — em breve')"},
+    {i:'📁', l:'Documento', a:"openDrive()"},
+    {i:'🎯', l:'Meta', a:"showToast('Definir meta — em breve')"},
+    {i:'🗓️', l:'Reunião', a:"openModal('modal-evento')"},
+    {i:'📊', l:'Benchmark', a:"goCEO()"}
+  ];
+  el.innerHTML = `<div class="home-v2-side-title">Ações Rápidas</div>
+    <div class="home-v2-quick-grid">
+      ${actions.map(a=>`<button class="home-v2-quick-btn" onclick="${a.a}"><span>${a.i}</span><span>${a.l}</span></button>`).join('')}
+    </div>`;
+}
+
+function renderHomeV2Meeting(){
+  const el = document.getElementById('home-meeting');
+  if(!el) return;
+  const d = new Date();
+  const when = String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' - 14:00';
+  el.innerHTML = `<div class="home-v2-meet-row">
+    <div class="home-v2-meet-cal">📅</div>
+    <div class="home-v2-meet-info">
+      <div style="font-size:10px;color:var(--tx3);letter-spacing:1.5px;text-transform:uppercase;font-weight:700">Próxima reunião</div>
+      <div class="home-v2-meet-title">Revisão Estratégica</div>
+      <div class="home-v2-meet-time">${when}</div>
+    </div>
+    <button class="home-v2-meet-btn" onclick="openModal('modal-evento')">Entrar →</button>
+  </div>`;
+}
+
+function renderHomeV2Activity(){
+  const el = document.getElementById('home-activity');
+  if(!el) return;
+  const items = [
+    {t:'Relatório mensal gerado', w:'há 10 min'},
+    {t:'ORION analisou Doctor Wealth', w:'há 25 min'},
+    {t:'Novo documento adicionado', w:'há 1h'}
+  ];
+  el.innerHTML = `<div class="home-v2-side-title">Atividade recente</div>
+    ${items.map(i=>`<div class="home-v2-act-item">
+      <div class="home-v2-act-dot"></div>
+      <div class="home-v2-act-text">${escHtml(i.t)}</div>
+      <div class="home-v2-act-time">${escHtml(i.w)}</div>
+    </div>`).join('')}`;
+}
+
+function renderHomeV2(){
+  renderHomeV2Prioridades();
+  renderHomeV2Kpis();
+  renderEmpGrid();
+  renderHomeV2Recommend();
+  renderHomeV2Alerts();
+  renderHomeV2Quick();
+  renderHomeV2Meeting();
+  renderHomeV2Activity();
 }
 
 // ── CEO ──────────────────────────────────────────────────────────────────
@@ -2417,6 +2773,7 @@ function goHome(){
   curEmp=null;
   localStorage.removeItem('orion_empresa_ativa');
   showPage('home');
+  renderHomeV2();
   renderVisaoConsolidada();
 }
 function goCEO(){
