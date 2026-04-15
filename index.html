@@ -1853,7 +1853,6 @@ textarea:focus{
   <div class="sb-section">
     <div class="sb-lbl">Navegação</div>
     <div class="sb-item active" id="nav-home" onclick="goHome()">🏠 Home</div>
-    <div class="sb-item" id="nav-orion-ai" onclick="toggleMXDrawer()">🤖 ORION (IA) <span class="sb-pill-new">Novo</span></div>
     <div class="sb-item" id="nav-ceo" onclick="goCEO()">🏢 Empresas <span class="sb-arrow">›</span></div>
     <div class="sb-sub" id="sb-empresas-list">
       <div class="sb-item sb-sub-item" id="sb-dw" onclick="openEmp('dw')">
@@ -1876,21 +1875,19 @@ textarea:focus{
         <span style="flex:1;font-size:13px">CDL Divinópolis</span>
         <span class="sb-score good">88</span>
       </div>
+      <div class="sb-item sb-sub-item" id="sb-gp" onclick="openEmp('gp')">
+        <div class="sb-dot" style="background:#94a3b8"></div>
+        <span style="flex:1;font-size:13px">Gestão Pessoal</span>
+        <span class="sb-score" style="color:var(--tx3)">75</span>
+      </div>
       <div class="sb-add sb-sub-add" onclick="addEmpresa()">+ Nova empresa</div>
     </div>
-    <div class="sb-item" id="nav-analytics" onclick="goCEO()">📈 Analytics</div>
-    <div class="sb-item" id="nav-fin" onclick="showToast('Financeiro Consolidado — em breve')">💰 Financeiro Consolidado</div>
-    <div class="sb-item" id="sb-gp" onclick="openEmp('gp')">👤 Gestão Pessoal</div>
-    <div class="sb-item" id="nav-docs" onclick="openDrive()">📁 Documentos & Drive</div>
-    <div class="sb-item hidden" id="nav-admin" onclick="goAdmin()">🛡️ Administração</div>
-  </div>
-  <div class="sb-div"></div>
-  <div class="sb-section">
-    <div class="sb-lbl">Atalhos</div>
-    <div class="sb-quick-item" onclick="addEmpresa()">➕ Nova Empresa</div>
-    <div class="sb-quick-item" onclick="showToast('Relatório rápido — em breve')">📄 Relatório Rápido</div>
-    <div class="sb-quick-item" onclick="showToast('Simulação — em breve')">⚡ Simular Cenário</div>
-    <div class="sb-quick-item" onclick="toggleMXDrawer()">🤖 Perguntar ao ORION</div>
+    <div class="sb-item" id="nav-eia" onclick="navOpenEmpTab('Extrato IA')">🤖 Extrato IA</div>
+    <div class="sb-item" id="nav-docs" onclick="navOpenEmpTab('Documentos')">📁 Documentos</div>
+    <div class="sb-item" id="nav-reports" onclick="navOpenEmpTab('Relatórios')">📊 Relatórios</div>
+    <div class="sb-item" id="nav-orion-ai" onclick="toggleMXDrawer()">🤖 ORION <span class="sb-pill-new">IA</span></div>
+    <div class="sb-item hidden" id="nav-users" onclick="navOpenAdmin('users')">👥 Usuários</div>
+    <div class="sb-item hidden" id="nav-audit" onclick="navOpenAdmin('audit')">📋 Auditoria</div>
   </div>
   <div class="sb-div hidden" id="sb-modulos-div"></div>
   <div class="sb-section hidden" id="sb-modulos-section">
@@ -5616,8 +5613,57 @@ function audit(action, target, oldVal, newVal){
 // Exibe item "Administração" na sidebar apenas para admins
 function updateAdminNavVisibility(){
   const sess = JSON.parse(localStorage.getItem('orion_session')||'{}');
-  const el = document.getElementById('nav-admin');
-  if(el) el.classList.toggle('hidden', !admIsAdmin(sess));
+  const isAdmin = admIsAdmin(sess);
+  ['nav-admin','nav-users','nav-audit'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.classList.toggle('hidden', !isAdmin);
+  });
+}
+
+// FASE 14 — navegação limpa: abre aba específica da empresa ativa
+// (ou primeira do portfólio) no workspace
+function navOpenEmpTab(tabName){
+  let empId = curEmp;
+  if(!empId){
+    const stored = localStorage.getItem('orion_empresa_ativa');
+    if(stored && EMPS[stored]) empId = stored;
+    else {
+      const first = Object.values(EMPS).find(e=>e.id!=='gp'&&!e.id.startsWith('custom_'));
+      empId = first ? first.id : 'dw';
+    }
+  }
+  if(!EMPS[empId]){ showToast('Nenhuma empresa disponível'); return; }
+  curEmp = empId;
+  localStorage.setItem('orion_empresa_ativa', empId);
+  curTab = tabName;
+  clearSb();
+  const sbEl = document.getElementById('sb-'+empId);
+  if(sbEl) sbEl.classList.add('active');
+  // Ativa highlight da nav item correspondente
+  const navMap = {'Extrato IA':'nav-eia','Documentos':'nav-docs','Relatórios':'nav-reports'};
+  const navEl = document.getElementById(navMap[tabName]);
+  if(navEl){
+    document.querySelectorAll('.sb-item').forEach(el=>el.classList.remove('active'));
+    navEl.classList.add('active');
+  }
+  const drv = document.getElementById('drive-lbl');
+  if(drv) drv.textContent = (EMPS[empId].nome||'')+' Drive';
+  showPage('ws');
+  renderWS();
+  if(typeof renderWSSidebarModules==='function') renderWSSidebarModules();
+}
+
+function navOpenAdmin(sub){
+  const sess = JSON.parse(localStorage.getItem('orion_session')||'{}');
+  if(!admIsAdmin(sess)){ showToast('Acesso restrito — somente administradores'); return; }
+  admSubTab = sub||'users';
+  if(sub!=='users') admEditUserId = null;
+  goAdmin();
+  // Ajusta active state para item específico
+  clearSb();
+  const map = {users:'nav-users', audit:'nav-audit'};
+  const el = document.getElementById(map[sub]||'nav-admin');
+  if(el) el.classList.add('active');
 }
 
 // ── RBAC — verificação de permissões ─────────────────────────────────────
