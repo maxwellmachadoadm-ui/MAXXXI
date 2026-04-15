@@ -1442,6 +1442,209 @@ textarea:focus{
   color:var(--tx3);
   font-weight:700;
 }
+
+/* ── WORKSPACE — header/tabs no padrão CEO ───────────────────────── */
+.ws-header{
+  background:linear-gradient(100deg,var(--s1) 0%,var(--s1) 60%,rgba(59,130,246,.05) 100%) !important;
+  border:1px solid var(--br) !important;
+  border-radius:14px !important;
+}
+.ws-n{
+  font-family:'Syne',sans-serif !important;
+  font-weight:800 !important;
+  color:var(--tx) !important;
+  letter-spacing:-.3px !important;
+}
+.ws-d{color:var(--tx3) !important}
+.ws-kn .nl{color:var(--tx3) !important;font-weight:600 !important;letter-spacing:.08em !important}
+.ws-kn .nv{
+  font-family:'Syne',sans-serif !important;
+  font-weight:800 !important;
+  letter-spacing:-.3px !important;
+}
+.tabs{border-bottom:1px solid var(--br) !important}
+.tab{font-family:'DM Sans',sans-serif !important}
+
+/* ── VISÃO CEO — cards/KPIs alinhados ────────────────────────────── */
+.vceo-title{
+  font-family:'Syne',sans-serif !important;
+  font-weight:800 !important;
+  color:var(--tx) !important;
+  letter-spacing:-.3px !important;
+}
+.vceo-sub{color:var(--tx3) !important}
+.vceo-kpi{
+  background:var(--s1) !important;
+  border:1px solid var(--br) !important;
+  border-radius:14px !important;
+  transition:.15s;
+}
+.vceo-kpi:hover{border-color:rgba(59,130,246,.18)}
+.vceo-kpi .kpi-lbl{color:var(--tx2) !important;font-weight:600 !important;letter-spacing:.08em !important}
+.vceo-kpi .kpi-val{
+  font-family:'Syne',sans-serif !important;
+  font-weight:800 !important;
+  letter-spacing:-.3px !important;
+}
+.vceo-insight-card{border-radius:14px !important}
+.vceo-periodo{
+  background:var(--s0) !important;
+  border:1px solid var(--br) !important;
+  border-radius:10px !important;
+}
+.vceo-periodo button{font-family:'DM Sans',sans-serif}
+.vceo-periodo button.active{background:var(--blue) !important;color:#fff !important}
+.vceo-gargalo,
+.vceo-prio{
+  background:var(--s0) !important;
+  border:1px solid var(--br) !important;
+  border-radius:10px !important;
+}
+
+/* ── RENTABILIDADE FS v2 — remap para tokens ─────────────────────── */
+.fs-rent2-wrap{background:var(--bg) !important;color:var(--tx) !important}
+.fs-rent2-title{font-family:'Syne',sans-serif !important;font-weight:800 !important;color:var(--tx) !important;letter-spacing:-.3px}
+.fs-rent2-subtabs{border-bottom:1px solid var(--br) !important}
+.fs-rent2-subtab{font-family:'DM Sans',sans-serif}
+.fs-rent2-subtab.active{color:var(--blue3) !important;border-bottom-color:var(--blue) !important}
+.fs-rent2-kpi,
+.fs-rent2-panel,
+.fs-rent2-turma-card,
+.fs-rent2-table-wrap,
+.fs-rent2-preview{
+  background:var(--s1) !important;
+  border-color:var(--br) !important;
+  border-radius:14px !important;
+}
+.fs-rent2-kpi:hover,
+.fs-rent2-turma-card:hover{border-color:rgba(59,130,246,.18) !important}
+.fs-rent2-kpi-lbl,
+.fs-rent2-section-title,
+.fs-rent2-preview-title{color:var(--tx2) !important;font-weight:600 !important}
+.fs-rent2-kpi-val,
+.fs-rent2-turma-nome,
+.fs-rent2-turma-saldo{font-family:'Syne',sans-serif !important;letter-spacing:-.3px !important}
+.fs-rent2-empty{
+  background:rgba(255,255,255,.02) !important;
+  border:1px dashed var(--br) !important;
+  color:var(--tx3) !important;
+  border-radius:12px !important;
+}
+.fs-rent2-inp,
+.fs-rent2-sel,
+.fs-rent2-txt{
+  background:var(--s0) !important;
+  border-color:var(--br) !important;
+  color:var(--tx) !important;
+  border-radius:10px !important;
+}
+.fs-rent2-inp:focus,
+.fs-rent2-sel:focus,
+.fs-rent2-txt:focus{
+  border-color:var(--blue) !important;
+  box-shadow:0 0 0 3px rgba(59,130,246,.15) !important;
+}
+.fs-rent2-rate-btn{
+  background:var(--s0) !important;
+  border:1px solid var(--br) !important;
+  color:var(--tx) !important;
+  border-radius:10px !important;
+}
+.fs-rent2-rate-btn.active{background:var(--blue) !important;border-color:var(--blue) !important;color:#fff !important}
+.fs-rent2-lbl{color:var(--tx3) !important;font-weight:600 !important;letter-spacing:.04em !important}
+.fs-rent2-tag{
+  font-family:'DM Sans',sans-serif !important;
+  font-weight:700 !important;
+}
+
+/* ── PROJEÇÕES FS — remap para tokens ─────────────────────────────── */
+.fs-proj-wrap{background:var(--bg) !important;color:var(--tx) !important}
+.fs-proj-title{font-family:'Syne',sans-serif !important;font-weight:800 !important;color:var(--tx) !important;letter-spacing:-.3px}
+.fs-proj-panel,
+.fs-proj-kpi,
+.fs-proj-table-wrap{
+  background:var(--s1) !important;
+  border:1px solid var(--br) !important;
+  border-radius:14px !important;
+}
+.fs-proj-panel-title,
+.fs-proj-kpi-lbl{color:var(--tx2) !important;font-weight:600 !important}
+.fs-proj-kpi-val{font-family:'Syne',sans-serif !important;letter-spacing:-.3px !important}
+.fs-proj-inp,
+.fs-proj-rate-btn{
+  background:var(--s0) !important;
+  border:1px solid var(--br) !important;
+  color:var(--tx) !important;
+  border-radius:10px !important;
+}
+.fs-proj-inp:focus{
+  border-color:var(--blue) !important;
+  box-shadow:0 0 0 3px rgba(59,130,246,.15) !important;
+}
+.fs-proj-rate-btn.active{background:var(--blue) !important;border-color:var(--blue) !important;color:#fff !important}
+.fs-proj-lbl{color:var(--tx3) !important;font-weight:600 !important}
+
+/* ── EXTRATO IA — remap a --br/tokens ─────────────────────────────── */
+.eia-doc-item{background:var(--s1) !important;border-color:var(--br) !important;border-radius:12px !important}
+.eia-doc-item:hover{border-color:rgba(59,130,246,.25) !important}
+.eia-doc-item.active{
+  border-color:rgba(59,130,246,.4) !important;
+  background:linear-gradient(90deg,rgba(59,130,246,.14),rgba(167,139,250,.08)) !important;
+}
+.eia-title{font-family:'Syne',sans-serif !important;font-weight:800 !important;letter-spacing:-.3px}
+.eia-kpi{border-radius:14px !important}
+.eia-table-wrap,
+.eia-learning,
+.eia-detail-card{background:var(--s1) !important;border:1px solid var(--br) !important;border-radius:14px !important}
+.eia-summary{
+  background:linear-gradient(145deg,rgba(59,130,246,.08),rgba(167,139,250,.06)) !important;
+  border:1px solid rgba(167,139,250,.25) !important;
+  border-radius:14px !important;
+}
+.eia-summary-title{font-family:'Syne',sans-serif !important;font-weight:800 !important}
+.eia-insight{background:var(--s1) !important;border:1px solid var(--br) !important;border-radius:14px !important}
+.eia-cat-pill{
+  background:rgba(59,130,246,.1) !important;
+  border:1px solid rgba(59,130,246,.25) !important;
+  color:var(--blue3) !important;
+}
+
+/* ── ADMIN — já usava tokens; afinando detalhes ───────────────────── */
+.adm-title{font-family:'Syne',sans-serif !important;font-weight:800 !important;letter-spacing:-.3px}
+.adm-tabs{border-bottom:1px solid var(--br) !important}
+.adm-tab{font-family:'DM Sans',sans-serif}
+.adm-tab.active{color:var(--blue3) !important;border-bottom-color:var(--blue) !important}
+.adm-panel,
+.adm-user-card,
+.adm-perm-card,
+.adm-invite-table,
+.adm-audit-table{
+  background:var(--s1) !important;
+  border:1px solid var(--br) !important;
+  border-radius:14px !important;
+}
+.adm-panel-title{color:var(--tx2) !important;font-weight:700 !important}
+.adm-perm-head{background:rgba(255,255,255,.015) !important}
+.adm-perm-role-sel{
+  background:var(--s0) !important;
+  border:1px solid var(--br) !important;
+  color:var(--tx) !important;
+  border-radius:8px !important;
+}
+.adm-emp-list{background:rgba(255,255,255,.02) !important;border:1px solid var(--br) !important;border-radius:12px !important}
+.adm-side-hint{
+  background:linear-gradient(145deg,rgba(167,139,250,.08),rgba(59,130,246,.04)) !important;
+  border:1px solid rgba(167,139,250,.25) !important;
+  border-radius:12px !important;
+}
+
+/* ── CARDS GERAIS — radius uniforme ───────────────────────────────── */
+.card{border-radius:14px !important}
+.kpi-card{border-radius:14px !important}
+.home-v2-kpi-card,
+.home-v2-prio-card,
+.home-v2-emp-card,
+.home-v2-side-card{border-radius:14px !important}
 </style>
 </head>
 <body>
