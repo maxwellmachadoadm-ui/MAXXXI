@@ -1813,10 +1813,10 @@ textarea:focus{
 
 /* Print mode — só a audit-table/timeline aparece */
 @media print{
-  body *{visibility:hidden !important}
-  #audit-print-area, #audit-print-area *{visibility:visible !important}
-  #audit-print-area{position:absolute;left:0;top:0;width:100%;padding:20px;background:#fff !important;color:#000 !important}
-  #audit-print-area *{background:#fff !important;color:#000 !important;border-color:#ddd !important}
+  body.audit-printing *{visibility:hidden !important}
+  body.audit-printing .audit-print-area, body.audit-printing .audit-print-area *{visibility:visible !important}
+  body.audit-printing .audit-print-area{position:absolute;left:0;top:0;width:100%;padding:20px;background:#fff !important;color:#000 !important}
+  body.audit-printing .audit-print-area *{background:#fff !important;color:#000 !important;border-color:#ddd !important}
 }
 
 /* Confiabilidade da IA (FASE M) */
@@ -5413,7 +5413,7 @@ function renderAdminAudit(el){
           <button class="${view==='table'?'active':''}" onclick="admAuditFilters.view='table';filterSet('auditoria',admAuditFilters);renderAdmin()">📋 Tabela</button>
           <button class="${view==='timeline'?'active':''}" onclick="admAuditFilters.view='timeline';filterSet('auditoria',admAuditFilters);renderAdmin()">🕑 Timeline</button>
         </div>
-        <button class="btn btn-ghost" onclick="window.print()">🖨 Imprimir</button>
+        <button class="btn btn-ghost" onclick="admPrintAudit()">🖨 Imprimir</button>
         <button class="btn btn-ghost" onclick="admExportAuditCSV()">⬇ CSV</button>
         <button class="btn btn-ghost" onclick="admClearAuditFilters()">↺ Limpar</button>
       </div>
@@ -5461,7 +5461,7 @@ function renderAdminAudit(el){
     </div>
     ${filtered.length===0 ? `<div class="adm-empty">Nenhum evento no filtro atual.</div>` :
       view==='timeline' ? admAuditTimeline(filtered) : `
-    <div style="overflow:auto;max-height:600px;border-radius:12px;border:1px solid var(--br)" id="audit-print-area">
+    <div style="overflow:auto;max-height:600px;border-radius:12px;border:1px solid var(--br)" class="audit-print-area">
       <table class="adm-audit-table">
         <thead><tr>
           <th>Quando</th><th>Usuário</th><th>Empresa</th><th>Ação</th><th>Alvo</th><th>Antes → Depois</th>
@@ -5482,7 +5482,7 @@ function admAuditTimeline(logs){
     byDay[k].push(l);
   });
   const days = Object.keys(byDay).sort().reverse();
-  return `<div class="audit-timeline" id="audit-print-area">
+  return `<div class="audit-timeline audit-print-area">
     ${days.map(day=>{
       const dayEvents = byDay[day];
       const dayDate = new Date(day+'T00:00:00');
@@ -5551,6 +5551,10 @@ function admClearAuditFilters(){
   admAuditFilters = {emp:'', actor:'', action:'', period:'30'};
   filterClear('auditoria');
   renderAdmin();
+}
+function admPrintAudit(){
+  document.body.classList.add('audit-printing');
+  setTimeout(()=>{ window.print(); setTimeout(()=>document.body.classList.remove('audit-printing'), 400); }, 60);
 }
 
 function admExportAuditCSV(){
@@ -7156,33 +7160,47 @@ function docUpload(ev){
   const uploader = sess.name||sess.email||'usuário';
   const list = docGet(curEmp).filter(d=>!d.legacy);
   let pending = files.length;
+  let errorCount = 0;
+  const finalize = ()=>{
+    if(pending!==0) return;
+    docSave(curEmp, list);
+    if(list.length>0) audit('document.upload', {type:'document', id:list[list.length-1].id, label:files[0].name}, null, {count:files.length-errorCount, size:files.reduce((s,f)=>s+f.size,0)});
+    if(errorCount>0) showError(errorCount+' arquivo(s) falharam ao ler');
+    else showToast(files.length+' documento(s) enviado(s)');
+    renderTab();
+  };
   files.forEach(f=>{
-    const reader = new FileReader();
-    reader.onload = evt=>{
-      const ext = (f.name.split('.').pop()||'').toUpperCase();
-      const autoCat = /extrato|bancario|ofx/i.test(f.name)?'Extratos':
-                      /contrato|contrat/i.test(f.name)?'Contratos':
-                      /relatorio|relatório|report/i.test(f.name)?'Relatórios':
-                      /imposto|das|darf|iss|nfe|nota|fiscal/i.test(f.name)?'Fiscal':'Outros';
-      list.push({
-        id:'doc_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),
-        name:f.name, size:f.size, type:ext,
-        category:autoCat,
-        uploadedAt:new Date().toISOString(),
-        uploadedBy:uploader,
-        dataUrl: f.size<1024*1024?evt.target.result:null,  // Só salva ≤1MB para preview
-        notes:''
-      });
-      pending--;
-      if(pending===0){
-        docSave(curEmp, list);
-        audit('document.upload', {type:'document',id:list[list.length-1].id,label:f.name}, null, {category:autoCat, size:f.size});
-        showToast(files.length+' documento(s) enviado(s)');
-        renderTab();
-      }
+    const ext = (f.name.split('.').pop()||'').toUpperCase();
+    const autoCat = /extrato|bancario|ofx/i.test(f.name)?'Extratos':
+                    /contrato|contrat/i.test(f.name)?'Contratos':
+                    /relatorio|relatório|report/i.test(f.name)?'Relatórios':
+                    /imposto|das|darf|iss|nfe|nota|fiscal/i.test(f.name)?'Fiscal':'Outros';
+    const doc = {
+      id:'doc_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),
+      name:f.name, size:f.size, type:ext,
+      category:autoCat,
+      uploadedAt:new Date().toISOString(),
+      uploadedBy:uploader,
+      dataUrl:null,
+      notes:''
     };
-    if(f.size<1024*1024) reader.readAsDataURL(f);
-    else { reader.onload({target:{result:null}}); }
+    if(f.size<1024*1024){
+      const reader = new FileReader();
+      reader.onload = evt=>{
+        doc.dataUrl = evt.target.result;
+        list.push(doc);
+        pending--; finalize();
+      };
+      reader.onerror = ()=>{
+        errorCount++; pending--;
+        console.warn('FileReader error:', f.name);
+        finalize();
+      };
+      try{ reader.readAsDataURL(f); }catch(err){ errorCount++; pending--; finalize(); }
+    } else {
+      list.push(doc); // sem dataUrl — arquivo grande, só metadado
+      pending--; finalize();
+    }
   });
   ev.target.value='';
 }
@@ -9339,7 +9357,7 @@ function mxLocalAnalysis(k){
 }
 
 // ── HOME ALERTS RENDER ──────────────────────────────────────────────────────
-function renderHomeKPIs(){ renderVisaoConsolidada(); }
+// renderHomeKPIs removido na FASE O — era alias morto p/ renderVisaoConsolidada
 
 function renderHomeAlerts(){
   const alerts=getAlerts();
@@ -9914,7 +9932,14 @@ function taskStatusOf(t){
 }
 
 function renderTarefasKanban(e,c,co){
-  const tasks = (e.tarefas||[]).map((t,i)=>({...t, _idx:i}));
+  const filter = Object.assign({prio:'', source:''}, filterGet('tarefas'));
+  const rawTasks = (e.tarefas||[]).map((t,i)=>({...t, _idx:i}));
+  const tasks = rawTasks.filter(t=>{
+    if(filter.prio && t.p!==filter.prio) return false;
+    if(filter.source==='orion' && t.source!=='orion') return false;
+    if(filter.source==='manual' && t.source==='orion') return false;
+    return true;
+  });
   const cols = [
     {key:'pendente',  label:'Pendente',     cls:'kan-col-pending'},
     {key:'andamento', label:'Em andamento', cls:'kan-col-progress'},
@@ -9922,8 +9947,12 @@ function renderTarefasKanban(e,c,co){
   ];
   const byCol = {pendente:[], andamento:[], concluido:[]};
   tasks.forEach(t=>{ (byCol[taskStatusOf(t)]||byCol.pendente).push(t); });
-  const totalPend = tasks.filter(t=>!t.k).length;
-  const totalDone = tasks.filter(t=>t.k).length;
+  const totalPend = rawTasks.filter(t=>!t.k).length;
+  const totalDone = rawTasks.filter(t=>t.k).length;
+  const nAlta = rawTasks.filter(t=>t.p==='alta').length;
+  const nMedia = rawTasks.filter(t=>t.p==='media').length;
+  const nBaixa = rawTasks.filter(t=>t.p==='baixa').length;
+  const nOrion = rawTasks.filter(t=>t.source==='orion').length;
   c.innerHTML = `<div class="kan-root">
     <div class="eia-head">
       <div>
@@ -9935,6 +9964,14 @@ function renderTarefasKanban(e,c,co){
         <button class="btn btn-blue" onclick="openModal('modal-task')">+ Nova Tarefa</button>
       </div>
     </div>
+    <div class="filter-chips">
+      <span class="filter-chip ${!filter.prio&&!filter.source?'active':''}" onclick="filterSet('tarefas',{prio:'',source:''});renderTab()">Todas <span class="filter-chip-n">${rawTasks.length}</span></span>
+      <span class="filter-chip ${filter.prio==='alta'?'active':''}" onclick="filterSet('tarefas',{prio:'alta',source:filterGet('tarefas').source||''});renderTab()">🔴 Alta <span class="filter-chip-n">${nAlta}</span></span>
+      <span class="filter-chip ${filter.prio==='media'?'active':''}" onclick="filterSet('tarefas',{prio:'media',source:filterGet('tarefas').source||''});renderTab()">🟠 Média <span class="filter-chip-n">${nMedia}</span></span>
+      <span class="filter-chip ${filter.prio==='baixa'?'active':''}" onclick="filterSet('tarefas',{prio:'baixa',source:filterGet('tarefas').source||''});renderTab()">⚪ Baixa <span class="filter-chip-n">${nBaixa}</span></span>
+      <span class="filter-chip ${filter.source==='orion'?'active':''}" onclick="filterSet('tarefas',{prio:filterGet('tarefas').prio||'',source:'orion'});renderTab()">🤖 Geradas IA <span class="filter-chip-n">${nOrion}</span></span>
+      ${(filter.prio||filter.source)?`<button class="filter-chip-clear" onclick="filterClear('tarefas');renderTab()">✕ limpar filtros</button>`:''}
+    </div>
     <div class="kan-board">
       ${cols.map(col=>`
       <div class="kan-col ${col.cls}" data-status="${col.key}"
@@ -9944,7 +9981,8 @@ function renderTarefasKanban(e,c,co){
           <span class="kan-col-n">${byCol[col.key].length}</span>
         </div>
         <div class="kan-col-body">
-          ${byCol[col.key].map(t=>taskCardHtml(t,col.key)).join('')}
+          ${byCol[col.key].length===0 ? `<div style="padding:20px 4px;text-align:center;color:var(--tx3);font-size:11px">Sem tarefas</div>` :
+            byCol[col.key].map(t=>taskCardHtml(t,col.key)).join('')}
         </div>
       </div>
       `).join('')}
