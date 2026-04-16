@@ -17,7 +17,7 @@ module.exports = async (req, res) => {
 
   try {
     await resend.emails.send({
-      from: 'ORION <noreply@orion.app>',
+      from: 'ORION <onboarding@resend.dev>',
       to: email,
       subject: 'Recuperação de senha — ORION',
       html: `
