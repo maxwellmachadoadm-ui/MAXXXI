@@ -2207,6 +2207,28 @@ h1,h2,h3,h4,h5,h6,
 /* Alguns campos numéricos em Syne (valores) não são títulos — mantêm */
 .eia-conf-val,.eia-bstat-n,.eia-lstat-n,.kan-col-n,.filter-chip-n,.doc-cat-n,
 .rel-cat-val,.eia-cell-amount{font-family:'Syne',system-ui,sans-serif !important}
+
+/* Abas ocultas — último recurso (belt-and-suspenders) */
+#ws-tabs .tab[data-tab="OKRs"],
+#ws-tabs .tab[data-tab="Projetos"],
+#ws-tabs .tab[data-tab="Equipe"],
+#ws-tabs .tab[data-tab="Contratos"],
+#ws-tabs .tab[data-tab="Riscos"]{display:none !important}
+
+/* KPI values — nowrap definitivo */
+.kpi-val, .kpi-card .val, .kpi-card .val-sm,
+.home-v2-kpi-val, .home-v2-metric-val,
+.vceo-kpi .kpi-val, .eia-rel-val,
+.ws-kn .nv, .val, .val-sm,
+[class*="kpi"] .val, [class*="kpi"] .val-sm, [class*="-val"]{
+  white-space: nowrap !important;
+  font-size: 18px !important;
+  overflow: visible;
+  text-overflow: clip;
+}
+.kpi-val > *, .kpi-card .val > *, .kpi-card .val-sm > *,
+.home-v2-kpi-val > *, .ws-kn .nv > *,
+.val > *, .val-sm > *{white-space: nowrap !important}
 </style>
 </head>
 <body>
@@ -4425,8 +4447,9 @@ function renderWS(){
   }
   if(!activeTabs.includes(curTab)) curTab=activeTabs[0]||'KPIs';
   const VISIBLE_TABS_ORDER = ['KPIs','Financeiro','Extrato IA','Documentos','Relatórios','Tarefas','Notas'];
-  const visible = VISIBLE_TABS_ORDER.filter(t=>activeTabs.includes(t));
-  const overflow = activeTabs.filter(t=>!VISIBLE_TABS_ORDER.includes(t));
+  const TABS_HIDDEN_FROM_BAR = ['OKRs','Projetos','Equipe','Contratos','Riscos'];
+  const visible = VISIBLE_TABS_ORDER.filter(t=>activeTabs.includes(t) && !TABS_HIDDEN_FROM_BAR.includes(t));
+  const overflow = activeTabs.filter(t=>!visible.includes(t));
   const curInOverflow = overflow.includes(curTab);
   const maisLbl = curInOverflow ? escHtml(curTab)+' ▾' : 'Mais ▾';
   const maisActive = curInOverflow ? 'active' : '';
@@ -4434,7 +4457,7 @@ function renderWS(){
     <button class="tab tab-more-btn ${maisActive}" onclick="toggleTabMore(event)">${maisLbl}</button>
     <div class="tab-more-menu hidden" id="tab-more-menu">${overflow.map(t=>`<div class="tab-more-item ${curTab===t?'active':''}" onclick="switchTab('${t.replace(/'/g,"\\'")}');closeTabMore()">${escHtml(t)}</div>`).join('')}</div>
   </div>` : '';
-  wt.innerHTML = visible.map(t=>`<button class="tab ${curTab===t?'active':''}" onclick="switchTab('${t.replace(/'/g,"\\'")}')">${escHtml(t)}</button>`).join('') + maisBtn;
+  wt.innerHTML = visible.map(t=>`<button class="tab ${curTab===t?'active':''}" data-tab="${escHtml(t)}" onclick="switchTab('${t.replace(/'/g,"\\'")}')">${escHtml(t)}</button>`).join('') + maisBtn;
   renderTab();
   // Sync sidebar module list
   if(typeof renderWSSidebarModules==='function') renderWSSidebarModules();
