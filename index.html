@@ -199,6 +199,13 @@ a{color:inherit;text-decoration:none}
 }
 .tab:hover{color:var(--tx)}
 .tab.active{color:var(--blue3);border-bottom-color:var(--blue)}
+.tab-more{position:relative;display:inline-block}
+.tab-more-btn{font-family:'DM Sans',sans-serif}
+.tab-more-menu{position:absolute;top:calc(100% + 4px);right:0;min-width:180px;background:#0d1225;border:1px solid #1e2a45;border-radius:8px;padding:6px;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.tab-more-menu.hidden{display:none}
+.tab-more-item{padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:12px;color:#94a3b8;border-radius:6px;cursor:pointer;transition:.12s;text-transform:uppercase;letter-spacing:.04em}
+.tab-more-item:hover{background:rgba(245,158,11,.08);color:#f1f5f9}
+.tab-more-item.active{color:#f59e0b;background:rgba(245,158,11,.1)}
 
 /* WORKSPACE */
 .ws-header{
@@ -2316,34 +2323,7 @@ h1,h2,h3,h4,h5,h6,
     <div class="sb-lbl">Navegação</div>
     <div class="sb-item active" id="nav-home" onclick="goHome()">🏠 Home</div>
     <div class="sb-item" id="nav-ceo" onclick="goCEO()">🏢 Empresas <span class="sb-arrow">›</span></div>
-    <div class="sb-sub" id="sb-empresas-list">
-      <div class="sb-item sb-sub-item" id="sb-dw" onclick="openEmp('dw')">
-        <div class="sb-dot" style="background:#3b82f6"></div>
-        <span style="flex:1;font-size:13px">Doctor Wealth</span>
-        <span class="sb-score good">80</span>
-      </div>
-      <div class="sb-item sb-sub-item" id="sb-of" onclick="openEmp('of')">
-        <div class="sb-dot" style="background:#f59e0b"></div>
-        <span style="flex:1;font-size:13px">Original Foto.</span>
-        <span class="sb-score warn">52</span>
-      </div>
-      <div class="sb-item sb-sub-item" id="sb-fs" onclick="openEmp('fs')">
-        <div class="sb-dot" style="background:#a78bfa"></div>
-        <span style="flex:1;font-size:13px">Forme Seguro</span>
-        <span class="sb-score" style="color:var(--blue3)">65</span>
-      </div>
-      <div class="sb-item sb-sub-item" id="sb-cdl" onclick="openEmp('cdl')">
-        <div class="sb-dot" style="background:#10b981"></div>
-        <span style="flex:1;font-size:13px">CDL Itaperuna</span>
-        <span class="sb-score good">88</span>
-      </div>
-      <div class="sb-item sb-sub-item" id="sb-gp" onclick="openEmp('gp')">
-        <div class="sb-dot" style="background:#94a3b8"></div>
-        <span style="flex:1;font-size:13px">Gestão Pessoal</span>
-        <span class="sb-score" style="color:var(--tx3)">75</span>
-      </div>
-      <div class="sb-add sb-sub-add" onclick="addEmpresa()">+ Nova empresa</div>
-    </div>
+    <div class="sb-sub" id="sb-empresas-list"></div>
     <div class="sb-item" id="nav-eia" onclick="navOpenEmpTab('Extrato IA')">🤖 Extrato IA</div>
     <div class="sb-item" id="nav-docs" onclick="navOpenEmpTab('Documentos')">📁 Documentos</div>
     <div class="sb-item" id="nav-reports" onclick="navOpenEmpTab('Relatórios')">📊 Relatórios</div>
@@ -3937,6 +3917,26 @@ function renderHomeV2(){
   renderHomeV2Activity();
 }
 
+function renderSidebarEmpresas(){
+  const el = document.getElementById('sb-empresas-list');
+  if(!el) return;
+  const order = ['dw','of','fs','cdl','gp'];
+  const ids = [...new Set([...order.filter(k=>EMPS[k]), ...Object.keys(EMPS)])];
+  const scoreCls = s => s>=75?'good':s>=50?'warn':'bad';
+  el.innerHTML = ids.map(id=>{
+    const e = EMPS[id];
+    return `<div class="sb-item sb-sub-item" id="sb-${id}" onclick="openEmp('${id}')">
+      <div class="sb-dot" style="background:${e.cor}"></div>
+      <span style="flex:1;font-size:13px">${escHtml(e.nome)}</span>
+      <span class="sb-score ${scoreCls(e.score||0)}">${e.score||0}</span>
+    </div>`;
+  }).join('') + `<div class="sb-add sb-sub-add" onclick="addEmpresa()">+ Nova empresa</div>`;
+  if(typeof curEmp!=='undefined' && curEmp){
+    const act = document.getElementById('sb-'+curEmp);
+    if(act) act.classList.add('active');
+  }
+}
+
 // ── CEO ──────────────────────────────────────────────────────────────────
 // ── CEO INTELLIGENCE ENGINE ──────────────────────────────────────────────
 let ceoPeriodo = 'mes';
@@ -4420,7 +4420,17 @@ function renderWS(){
     activeTabs = activeTabs.filter(t=>canSeeTab(t, curEmp));
   }
   if(!activeTabs.includes(curTab)) curTab=activeTabs[0]||'KPIs';
-  wt.innerHTML=activeTabs.map(t=>`<button class="tab ${curTab===t?'active':''}" onclick="switchTab('${t}')">${t}</button>`).join('');
+  const VISIBLE_TABS_ORDER = ['KPIs','Financeiro','Extrato IA','Documentos','Relatórios','Tarefas','Notas'];
+  const visible = VISIBLE_TABS_ORDER.filter(t=>activeTabs.includes(t));
+  const overflow = activeTabs.filter(t=>!VISIBLE_TABS_ORDER.includes(t));
+  const curInOverflow = overflow.includes(curTab);
+  const maisLbl = curInOverflow ? escHtml(curTab)+' ▾' : 'Mais ▾';
+  const maisActive = curInOverflow ? 'active' : '';
+  const maisBtn = overflow.length>0 ? `<div class="tab-more" id="tab-more-wrap">
+    <button class="tab tab-more-btn ${maisActive}" onclick="toggleTabMore(event)">${maisLbl}</button>
+    <div class="tab-more-menu hidden" id="tab-more-menu">${overflow.map(t=>`<div class="tab-more-item ${curTab===t?'active':''}" onclick="switchTab('${t.replace(/'/g,"\\'")}');closeTabMore()">${escHtml(t)}</div>`).join('')}</div>
+  </div>` : '';
+  wt.innerHTML = visible.map(t=>`<button class="tab ${curTab===t?'active':''}" onclick="switchTab('${t.replace(/'/g,"\\'")}')">${escHtml(t)}</button>`).join('') + maisBtn;
   renderTab();
   // Sync sidebar module list
   if(typeof renderWSSidebarModules==='function') renderWSSidebarModules();
@@ -4430,9 +4440,21 @@ function renderWS(){
 
 function switchTab(t){
   curTab=t;
-  document.querySelectorAll('.tab').forEach(el=>{el.classList.toggle('active',el.textContent===t)});
-  renderTab();
+  if(typeof renderWS==='function') renderWS();
   if(typeof renderWSSidebarModules==='function') renderWSSidebarModules();
+}
+function toggleTabMore(ev){
+  if(ev){ ev.stopPropagation(); }
+  const m = document.getElementById('tab-more-menu');
+  if(!m) return;
+  m.classList.toggle('hidden');
+  if(!m.classList.contains('hidden')){
+    setTimeout(()=>document.addEventListener('click', closeTabMore, {once:true}), 0);
+  }
+}
+function closeTabMore(){
+  const m = document.getElementById('tab-more-menu');
+  if(m) m.classList.add('hidden');
 }
 
 // Ícones por módulo — usados no sidebar contextual da empresa ativa
@@ -7648,13 +7670,19 @@ function docAnalyzeORION(id){
 function relAggregate(empId){
   const eiaList = eiaGet(empId);
   const entries = eiaList.flatMap(d=>d.entries||[]);
-  const receita = entries.filter(e=>e.amount>0 && e.status==='approved').reduce((s,e)=>s+e.amount,0);
-  const despesas = entries.filter(e=>e.amount<0 && e.status==='approved').reduce((s,e)=>s+Math.abs(e.amount),0);
+  const eiaApproved = entries.filter(e=>e.status==='approved');
+  const eiaReceita = eiaApproved.filter(e=>e.amount>0).reduce((s,e)=>s+e.amount,0);
+  const eiaDespesas = eiaApproved.filter(e=>e.amount<0).reduce((s,e)=>s+Math.abs(e.amount),0);
+  // Lançamentos do localStorage
+  const lancs = (typeof getLancamentos==='function') ? getLancamentos(empId) : [];
+  const lancReceita = lancs.filter(l=>l.type==='income').reduce((s,l)=>s+FMT.num(l.valor),0);
+  const lancDespesas = lancs.filter(l=>l.type==='expense' && l.impacta_resultado!==false).reduce((s,l)=>s+FMT.num(l.valor),0);
+  const receita = eiaReceita + lancReceita;
+  const despesas = eiaDespesas + lancDespesas;
   const saldo = receita - despesas;
-  // Resultado operacional = empresa.result (quando houver) || saldo
   const emp = EMPS[empId];
   const resultado = (emp && typeof emp.result==='number' && emp.result!==0) ? emp.result : saldo;
-  // Por mês
+  // Por mês (EIA + lançamentos)
   const byMonth = {};
   entries.forEach(e=>{
     const m = (e.date||'').slice(0,7); if(!m) return;
@@ -7662,14 +7690,27 @@ function relAggregate(empId){
     if(e.amount>=0) byMonth[m].in += e.amount;
     else byMonth[m].out += Math.abs(e.amount);
   });
+  lancs.forEach(l=>{
+    const m = (l.data||'').slice(0,7); if(!m) return;
+    if(!byMonth[m]) byMonth[m] = {in:0, out:0};
+    const v = FMT.num(l.valor);
+    if(l.type==='income') byMonth[m].in += v;
+    else if(l.type==='expense' && l.impacta_resultado!==false) byMonth[m].out += v;
+  });
   // Por categoria (despesas)
   const byCat = {};
   entries.filter(e=>e.amount<0).forEach(e=>{
     const k = e.suggestedCategory||'Outros';
     byCat[k] = (byCat[k]||0)+Math.abs(e.amount);
   });
+  lancs.filter(l=>l.type==='expense' && l.impacta_resultado!==false).forEach(l=>{
+    const k = l.categoria||'Outros';
+    byCat[k] = (byCat[k]||0)+FMT.num(l.valor);
+  });
   const pend = entries.filter(e=>e.status==='pending');
-  return {receita, despesas, saldo, resultado, byMonth, byCat, entries, pend, eiaList};
+  return {receita, despesas, saldo, resultado, byMonth, byCat, entries, pend, eiaList,
+    counts:{receita: eiaApproved.filter(e=>e.amount>0).length + lancs.filter(l=>l.type==='income').length,
+            despesa: eiaApproved.filter(e=>e.amount<0).length + lancs.filter(l=>l.type==='expense' && l.impacta_resultado!==false).length}};
 }
 
 function relBarChartSVG(months){
@@ -7735,9 +7776,9 @@ function renderRelatorios(e,c,co){
     </div>
 
     <div class="eia-kpis">
-      <div class="kpi-card eia-kpi"><div class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</div><div class="lbl">Receita Total</div><div class="val-sm txt-green">${FMT.brl(a.receita)}</div><div class="eia-kpi-sub">${a.entries.filter(e=>e.amount>0).length} lançamento(s)</div></div>
-      <div class="kpi-card eia-kpi"><div class="kpi-icon" style="background:rgba(239,68,68,.15)">📉</div><div class="lbl">Despesas Totais</div><div class="val-sm txt-red">${FMT.brl(a.despesas)}</div><div class="eia-kpi-sub">${a.entries.filter(e=>e.amount<0).length} lançamento(s)</div></div>
-      <div class="kpi-card eia-kpi"><div class="kpi-icon" style="background:rgba(59,130,246,.15)">⚖️</div><div class="lbl">Saldo (EIA)</div><div class="val-sm" style="color:${a.saldo>=0?'var(--green)':'var(--red)'}">${FMT.brl(a.saldo)}</div><div class="eia-kpi-sub">Aprovados</div></div>
+      <div class="kpi-card eia-kpi"><div class="kpi-icon" style="background:rgba(16,185,129,.15)">💵</div><div class="lbl">Receita Total</div><div class="val-sm txt-green">${FMT.brl(a.receita)}</div><div class="eia-kpi-sub">${(a.counts&&a.counts.receita)||0} lançamento(s)</div></div>
+      <div class="kpi-card eia-kpi"><div class="kpi-icon" style="background:rgba(239,68,68,.15)">📉</div><div class="lbl">Despesas Totais</div><div class="val-sm txt-red">${FMT.brl(a.despesas)}</div><div class="eia-kpi-sub">${(a.counts&&a.counts.despesa)||0} lançamento(s)</div></div>
+      <div class="kpi-card eia-kpi"><div class="kpi-icon" style="background:rgba(59,130,246,.15)">⚖️</div><div class="lbl">Saldo</div><div class="val-sm" style="color:${a.saldo>=0?'var(--green)':'var(--red)'}">${FMT.brl(a.saldo)}</div><div class="eia-kpi-sub">Receitas − Despesas</div></div>
       <div class="kpi-card eia-kpi"><div class="kpi-icon" style="background:rgba(167,139,250,.15)">📈</div><div class="lbl">Resultado</div><div class="val-sm" style="color:${a.resultado>=0?'var(--green)':'var(--red)'}">${FMT.brl(a.resultado)}</div><div class="eia-kpi-sub">Resultado operacional</div></div>
     </div>
 
@@ -10241,15 +10282,7 @@ function saveNewEmpresa(){
   openEmp(id);
 }
 function addSidebarItem(e){
-  const section=document.querySelector('.sb-section:nth-child(1)');
-  const addBtn=document.querySelector('.sb-add');
-  if(!addBtn)return;
-  const div=document.createElement('div');
-  div.className='sb-item';
-  div.id='sb-'+e.id;
-  div.onclick=()=>openEmp(e.id);
-  div.innerHTML=`<div class="sb-dot" style="background:${e.cor}"></div><span style="flex:1;font-size:13px">${e.nome}</span><span class="sb-score" style="color:${e.cor}">${e.score}</span>`;
-  addBtn.parentNode.insertBefore(div,addBtn);
+  if(typeof renderSidebarEmpresas==='function') renderSidebarEmpresas();
 }
 
 // ── CRUD TAREFAS ──────────────────────────────────────────────────────────
@@ -10582,6 +10615,7 @@ function logAction(action,detail){
 
 // ── START ──────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{
+  if(typeof renderSidebarEmpresas==='function') renderSidebarEmpresas();
   autoLogin();
 });
 </script>
