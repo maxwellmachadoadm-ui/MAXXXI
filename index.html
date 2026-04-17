@@ -3637,6 +3637,8 @@ function toggleAlerts(){}// replaced by toggleAlertsDd
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 async function initPlatform(){
+  // Limpar módulos salvos (força refetch dos defaults já filtrados)
+  ['of','dw','fs','cdl','gp'].forEach(id => localStorage.removeItem('orion_modulos_'+id));
   const d=new Date();
   const opts={weekday:'long',day:'numeric',month:'long',year:'numeric'};
   const ds=d.toLocaleDateString('pt-BR',opts);
@@ -4426,13 +4428,15 @@ const DW_TABS_DEFAULT=['KPIs','OKRs','Tarefas','Financeiro','Extrato IA','Docume
 const OF_TABS_DEFAULT=['KPIs','OKRs','Tarefas','Financeiro','Extrato IA','Documentos','Relatórios','Projetos','Equipe','Contratos','Riscos','Notas'];
 
 function getEmpModulos(empresaId){
+  const HIDDEN = ['OKRs','Projetos','Equipe','Contratos','Riscos'];
+  const filterHidden = tabs => tabs.filter(t => !HIDDEN.includes(t));
   const stored=localStorage.getItem('orion_modulos_'+empresaId);
-  if(stored) return JSON.parse(stored);
-  if(empresaId==='gp') return GP_TABS_DEFAULT;
-  if(empresaId==='fs') return FS_TABS_DEFAULT;
-  if(empresaId==='dw') return DW_TABS_DEFAULT;
-  if(empresaId==='of') return OF_TABS_DEFAULT;
-  return WS_TABS_ALL;
+  if(stored) return filterHidden(JSON.parse(stored));
+  if(empresaId==='gp') return filterHidden(GP_TABS_DEFAULT);
+  if(empresaId==='fs') return filterHidden(FS_TABS_DEFAULT);
+  if(empresaId==='dw') return filterHidden(DW_TABS_DEFAULT);
+  if(empresaId==='of') return filterHidden(OF_TABS_DEFAULT);
+  return filterHidden(WS_TABS_ALL);
 }
 function saveEmpModulos(empresaId, modulos){
   localStorage.setItem('orion_modulos_'+empresaId, JSON.stringify(modulos));
