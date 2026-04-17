@@ -2356,6 +2356,21 @@ html body .badge, html body [class*="-badge"], html body [class*="-pill"] { font
   text-transform: uppercase !important;
   letter-spacing: .08em !important;
 }
+
+/* FIX KPI label nowrap + ellipsis */
+.home-v2-kpi-label, .home-v2-kpi-card .lbl {
+  white-space: nowrap !important;
+  font-size: 10px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* FIX empresa nome e descrição numa linha */
+.home-v2-emp-name { font-size: 13px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+.home-v2-emp-seg { font-size: 11px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+
+/* REDUZIR body geral */
+html body { font-size: 12px !important; }
 </style>
 </head>
 <body>
