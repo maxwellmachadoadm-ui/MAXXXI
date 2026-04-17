@@ -4248,9 +4248,9 @@ function renderCEO(){
     const gpDespesa = gpLancs.filter(l=>l.type==='expense').reduce((s,l)=>s+FMT.num(l.valor),0);
     patEl.innerHTML = `
       <div class="kpi-grid" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:12px">
-        <div class="kpi-card"><div class="kpi-icon">🏦</div><div class="lbl">Patrimônio Estimado</div><div class="val-sm" style="color:${gp.cor}">R$ 1,2M</div></div>
-        <div class="kpi-card"><div class="kpi-icon">💰</div><div class="lbl">Renda Total</div><div class="val-sm txt-green">R$ 52k/mês</div></div>
-        <div class="kpi-card"><div class="kpi-icon">🎯</div><div class="lbl">Taxa de Poupança</div><div class="val-sm txt-green">42%</div></div>
+        <div class="kpi-card"><div class="kpi-icon">🏦</div><div class="lbl">Patrimônio Estimado</div><div class="val-sm" style="color:${gp.cor};white-space:nowrap">R$&nbsp;1,2M</div></div>
+        <div class="kpi-card"><div class="kpi-icon">💰</div><div class="lbl">Renda Total</div><div class="val-sm txt-green" style="white-space:nowrap">R$&nbsp;52k/mês</div></div>
+        <div class="kpi-card"><div class="kpi-icon">🎯</div><div class="lbl">Taxa de Poupança</div><div class="val-sm txt-green" style="white-space:nowrap">42%</div></div>
       </div>
       ${gpLancs.length>0?`<div style="font-size:12px;color:var(--tx3)">${gpLancs.length} lançamentos registrados · Receita: ${FMT.brl(gpReceita)} · Despesa: ${FMT.brl(gpDespesa)}</div>`:'<div style="font-size:12px;color:var(--tx3)">Adicione lançamentos em GP para dados detalhados.</div>'}
       <div style="margin-top:10px">${gp.okrs?gp.okrs.map(o=>`
@@ -4474,14 +4474,14 @@ function renderWS(){
       </div>
       <div class="ws-header-right">
         ${e.id!=='gp'?`
-        <div class="ws-kn"><div class="nl">Faturamento</div><div class="nv" style="color:${e.cor}">${fmt(e.fat)}</div></div>
-        <div class="ws-kn"><div class="nl">Resultado</div><div class="nv" style="color:${e.result>=0?'var(--green)':'var(--red)'}">${fmt(e.result)}</div></div>
-        <div class="ws-kn"><div class="nl">Crescimento</div><div class="nv" style="color:${cresc>=0?'var(--green)':'var(--red)'}">${cresc>=0?'+':''}${cresc}%</div></div>
-        <div class="ws-kn"><div class="nl">Health Score</div><div class="nv" style="color:${e.cor}">${e.score}</div></div>
+        <div class="ws-kn"><div class="nl">Faturamento</div><div class="nv" style="color:${e.cor};white-space:nowrap">${String(fmt(e.fat)).replace(/\s+/g,'\u00A0')}</div></div>
+        <div class="ws-kn"><div class="nl">Resultado</div><div class="nv" style="color:${e.result>=0?'var(--green)':'var(--red)'};white-space:nowrap">${String(fmt(e.result)).replace(/\s+/g,'\u00A0')}</div></div>
+        <div class="ws-kn"><div class="nl">Crescimento</div><div class="nv" style="color:${cresc>=0?'var(--green)':'var(--red)'};white-space:nowrap">${cresc>=0?'+':''}${cresc}%</div></div>
+        <div class="ws-kn"><div class="nl">Health Score</div><div class="nv" style="color:${e.cor};white-space:nowrap">${e.score}</div></div>
         `:`
-        <div class="ws-kn"><div class="nl">Patrimônio</div><div class="nv" style="color:${e.cor}">R$ 1,2M</div></div>
-        <div class="ws-kn"><div class="nl">Renda</div><div class="nv txt-green">R$ 52k/mês</div></div>
-        <div class="ws-kn"><div class="nl">Poupança</div><div class="nv txt-green">42%</div></div>
+        <div class="ws-kn"><div class="nl">Patrimônio</div><div class="nv" style="color:${e.cor};white-space:nowrap">R$&nbsp;1,2M</div></div>
+        <div class="ws-kn"><div class="nl">Renda</div><div class="nv txt-green" style="white-space:nowrap">R$&nbsp;52k/mês</div></div>
+        <div class="ws-kn"><div class="nl">Poupança</div><div class="nv txt-green" style="white-space:nowrap">42%</div></div>
         `}
         <button class="btn btn-ia" onclick="toggleMXDrawer();mxAnalyzeActive()" title="Análise IA desta empresa">🤖 Análise IA</button>
       </div>
@@ -4497,7 +4497,8 @@ function renderWS(){
   if(!activeTabs.includes(curTab)) curTab=activeTabs[0]||'KPIs';
   const VISIBLE_TABS_ORDER = ['KPIs','Financeiro','Extrato IA','Documentos','Relatórios','Tarefas','Notas'];
   const TABS_HIDDEN_FROM_BAR = ['OKRs','Projetos','Equipe','Contratos','Riscos'];
-  const visible = VISIBLE_TABS_ORDER.filter(t=>activeTabs.includes(t) && !TABS_HIDDEN_FROM_BAR.includes(t));
+  const hiddenTabs = TABS_HIDDEN_FROM_BAR;
+  const visible = VISIBLE_TABS_ORDER.filter(t=>activeTabs.includes(t) && !hiddenTabs.includes(t));
   const overflow = activeTabs.filter(t=>!visible.includes(t));
   const curInOverflow = overflow.includes(curTab);
   const maisLbl = curInOverflow ? escHtml(curTab)+' ▾' : 'Mais ▾';
@@ -4506,7 +4507,10 @@ function renderWS(){
     <button class="tab tab-more-btn ${maisActive}" onclick="toggleTabMore(event)">${maisLbl}</button>
     <div class="tab-more-menu hidden" id="tab-more-menu">${overflow.map(t=>`<div class="tab-more-item ${curTab===t?'active':''}" onclick="switchTab('${t.replace(/'/g,"\\'")}');closeTabMore()">${escHtml(t)}</div>`).join('')}</div>
   </div>` : '';
-  wt.innerHTML = visible.map(t=>`<button class="tab ${curTab===t?'active':''}" data-tab="${escHtml(t)}" onclick="switchTab('${t.replace(/'/g,"\\'")}')">${escHtml(t)}</button>`).join('') + maisBtn;
+  wt.innerHTML = visible.map(t=>{
+    if(hiddenTabs.includes(t)) return '';
+    return `<button class="tab ${curTab===t?'active':''}" data-tab="${escHtml(t)}" onclick="switchTab('${t.replace(/'/g,"\\'")}')">${escHtml(t)}</button>`;
+  }).join('') + maisBtn;
   renderTab();
   // Sync sidebar module list
   if(typeof renderWSSidebarModules==='function') renderWSSidebarModules();
@@ -4607,7 +4611,7 @@ function renderTab(){
       <div class="kpi-card">
         <div class="kpi-icon">${k.i}</div>
         <div class="lbl">${k.l}</div>
-        <div class="val-sm" style="color:${co}">${k.v}</div>
+        <div class="val-sm" style="color:${co};white-space:nowrap;font-size:18px;font-family:'Syne',sans-serif;font-weight:800;overflow:visible"><span style="white-space:nowrap">${String(k.v||'').replace(/\s+/g,'\u00A0')}</span></div>
       </div>`).join('')}</div>
     <div class="g2">
       <div class="card">
