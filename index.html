@@ -2223,12 +2223,31 @@ h1,h2,h3,h4,h5,h6,
 [class*="kpi"] .val, [class*="kpi"] .val-sm, [class*="-val"]{
   white-space: nowrap !important;
   font-size: 18px !important;
-  overflow: visible;
-  text-overflow: clip;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  word-wrap: normal !important;
+  hyphens: none !important;
+  max-width: none !important;
+  min-width: 0 !important;
 }
 .kpi-val > *, .kpi-card .val > *, .kpi-card .val-sm > *,
 .home-v2-kpi-val > *, .ws-kn .nv > *,
-.val > *, .val-sm > *{white-space: nowrap !important}
+.val > *, .val-sm > *, [class*="-val"] > *{
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+}
+
+/* KPI container — permitir conteúdo largo sem quebrar */
+.kpi-card, .eia-kpi, .home-v2-kpi-card, .vceo-kpi, .ws-kn{
+  overflow: visible !important;
+  min-width: 0;
+}
+.kpi-card *, .eia-kpi *, .home-v2-kpi-card *, .vceo-kpi *, .ws-kn *{
+  min-width: 0;
+}
 </style>
 </head>
 <body>
