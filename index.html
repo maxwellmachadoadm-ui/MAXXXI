@@ -2211,7 +2211,7 @@ h1,h2,h3,h4,h5,h6,
 .eia-conf-val,.eia-bstat-n,.eia-lstat-n,.kan-col-n,.filter-chip-n,.doc-cat-n,
 .rel-cat-val,.eia-cell-amount{font-family:'Syne',system-ui,sans-serif !important}
 
-/* Abas ocultas — máxima especificidade */
+/* Abas ocultas — máxima especificidade (exato como spec) */
 html body #ws-tabs .tab[data-tab="OKRs"],
 html body #ws-tabs .tab[data-tab="Projetos"],
 html body #ws-tabs .tab[data-tab="Equipe"],
@@ -2221,7 +2221,24 @@ html body .tabs .tab[data-tab="OKRs"],
 html body .tabs .tab[data-tab="Projetos"],
 html body .tabs .tab[data-tab="Equipe"],
 html body .tabs .tab[data-tab="Contratos"],
-html body .tabs .tab[data-tab="Riscos"]{display:none !important;visibility:hidden !important;width:0 !important;padding:0 !important;margin:0 !important;border:0 !important;overflow:hidden !important}
+html body .tabs .tab[data-tab="Riscos"],
+html body .tab[data-tab="OKRs"],
+html body .tab[data-tab="Projetos"],
+html body .tab[data-tab="Equipe"],
+html body .tab[data-tab="Contratos"],
+html body .tab[data-tab="Riscos"] {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  left: -99999px !important;
+}
 
 /* KPI values — nowrap definitivo com máxima especificidade */
 html body .kpi-val,
