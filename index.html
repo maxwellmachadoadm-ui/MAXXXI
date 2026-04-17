@@ -2325,6 +2325,24 @@ input,select,textarea{
 
 /* NEUTRALIZA font-family inline conflitante forçando Syne apenas em titulos numericos */
 [style*="font-size:24px"],[style*="font-size:26px"]{font-size:22px !important}
+
+/* ═══ TIPOGRAFIA UNIFICADA DEFINITIVA ═══ */
+html body * { font-family: 'DM Sans', system-ui, sans-serif !important; font-size: 13px; }
+html body h1, html body h2, html body h3,
+html body .logo-name, html body .home-v2-title,
+html body .home-v2-kpi-val, html body .home-v2-emp-name,
+html body .ws-n, html body .val, html body .val-sm,
+html body .kpi-val, html body [class*="-val"],
+html body [class*="-title"], html body [class*="-name"] {
+  font-family: 'Syne', system-ui, sans-serif !important;
+}
+html body .home-v2-title { font-size: 28px !important; font-weight: 800 !important; }
+html body .home-v2-kpi-val, html body .val { font-size: 22px !important; font-weight: 700 !important; }
+html body .val-sm, html body .ws-kn .val { font-size: 18px !important; font-weight: 700 !important; }
+html body .home-v2-emp-name, html body .ws-n { font-size: 14px !important; font-weight: 700 !important; }
+html body .lbl, html body [class*="-lbl"], html body [class*="-label"] { font-size: 11px !important; font-weight: 500 !important; text-transform: uppercase !important; letter-spacing: .1em !important; color: var(--tx2) !important; }
+html body .sb-item, html body .nav-item { font-size: 13px !important; font-weight: 400 !important; }
+html body .badge, html body [class*="-badge"], html body [class*="-pill"] { font-size: 10px !important; font-weight: 600 !important; }
 </style>
 </head>
 <body>
