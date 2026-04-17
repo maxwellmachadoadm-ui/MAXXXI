@@ -3819,12 +3819,12 @@ function renderHomeV2Kpis(){
     {icon:'💰', bg:'rgba(59,130,246,.15)', lbl:'Faturamento do Ecossistema', val:FMT.brlK(totFat), delta:'▲ +8,2% vs mês anterior', cls:'up', spark:homeV2Spark(sparkFat, 'var(--blue3)', 70, 34)},
     {icon:'📈', bg:'rgba(16,185,129,.15)', lbl:'Resultado Líquido',          val:FMT.brlK(totRes), delta:'▲ +12,1% vs mês anterior', cls:'up', spark:homeV2Spark(sparkRes, 'var(--green)', 70, 34)},
     {icon:'🎯', bg:'rgba(167,139,250,.15)', lbl:'Health Score Médio',         val:String(avgScore), delta:emps.length+' empresas ativas', cls:'neu', spark:homeV2Ring(avgScore, 42)},
-    {icon:'📊', bg:'rgba(245,158,11,.15)', lbl:'Tendência Geral',             val:`<span style="color:${tendCol}">${tendLabel}</span>`, delta:`Projeção 30d: ${avgCresc>=0?'+':''}${avgCresc.toFixed(1)}%`, cls:avgCresc>=0?'up':'down', spark:homeV2Spark([50,52,54,56,58,60,62,64], tendCol, 70, 34)}
+    {icon:'📊', bg:'rgba(245,158,11,.15)', lbl:'Tendência Geral',             val:`<span style="color:${tendCol};font-family:'Syne',sans-serif;font-weight:700;font-size:26px;text-shadow:none;animation:none;filter:none;letter-spacing:-.3px">${tendLabel}</span>`, delta:`Projeção 30d: ${avgCresc>=0?'+':''}${avgCresc.toFixed(1)}%`, cls:avgCresc>=0?'up':'down', spark:homeV2Spark([50,52,54,56,58,60,62,64], tendCol, 70, 34)}
   ];
   el.innerHTML = kpis.map(k=>`<div class="home-v2-kpi-card">
     <div>
       <div class="home-v2-kpi-head"><span class="home-v2-kpi-icon" style="background:${k.bg}">${k.icon}</span><span>${k.lbl}</span></div>
-      <div class="home-v2-kpi-val">${k.val}</div>
+      <div class="home-v2-kpi-val" style="white-space:nowrap;font-size:22px;font-family:'Syne',sans-serif;font-weight:800;text-shadow:none;animation:none;filter:none">${k.val}</div>
       <div class="home-v2-kpi-delta ${k.cls}">${k.delta}</div>
     </div>
     <div class="home-v2-kpi-visual">${k.spark}</div>
@@ -3844,7 +3844,7 @@ function renderHomeV2EmpCard(e, fullWidth){
       <div class="home-v2-emp-id">
         <div class="home-v2-emp-sigla" style="background:${e.cor}">${sigla}</div>
         <div class="home-v2-emp-info">
-          <div class="home-v2-emp-name">${escHtml(e.nome)}</div>
+          <div class="home-v2-emp-name" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">${escHtml(e.nome)}</div>
           <div class="home-v2-emp-desc">${escHtml(e.desc||'')}</div>
         </div>
       </div>
