@@ -2208,21 +2208,36 @@ h1,h2,h3,h4,h5,h6,
 .eia-conf-val,.eia-bstat-n,.eia-lstat-n,.kan-col-n,.filter-chip-n,.doc-cat-n,
 .rel-cat-val,.eia-cell-amount{font-family:'Syne',system-ui,sans-serif !important}
 
-/* Abas ocultas — último recurso (belt-and-suspenders) */
-#ws-tabs .tab[data-tab="OKRs"],
-#ws-tabs .tab[data-tab="Projetos"],
-#ws-tabs .tab[data-tab="Equipe"],
-#ws-tabs .tab[data-tab="Contratos"],
-#ws-tabs .tab[data-tab="Riscos"]{display:none !important}
+/* Abas ocultas — máxima especificidade */
+html body #ws-tabs .tab[data-tab="OKRs"],
+html body #ws-tabs .tab[data-tab="Projetos"],
+html body #ws-tabs .tab[data-tab="Equipe"],
+html body #ws-tabs .tab[data-tab="Contratos"],
+html body #ws-tabs .tab[data-tab="Riscos"],
+html body .tabs .tab[data-tab="OKRs"],
+html body .tabs .tab[data-tab="Projetos"],
+html body .tabs .tab[data-tab="Equipe"],
+html body .tabs .tab[data-tab="Contratos"],
+html body .tabs .tab[data-tab="Riscos"]{display:none !important;visibility:hidden !important;width:0 !important;padding:0 !important;margin:0 !important;border:0 !important;overflow:hidden !important}
 
-/* KPI values — nowrap definitivo */
-.kpi-val, .kpi-card .val, .kpi-card .val-sm,
-.home-v2-kpi-val, .home-v2-metric-val,
-.vceo-kpi .kpi-val, .eia-rel-val,
-.ws-kn .nv, .val, .val-sm,
-[class*="kpi"] .val, [class*="kpi"] .val-sm, [class*="-val"]{
+/* KPI values — nowrap definitivo com máxima especificidade */
+html body .kpi-val,
+html body .kpi-card .val,
+html body .kpi-card .val-sm,
+html body .home-v2-kpi-val,
+html body .home-v2-metric-val,
+html body .vceo-kpi .kpi-val,
+html body .eia-rel-val,
+html body .ws-kn .nv,
+html body .val,
+html body .val-sm,
+html body [class*="kpi"] .val,
+html body [class*="kpi"] .val-sm,
+html body [class*="-val"],
+html body .eia-kpi .val-sm{
   white-space: nowrap !important;
   font-size: 18px !important;
+  line-height: 1.15 !important;
   overflow: visible !important;
   text-overflow: clip !important;
   word-break: keep-all !important;
@@ -2231,22 +2246,37 @@ h1,h2,h3,h4,h5,h6,
   hyphens: none !important;
   max-width: none !important;
   min-width: 0 !important;
+  display: block !important;
 }
-.kpi-val > *, .kpi-card .val > *, .kpi-card .val-sm > *,
-.home-v2-kpi-val > *, .ws-kn .nv > *,
-.val > *, .val-sm > *, [class*="-val"] > *{
+html body .kpi-val > *,
+html body .kpi-card .val > *,
+html body .kpi-card .val-sm > *,
+html body .home-v2-kpi-val > *,
+html body .ws-kn .nv > *,
+html body .val > *,
+html body .val-sm > *,
+html body [class*="-val"] > *{
   white-space: nowrap !important;
   word-break: keep-all !important;
   overflow-wrap: normal !important;
+  display: inline !important;
 }
 
 /* KPI container — permitir conteúdo largo sem quebrar */
-.kpi-card, .eia-kpi, .home-v2-kpi-card, .vceo-kpi, .ws-kn{
+html body .kpi-card,
+html body .eia-kpi,
+html body .home-v2-kpi-card,
+html body .vceo-kpi,
+html body .ws-kn{
   overflow: visible !important;
-  min-width: 0;
+  min-width: 0 !important;
 }
-.kpi-card *, .eia-kpi *, .home-v2-kpi-card *, .vceo-kpi *, .ws-kn *{
-  min-width: 0;
+html body .kpi-card *,
+html body .eia-kpi *,
+html body .home-v2-kpi-card *,
+html body .vceo-kpi *,
+html body .ws-kn *{
+  min-width: 0 !important;
 }
 </style>
 </head>
