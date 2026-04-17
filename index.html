@@ -2212,34 +2212,7 @@ h1,h2,h3,h4,h5,h6,
 .eia-conf-val,.eia-bstat-n,.eia-lstat-n,.kan-col-n,.filter-chip-n,.doc-cat-n,
 .rel-cat-val,.eia-cell-amount{font-family:'Syne',system-ui,sans-serif !important}
 
-/* Abas ocultas — máxima especificidade (exato como spec) */
-html body #ws-tabs .tab[data-tab="OKRs"],
-html body #ws-tabs .tab[data-tab="Projetos"],
-html body #ws-tabs .tab[data-tab="Equipe"],
-html body #ws-tabs .tab[data-tab="Contratos"],
-html body #ws-tabs .tab[data-tab="Riscos"],
-html body .tabs .tab[data-tab="OKRs"],
-html body .tabs .tab[data-tab="Projetos"],
-html body .tabs .tab[data-tab="Equipe"],
-html body .tabs .tab[data-tab="Contratos"],
-html body .tabs .tab[data-tab="Riscos"],
-html body .tab[data-tab="OKRs"],
-html body .tab[data-tab="Projetos"],
-html body .tab[data-tab="Equipe"],
-html body .tab[data-tab="Contratos"],
-html body .tab[data-tab="Riscos"] {
-  display: none !important;
-  visibility: hidden !important;
-  width: 0 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border: none !important;
-  overflow: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  position: absolute !important;
-  left: -99999px !important;
-}
+/* Abas ocultas — delegado ao JS (renderWS filtra na origem) */
 
 /* KPI values — nowrap definitivo com máxima especificidade */
 html body .kpi-val,
@@ -4509,7 +4482,10 @@ function renderWS(){
     </div>`;
   // tabs (filtered by empresa modules + RBAC + HIDDEN_TABS)
   const wt=document.getElementById('ws-tabs');
+  const HIDDEN_TABS_FROM_BAR = ['OKRs','Projetos','Equipe','Contratos','Riscos'];
   let activeTabs=getEmpModulos(curEmp);
+  // Remover no source todas as abas ocultas
+  activeTabs = activeTabs.filter(t => !HIDDEN_TABS_FROM_BAR.includes(t));
   // FASE 13 — esconde abas temporariamente (código mantido)
   if(typeof HIDDEN_TABS!=='undefined') activeTabs = activeTabs.filter(t=>!HIDDEN_TABS.has(t));
   if(typeof canSeeTab==='function'){
@@ -4517,21 +4493,23 @@ function renderWS(){
   }
   if(!activeTabs.includes(curTab)) curTab=activeTabs[0]||'KPIs';
   const VISIBLE_TABS_ORDER = ['KPIs','Financeiro','Extrato IA','Documentos','Relatórios','Tarefas','Notas'];
-  const TABS_HIDDEN_FROM_BAR = ['OKRs','Projetos','Equipe','Contratos','Riscos'];
-  const hiddenTabs = TABS_HIDDEN_FROM_BAR;
+  const TABS_HIDDEN_FROM_BAR = HIDDEN_TABS_FROM_BAR;
+  const hiddenTabs = HIDDEN_TABS_FROM_BAR;
   const visible = VISIBLE_TABS_ORDER.filter(t=>activeTabs.includes(t) && !hiddenTabs.includes(t));
-  const overflow = activeTabs.filter(t=>!visible.includes(t));
+  const overflow = activeTabs.filter(t=>!visible.includes(t) && !hiddenTabs.includes(t));
   const curInOverflow = overflow.includes(curTab);
   const maisLbl = curInOverflow ? escHtml(curTab)+' ▾' : 'Mais ▾';
   const maisActive = curInOverflow ? 'active' : '';
   const maisBtn = overflow.length>0 ? `<div class="tab-more" id="tab-more-wrap">
     <button class="tab tab-more-btn ${maisActive}" onclick="toggleTabMore(event)">${maisLbl}</button>
-    <div class="tab-more-menu hidden" id="tab-more-menu">${overflow.map(t=>`<div class="tab-more-item ${curTab===t?'active':''}" onclick="switchTab('${t.replace(/'/g,"\\'")}');closeTabMore()">${escHtml(t)}</div>`).join('')}</div>
+    <div class="tab-more-menu hidden" id="tab-more-menu">${overflow.filter(t=>!hiddenTabs.includes(t)).map(t=>`<div class="tab-more-item ${curTab===t?'active':''}" onclick="switchTab('${t.replace(/'/g,"\\'")}');closeTabMore()">${escHtml(t)}</div>`).join('')}</div>
   </div>` : '';
   wt.innerHTML = visible.map(t=>{
     if(hiddenTabs.includes(t)) return '';
     return `<button class="tab ${curTab===t?'active':''}" data-tab="${escHtml(t)}" onclick="switchTab('${t.replace(/'/g,"\\'")}')">${escHtml(t)}</button>`;
   }).join('') + maisBtn;
+  // Diagnóstico (remover depois)
+  try{ console.log('[ORION tabs]', { curEmp, curTab, visible, overflow, hidden:hiddenTabs }); }catch(e){}
   renderTab();
   // Sync sidebar module list
   if(typeof renderWSSidebarModules==='function') renderWSSidebarModules();
