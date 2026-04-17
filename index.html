@@ -2196,6 +2196,135 @@ h1,h2,h3,h4,h5,h6,
 /* Alguns campos numéricos em Syne (valores) não são títulos — mantêm */
 .eia-conf-val,.eia-bstat-n,.eia-lstat-n,.kan-col-n,.filter-chip-n,.doc-cat-n,
 .rel-cat-val,.eia-cell-amount{font-family:'Syne',system-ui,sans-serif !important}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ESCALA TIPOGRÁFICA DEFINITIVA — aplicada a toda a plataforma
+   Nenhum font-size acima de 28px; nenhuma exceção.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* BODY & DEFAULT — DM Sans 13px 400 */
+body,.content,.home-v2,.ws,.ws-content,.ceo-root,.eia-root,.adm-root,
+p,li,td,th,span,div,label,input,select,textarea,button{
+  font-family:'DM Sans',system-ui,-apple-system,sans-serif;
+}
+body{font-size:13px !important;font-weight:400 !important;line-height:1.5 !important}
+
+/* TÍTULO DE PÁGINA — Syne 28px 800 (máximo absoluto) */
+h1,h2,.home-v2-title,.adm-title,.eia-title,.fs-rent2-title,.fs-proj-title,
+.vceo-title,.ws-n,.login-title,.empty-hero-title,.section-head-title{
+  font-family:'Syne',system-ui,sans-serif !important;
+  font-size:28px !important;font-weight:800 !important;
+  letter-spacing:-.3px !important;line-height:1.15 !important;
+  -webkit-background-clip:initial !important;-webkit-text-fill-color:initial !important;
+  background:none !important;background-clip:initial !important;color:#f1f5f9 !important
+}
+h3{font-family:'Syne',system-ui,sans-serif !important;font-size:18px !important;font-weight:700 !important;color:#f1f5f9 !important}
+h4,h5,h6{font-family:'Syne',system-ui,sans-serif !important;font-size:14px !important;font-weight:700 !important;color:#f1f5f9 !important}
+
+/* SUBTÍTULO / DESCRIÇÃO — DM Sans 13px 400 #94a3b8 */
+.ws-d,.home-v2-emp-desc,.doc-meta,.eia-file-meta,.eia-detail-meta,
+.home-v2-prio-metric,.eia-rel-sub,.kan-desc,.kan-resp,.kan-prazo,
+.home-v2-recommend-foot,.eia-sub,.adm-sub,.home-v2-greeting,.home-v2-subtitle{
+  font-family:'DM Sans',sans-serif !important;font-size:13px !important;
+  font-weight:400 !important;color:#94a3b8 !important;letter-spacing:0 !important;
+  text-transform:none !important
+}
+
+/* LABEL DE SEÇÃO — DM Sans 11px 500 uppercase ls:2px #4a5568 */
+.slbl,.home-v2-section-label{
+  font-family:'DM Sans',sans-serif !important;font-size:11px !important;
+  font-weight:500 !important;letter-spacing:2px !important;
+  text-transform:uppercase !important;color:#4a5568 !important
+}
+
+/* VALOR KPI GRANDE — Syne 22px 700 (teto absoluto p/ valores principais) */
+.val,.kpi-val,.home-v2-kpi-val,.vceo-kpi .kpi-val,.home-v2-ring-val{
+  font-family:'Syne',sans-serif !important;font-size:22px !important;
+  font-weight:700 !important;letter-spacing:-.3px !important;
+  line-height:1.15 !important;color:#f1f5f9 !important;white-space:nowrap !important
+}
+
+/* VALOR KPI MÉDIO — Syne 18px 700 */
+.val-sm,.home-v2-metric-val,.ws-kn .nv,.eia-rel-val,
+.fs-rent2-turma-saldo,.rel-cat-val,.eia-cell-amount{
+  font-family:'Syne',sans-serif !important;font-size:18px !important;
+  font-weight:700 !important;letter-spacing:-.3px !important;
+  line-height:1.15 !important;white-space:nowrap !important
+}
+
+/* VALOR KPI PEQUENO — Syne 16px 700 */
+.eia-conf-val,.eia-bstat-n,.eia-lstat-n,.kan-col-n,.filter-chip-n,.doc-cat-n,
+.ag-num{
+  font-family:'Syne',sans-serif !important;font-size:16px !important;
+  font-weight:700 !important;letter-spacing:-.2px !important;line-height:1.15 !important
+}
+
+/* LABEL KPI — DM Sans 11px 500 uppercase */
+.lbl,.home-v2-kpi-head,.home-v2-kpi-lbl,.home-v2-metric-lbl,.ws-kn .nl,
+.eia-kpi-sub,.eia-fl,.eia-dfl,.eia-rel-lbl,.adm-summary-line span:first-child{
+  font-family:'DM Sans',sans-serif !important;font-size:11px !important;
+  font-weight:500 !important;letter-spacing:1.5px !important;
+  text-transform:uppercase !important;color:#94a3b8 !important
+}
+
+/* NOME EMPRESA EM CARD — Syne 14px 700 */
+.home-v2-emp-name,.home-v2-prio-name,.home-v2-turma-nome,.fs-rent2-turma-nome,
+.eia-detail-name,.eia-drop-title,.adm-panel-title,.doc-name,.kan-title,
+.aud-day-label,.eia-summary-title,.orion-banner-title,.emp-name{
+  font-family:'Syne',sans-serif !important;font-size:14px !important;
+  font-weight:700 !important;letter-spacing:-.1px !important;
+  line-height:1.2 !important;color:#f1f5f9 !important
+}
+
+/* BADGE / PILL — DM Sans 10px 600 uppercase */
+.home-v2-badge,.stag,.home-v2-prio-tag,.adm-invite-status,.ptag{
+  font-family:'DM Sans',sans-serif !important;font-size:10px !important;
+  font-weight:600 !important;letter-spacing:1.2px !important;
+  text-transform:uppercase !important;padding:3px 9px !important;
+  border-radius:6px !important;line-height:1.2 !important
+}
+
+/* SIDEBAR ITENS — DM Sans 13px 400 */
+.sb-item,.sb-sub-item,.sb-module{
+  font-family:'DM Sans',sans-serif !important;font-size:13px !important;
+  font-weight:400 !important;letter-spacing:0 !important;text-transform:none !important
+}
+.sb-item.active,.sb-module.active{font-weight:500 !important}
+.sb-lbl{
+  font-family:'DM Sans',sans-serif !important;font-size:10px !important;
+  font-weight:500 !important;letter-spacing:2px !important;
+  text-transform:uppercase !important;color:#4a5568 !important
+}
+
+/* BOTÕES — DM Sans 12px 500 */
+.btn,.btn-primary,.btn-blue,.btn-ghost,.btn-ia,.btn-red,.btn-sm,
+.fs-rent2-btn,.fs-rent2-btn-primary,.fs-rent2-btn-green,.fs-rent2-btn-amber,.fs-rent2-btn-red,
+.fs-proj-btn,.fs-rent2-btn-sm,.fs-proj-btn-sm,.tb-btn,
+button:not(.task-del){
+  font-family:'DM Sans',sans-serif !important;font-size:12px !important;
+  font-weight:500 !important;letter-spacing:0 !important;text-transform:none !important;
+  line-height:1.2 !important
+}
+.btn,.btn-primary,.btn-blue,.btn-ghost,.btn-ia,.btn-red,.fs-rent2-btn,
+.fs-rent2-btn-primary,.fs-rent2-btn-green,.fs-rent2-btn-amber,.fs-rent2-btn-red,
+.fs-proj-btn,.tb-btn{padding:8px 14px !important;border-radius:6px !important}
+.btn-sm,.fs-rent2-btn-sm,.fs-proj-btn-sm{padding:6px 10px !important;border-radius:6px !important}
+
+/* INPUTS — DM Sans 13px 400 */
+input,select,textarea{
+  font-family:'DM Sans',sans-serif !important;font-size:13px !important;
+  font-weight:400 !important
+}
+
+/* TETO ABSOLUTO — nada acima de 28px exceto o título de página */
+.eia-drop-icon,.empty-hero-icon{font-size:28px !important}
+
+/* NEUTRALIZA ÍCONES INLINE GIGANTES em render functions */
+[style*="font-size:44px"],[style*="font-size:40px"],[style*="font-size:36px"],
+[style*="font-size:32px"],[style*="font-size:30px"]{font-size:28px !important}
+
+/* NEUTRALIZA font-family inline conflitante forçando Syne apenas em titulos numericos */
+[style*="font-size:24px"],[style*="font-size:26px"]{font-size:22px !important}
 </style>
 </head>
 <body>
