@@ -6494,9 +6494,17 @@ const EIA_BANKS = ['Banco do Brasil','Itaú','Bradesco','Nubank','Santander','Ca
 let eiaSelectedDocId = null;
 
 function eiaStorageKey(empId){ return 'orion_extrato_ia_'+empId }
-function eiaGet(empId){ try{ return eiaMigrateDocs(JSON.parse(localStorage.getItem(eiaStorageKey(empId))||'[]')) }catch(e){ return [] } }
+function eiaStorageKeyAlias(empId){ return 'orion_eia_'+empId } // alias spec v1.1
+function eiaGet(empId){
+  try{
+    const raw = localStorage.getItem(eiaStorageKey(empId)) || localStorage.getItem(eiaStorageKeyAlias(empId)) || '[]';
+    return eiaMigrateDocs(JSON.parse(raw));
+  }catch(e){ return [] }
+}
 function eiaSave(empId, list){
-  localStorage.setItem(eiaStorageKey(empId), JSON.stringify(list));
+  const str = JSON.stringify(list);
+  localStorage.setItem(eiaStorageKey(empId), str);
+  localStorage.setItem(eiaStorageKeyAlias(empId), str); // mirror p/ spec orion_eia_<empId>
   // Supabase sync (debounced) — tabela 'extrato_ia' se existir
   try{ if(typeof eiaBulkSyncDebounced==='function') eiaBulkSyncDebounced(empId, list); }catch(e){}
 }
@@ -6529,8 +6537,95 @@ function eiaTypeFromFile(name){
   if(ext==='pdf') return 'PDF';
   if(['xlsx','xls'].includes(ext)) return 'Excel';
   if(ext==='csv') return 'CSV';
+  if(ext==='txt') return 'TXT';
+  if(['doc','docx'].includes(ext)) return 'DOCX';
   if(['png','jpg','jpeg','webp','heic'].includes(ext)) return 'Imagem';
   return (ext||'outro').toUpperCase();
+}
+function eiaIsTextFile(name){
+  const ext = (name||'').split('.').pop().toLowerCase();
+  return ['csv','txt','doc','docx'].includes(ext);
+}
+function eiaReadFileText(file){
+  return new Promise((resolve)=>{
+    if(!file) return resolve('');
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      let txt = String(reader.result||'');
+      // Para DOC/DOCX lemos como texto bruto — não é parser real, mas extrai trechos ASCII/UTF-8 utilizáveis pela IA
+      if(txt.length > 60000) txt = txt.slice(0, 60000); // cap p/ token budget
+      resolve(txt);
+    };
+    reader.onerror = ()=> resolve('');
+    try{ reader.readAsText(file); }catch(e){ resolve(''); }
+  });
+}
+
+// ── CLAUDE API — classificação real quando orion_api_key está configurada ──
+// Recebe conteúdo textual do arquivo + dica e retorna lista de entries
+// { date, description, amount, type, suggestedCategory, confidence }
+// Retorna null em caso de falha — chamador usa fallback local.
+async function eiaClassifyWithAI(text, fileMeta){
+  try{
+    const apiKey = localStorage.getItem('orion_api_key')||'';
+    if(!apiKey) return null;
+    if(!text || text.length < 10) return null;
+    const cats = EIA_CATS.join(' | ');
+    const prompt = `Você é um analista financeiro. Extraia lançamentos financeiros do texto abaixo e devolva APENAS um JSON válido (sem comentário, sem markdown) com a forma:
+{"entries":[{"date":"YYYY-MM-DD","description":"texto","amount":number,"type":"entrada"|"saida","suggestedCategory":"${cats}","confidence":0-100}]}
+
+Regras:
+- "amount" sempre positivo; use "type" para indicar entrada ou saida.
+- "date" ISO; se desconhecida, use null.
+- "suggestedCategory" deve ser uma das opções listadas.
+- "confidence" 0-100 reflete certeza da classificação.
+- Ignore cabeçalhos/rodapés/metadados; extraia apenas transações.
+- Se o texto não contiver transações financeiras, devolva {"entries":[]}.
+
+Arquivo: ${fileMeta.name} (${fileMeta.type})
+Conteúdo:
+"""
+${text.slice(0, 40000)}
+"""`;
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:3000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    if(!res.ok) return null;
+    const data = await res.json();
+    const raw = (data && data.content && data.content[0] && data.content[0].text) || '';
+    // Extrai o primeiro JSON do texto (defensivo contra wrappers)
+    const m = raw.match(/\{[\s\S]*\}/);
+    if(!m) return null;
+    const parsed = JSON.parse(m[0]);
+    const rows = Array.isArray(parsed.entries) ? parsed.entries : [];
+    return rows.map((r,i)=>({
+      id:'ent_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6)+'_'+i,
+      date: r.date || new Date().toISOString().slice(0,10),
+      description: String(r.description||'—'),
+      amount: (r.type==='saida' ? -1 : 1) * Math.abs(Number(r.amount)||0),
+      type: r.type==='saida' ? 'saida' : 'entrada',
+      suggestedCategory: EIA_CATS.includes(r.suggestedCategory) ? r.suggestedCategory : 'Outros',
+      confidence: Math.max(0, Math.min(100, Math.round(Number(r.confidence)||50))),
+      status: 'pending',
+      flags: [],
+      correctedFrom: null, correctedAt: null, correctedBy: null,
+      origin: 'ai'
+    }));
+  }catch(e){
+    console.warn('eiaClassifyWithAI falhou, caindo para fallback local:', e && e.message);
+    return null;
+  }
 }
 
 function eiaFakeClassify(text){
@@ -6868,8 +6963,8 @@ function renderExtratoIA(e,c,co){
       onclick="document.getElementById('eia-file').click()">
       <div class="eia-drop-icon">📄</div>
       <div class="eia-drop-title">Arraste e solte arquivos aqui</div>
-      <div class="eia-drop-sub">ou <b style="color:var(--blue3)">clique para selecionar</b> · PDF, Excel, CSV, JPG, PNG</div>
-      <input type="file" id="eia-file" hidden multiple accept=".pdf,.xlsx,.xls,.csv,.png,.jpg,.jpeg,.webp" onchange="eiaOnFile(event)"/>
+      <div class="eia-drop-sub">ou <b style="color:var(--blue3)">clique para selecionar</b> · PDF, Excel, CSV, TXT, DOCX, JPG, PNG</div>
+      <input type="file" id="eia-file" hidden multiple accept=".pdf,.xlsx,.xls,.csv,.txt,.doc,.docx,.png,.jpg,.jpeg,.webp" onchange="eiaOnFile(event)"/>
       <div id="eia-progress" class="eia-progress hidden"></div>
     </div>
     ` : `<div class="adm-empty" style="padding:20px;font-size:12px">🔒 Você não tem permissão de upload neste módulo.</div>`}
@@ -6978,13 +7073,19 @@ function eiaRenderEntriesTable(doc){
     const statusBadge = eiaStatusBadge(e.status);
     const amountCol = e.amount>=0?'pos':'neg';
     const flagTooltip = (e.flags||[]).join(', ');
+    const tipoLbl = (e.type==='saida' || (!e.type && (e.amount||0)<0)) ? 'saída' : 'entrada';
+    const tipoCol = tipoLbl==='entrada' ? 'var(--green)' : 'var(--red)';
+    const originLbl = e.origin==='ai' ? 'IA' : 'local';
+    const originCol = e.origin==='ai' ? 'var(--purple)' : 'var(--tx3)';
     return `<tr class="${flagged?'eia-row-flagged':''} ${lowConf?'eia-row-low':''}" title="${flagTooltip||''}">
       <td class="eia-cell-flag">${dup?`<span class="eia-flag dup" title="Possível duplicata">⎘</span>`:''}${inc?`<span class="eia-flag inc" title="Baixa confiança">?</span>`:''}${mis?`<span class="eia-flag mis" title="Categoria ausente/genérica">◇</span>`:''}${out?`<span class="eia-flag out" title="Valor outlier">↑</span>`:''}</td>
       <td class="eia-cell-date">${eiaFormatDate(e.date)}</td>
       <td class="eia-cell-desc">${escHtml(e.description)}</td>
+      <td class="eia-cell-type"><span class="eia-cat-pill" style="color:${tipoCol};border-color:${tipoCol}40">${tipoLbl}</span></td>
       <td class="eia-cell-amount num ${amountCol}">${e.amount>=0?'+':'−'} ${FMT.brl(Math.abs(e.amount))}</td>
       <td class="eia-cell-cat"><span class="eia-cat-pill">${escHtml(e.suggestedCategory||'—')}</span>${e.correctedFrom?`<span class="eia-cat-corrected" title="Era: ${escHtml(e.correctedFrom)}">✎</span>`:''}</td>
       <td class="eia-cell-conf">${eiaConfBar(e.confidence, 70)} <span style="color:${eiaConfColor(e.confidence)};font-family:'Syne',sans-serif;font-weight:800;font-size:11px;margin-left:4px">${e.confidence||0}%</span></td>
+      <td class="eia-cell-origin"><span style="color:${originCol};font-size:10px;text-transform:uppercase;letter-spacing:.08em">${originLbl}</span></td>
       <td class="eia-cell-status">${statusBadge}</td>
       <td class="eia-cell-actions">
         ${e.status==='pending' ? `
@@ -7006,9 +7107,11 @@ function eiaRenderEntriesTable(doc){
           <th class="eia-th-flag"></th>
           <th>Data</th>
           <th>Descrição</th>
+          <th>Tipo</th>
           <th class="num">Valor</th>
           <th>Categoria sugerida</th>
           <th>Confiança</th>
+          <th>Origem</th>
           <th>Status</th>
           <th></th>
         </tr></thead>
@@ -7069,24 +7172,47 @@ async function eiaIngestFiles(files){
       entries:[]
     };
     list.push(procDoc);
-    await eiaAnimateProgress(i, 'read', 25);
-    const cls = eiaFakeClassify(f.name);
-    await eiaAnimateProgress(i, 'ocr', 55);
-    // Simula erro ~3% (arquivo vazio ou tipo estranho)
-    const fail = (!f.size || f.size<10) && Math.random()<0.5;
-    if(fail){
+    await eiaAnimateProgress(i, 'read', 20);
+    // Valida arquivo mínimo
+    if(!f.size || f.size<10){
       procDoc.status = 'error';
-      procDoc.notes = 'Falha ao processar arquivo (formato ou conteúdo inválido)';
-      await eiaAnimateProgress(i, 'done', 100);
+      procDoc.notes = 'Arquivo vazio ou ilegível';
+      await eiaAnimateProgress(i, 'error', 100);
       continue;
     }
-    const entries = eiaParseEntries(f.name, eiaTypeFromFile(f.name), f.size);
-    await eiaAnimateProgress(i, 'classify', 85);
+    let entries = null;
+    let origin = 'local';
+    // Tenta extrair texto (apenas formatos de texto) e classificar via Claude API
+    try{
+      if(eiaIsTextFile(f.name)){
+        const txt = await eiaReadFileText(f);
+        await eiaAnimateProgress(i, 'ocr', 50);
+        const aiEntries = await eiaClassifyWithAI(txt, {name:f.name, type:eiaTypeFromFile(f.name)});
+        if(aiEntries && aiEntries.length>0){
+          entries = aiEntries;
+          origin = 'ai';
+        }
+      } else {
+        await eiaAnimateProgress(i, 'ocr', 50);
+      }
+    }catch(err){
+      console.warn('Falha extração/IA ('+f.name+'):', err && err.message);
+    }
+    await eiaAnimateProgress(i, 'classify', 80);
+    // Fallback local quando IA indisponível ou sem chave
+    if(!entries || entries.length===0){
+      entries = eiaParseEntries(f.name, eiaTypeFromFile(f.name), f.size);
+      origin = 'local';
+    }
+    // Garante campo 'type' em cada entry (entrada/saida) — entries via fallback não têm
+    entries.forEach(en=>{ if(!en.type) en.type = (en.amount||0)>=0 ? 'entrada' : 'saida'; });
+    const cls = eiaFakeClassify(f.name);
     const agg = entries.reduce((s,e)=>s+e.amount,0);
     procDoc.status = 'pending';
     procDoc.confidence = cls.conf;
     procDoc.detectedValue = agg;
     procDoc.classification = cls.cat;
+    procDoc.origin = origin;
     procDoc.entries = entries;
     created.push(procDoc);
     await eiaAnimateProgress(i, 'done', 100);
@@ -7108,13 +7234,17 @@ function eiaAnimateProgress(idx, step, pct){
     if(!row){ return r(); }
     const fill = row.querySelector('.eia-progress-fill');
     const pctEl = row.querySelector('.eia-progress-pct');
-    if(fill) fill.style.width = pct+'%';
-    if(pctEl) pctEl.textContent = pct+'%';
-    const stepLbl = step==='read'?'lendo…':step==='ocr'?'extraindo…':step==='classify'?'classificando…':'✓ pronto';
+    if(fill){
+      fill.style.width = pct+'%';
+      if(step==='error') fill.style.background='var(--red)';
+    }
+    if(pctEl) pctEl.textContent = step==='error' ? 'erro' : pct+'%';
+    const stepLbl = step==='read'?'enviando…':step==='ocr'?'processando…':step==='classify'?'classificando…':step==='error'?'✕ erro':'✓ concluído';
     const name = row.querySelector('.eia-progress-name');
     if(name && step!=='done' && !name.dataset.origName){ name.dataset.origName = name.textContent; }
-    if(name && step!=='done') name.textContent = (name.dataset.origName||name.textContent)+' · '+stepLbl;
-    if(name && step==='done') name.textContent = (name.dataset.origName||name.textContent);
+    if(name && step!=='done' && step!=='error') name.textContent = (name.dataset.origName||name.textContent)+' · '+stepLbl;
+    if(name && step==='done') name.textContent = (name.dataset.origName||name.textContent)+' · '+stepLbl;
+    if(name && step==='error'){ name.textContent = (name.dataset.origName||name.textContent)+' · '+stepLbl; row.classList.add('eia-progress-row-error'); }
     setTimeout(r, 140);
   });
 }
