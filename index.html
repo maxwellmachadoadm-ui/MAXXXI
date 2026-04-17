@@ -6426,6 +6426,9 @@ function isSuperAdmin(u){
 function hasPerm(modKey, action, empresaId){
   // action ∈ view|create|edit|approve|delete
   const u = currentUser();
+  // BYPASS admin / super_admin — sempre full access em tudo
+  const r = (u && u.role || '').toLowerCase();
+  if(r==='admin' || r==='super_admin') return true;
   if(!u) return false;
   if(isSuperAdmin(u)) return true;
   const empId = empresaId||curEmp;
@@ -6443,6 +6446,9 @@ function hasPerm(modKey, action, empresaId){
 function hasEiaPerm(key, empresaId){
   // key ∈ upload|view|editClass|approve|reprocess|retrain|export|delete
   const u = currentUser();
+  // BYPASS admin / super_admin — sempre full access no Extrato IA
+  const r = (u && u.role || '').toLowerCase();
+  if(r==='admin' || r==='super_admin') return true;
   if(!u) return false;
   if(isSuperAdmin(u)) return true;
   const empId = empresaId||curEmp;
