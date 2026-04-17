@@ -4484,8 +4484,10 @@ function renderWS(){
   const wt=document.getElementById('ws-tabs');
   const HIDDEN_TABS_FROM_BAR = ['OKRs','Projetos','Equipe','Contratos','Riscos'];
   let activeTabs=getEmpModulos(curEmp);
+  console.log('activeTabs antes filter:', activeTabs);
   // Remover no source todas as abas ocultas
   activeTabs = activeTabs.filter(t => !HIDDEN_TABS_FROM_BAR.includes(t));
+  console.log('activeTabs depois filter:', activeTabs);
   // FASE 13 — esconde abas temporariamente (código mantido)
   if(typeof HIDDEN_TABS!=='undefined') activeTabs = activeTabs.filter(t=>!HIDDEN_TABS.has(t));
   if(typeof canSeeTab==='function'){
@@ -4607,10 +4609,10 @@ function renderTab(){
     const empAlerts=getAlerts().filter(a=>!a.read&&a.text.includes(e.nome)).slice(0,3);
     const typeIcons={income:'💰',expense:'💸',transfer:'↔️',investment:'📊'};
     c.innerHTML=`<div class="kpi-grid mb">${e.kpis.map(k=>`
-      <div class="kpi-card">
+      <div class="kpi-card" style="padding:16px;background:#0d1225;border:1px solid #1e2a45;border-radius:8px">
         <div class="kpi-icon">${k.i}</div>
-        <div class="lbl">${k.l}</div>
-        <div class="val-sm" style="color:${co};white-space:nowrap;font-size:18px;font-family:'Syne',sans-serif;font-weight:800;overflow:visible"><span style="white-space:nowrap">${String(k.v||'').replace(/\s+/g,'\u00A0')}</span></div>
+        <div class="lbl" style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;margin-bottom:6px">${k.l}</div>
+        <div class="val-sm" style="color:#f59e0b;white-space:nowrap;font-size:20px;font-family:'Syne',sans-serif;font-weight:700;overflow:visible;line-height:1.2"><span style="white-space:nowrap">${String(k.v||'').replace(/\s+/g,'\u00A0')}</span></div>
       </div>`).join('')}</div>
     <div class="g2">
       <div class="card">
