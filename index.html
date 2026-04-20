@@ -2376,6 +2376,13 @@ html body .badge, html body [class*="-badge"], html body [class*="-pill"] { font
 
 /* REDUZIR body geral */
 html body { font-size: 12px !important; }
+
+/* ═══ v1.1.0 — ARQUIVAMENTO DE EMPRESAS (CSS estático, independente de JS) ═══
+   Esconde itens de sidebar/UI de Doctor Wealth e CDL Itaperuna.
+   Para reativar: remover este bloco E setar archived:false em EMPS. */
+#sb-dw, #sb-cdl,
+.sb-item[data-emp="dw"], .sb-item[data-emp="cdl"],
+[data-emp-id="dw"], [data-emp-id="cdl"] { display: none !important; }
 </style>
 </head>
 <body>
@@ -2505,27 +2512,27 @@ html body { font-size: 12px !important; }
     <div class="sb-item active" id="nav-home" onclick="goHome()">🏠 Home</div>
     <div class="sb-item" id="nav-ceo" onclick="goCEO()">🏢 Empresas <span class="sb-arrow">›</span></div>
     <div class="sb-sub" id="sb-empresas-list">
-      <div class="sb-item sb-sub-item" id="sb-dw" onclick="openEmp('dw')">
+      <div class="sb-item sb-sub-item" id="sb-dw" data-emp="dw" onclick="openEmp('dw')">
         <div class="sb-dot" style="background:#3b82f6"></div>
         <span style="flex:1;font-size:13px">Doctor Wealth</span>
         <span class="sb-score good">80</span>
       </div>
-      <div class="sb-item sb-sub-item" id="sb-of" onclick="openEmp('of')">
+      <div class="sb-item sb-sub-item" id="sb-of" data-emp="of" onclick="openEmp('of')">
         <div class="sb-dot" style="background:#f59e0b"></div>
         <span style="flex:1;font-size:13px">Original Foto.</span>
         <span class="sb-score warn">52</span>
       </div>
-      <div class="sb-item sb-sub-item" id="sb-fs" onclick="openEmp('fs')">
+      <div class="sb-item sb-sub-item" id="sb-fs" data-emp="fs" onclick="openEmp('fs')">
         <div class="sb-dot" style="background:#a78bfa"></div>
         <span style="flex:1;font-size:13px">Forme Seguro</span>
         <span class="sb-score" style="color:var(--blue3)">65</span>
       </div>
-      <div class="sb-item sb-sub-item" id="sb-cdl" onclick="openEmp('cdl')">
+      <div class="sb-item sb-sub-item" id="sb-cdl" data-emp="cdl" onclick="openEmp('cdl')">
         <div class="sb-dot" style="background:#10b981"></div>
         <span style="flex:1;font-size:13px">CDL Itaperuna</span>
         <span class="sb-score good">88</span>
       </div>
-      <div class="sb-item sb-sub-item" id="sb-gp" onclick="openEmp('gp')">
+      <div class="sb-item sb-sub-item" id="sb-gp" data-emp="gp" onclick="openEmp('gp')">
         <div class="sb-dot" style="background:#94a3b8"></div>
         <span style="flex:1;font-size:13px">Gestão Pessoal</span>
         <span class="sb-score" style="color:var(--tx3)">75</span>
@@ -4793,7 +4800,9 @@ function openEmp(id){
   const e=EMPS[id];
   if(!e)return;
   // v1.1.0 — empresa arquivada: bloqueia acesso exceto para admin/super_admin
-  if(e.archived){
+  // Check strict (=== true) para evitar falso-positivo com strings/coerção
+  if(e.archived===true){
+    console.log('[openEmp] empresa arquivada:', id, '— archived flag:', e.archived);
     const u = (typeof currentUser==='function') ? currentUser() : null;
     const isAdmin = !!(u && (typeof isSuperAdmin==='function' ? isSuperAdmin(u) : ['admin','super_admin'].includes((u.role||'').toLowerCase())));
     if(!isAdmin){
@@ -11487,7 +11496,14 @@ function getGreeting(name){
 // ── INIT UPGRADE ──────────────────────────────────────────────────────────
 function loadCustomEmps(){
   const custom=JSON.parse(localStorage.getItem('orion_custom_emps')||'[]');
+  // v1.1.0 — núcleo não pode ser sobrescrito por orion_custom_emps (evita archived viral em fs/of/gp)
+  const CORE_IDS = new Set(['dw','of','fs','cdl','gp']);
   custom.forEach(e=>{
+    if(!e || !e.id) return;
+    if(CORE_IDS.has(e.id)){
+      console.warn('[loadCustomEmps] ignorando entry core em orion_custom_emps:', e.id);
+      return;
+    }
     EMPS[e.id]=e;
     addSidebarItem(e);
   });
