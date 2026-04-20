@@ -4092,10 +4092,13 @@ function toggleAlerts(){}// replaced by toggleAlertsDd
 async function initPlatform(){
   Object.keys(localStorage).filter(k=>k.startsWith('orion_modulos_')).forEach(k=>localStorage.removeItem(k));
   // v1.1.0 — esconde itens de sidebar de empresas arquivadas (IDs hardcoded: sb-<empId>)
+  // Usa classe .hidden (display:none!important) pois .sb-item tem display:flex !important global
   try{
     Object.values(EMPS).forEach(e=>{
       const item = document.getElementById('sb-'+e.id);
-      if(item) item.style.display = e.archived ? 'none' : '';
+      if(!item) return;
+      if(e.archived) item.classList.add('hidden');
+      else item.classList.remove('hidden');
     });
   }catch(err){}
   const d=new Date();
@@ -4333,7 +4336,8 @@ function renderHomeV2EmpCard(e, fullWidth){
 function renderEmpGrid(){
   const el = document.getElementById('home-emp-grid');
   if(!el) return;
-  const all = Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&e.id!=='gp'&&!e.archived);
+  // v1.1.0 — inclui GP no portfólio (foco em OF+FS+GP agora que dw/cdl estão archived)
+  const all = Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&!e.archived);
   const custom = Object.values(EMPS).filter(e=>e.id.startsWith('custom_'));
   const list = [...all, ...custom].sort((a,b)=>(b.score||0)-(a.score||0));
   el.innerHTML = list.map((e,i)=>{
@@ -4788,6 +4792,15 @@ function goCEO(){
 function openEmp(id){
   const e=EMPS[id];
   if(!e)return;
+  // v1.1.0 — empresa arquivada: bloqueia acesso exceto para admin/super_admin
+  if(e.archived){
+    const u = (typeof currentUser==='function') ? currentUser() : null;
+    const isAdmin = !!(u && (typeof isSuperAdmin==='function' ? isSuperAdmin(u) : ['admin','super_admin'].includes((u.role||'').toLowerCase())));
+    if(!isAdmin){
+      if(typeof showToast==='function') showToast('Empresa arquivada — acesso restrito.');
+      return;
+    }
+  }
   // RBAC: precisa pelo menos view em dashboard da empresa
   if(typeof hasPerm==='function' && !hasPerm('dashboard','view',id)){
     curEmp = id;
@@ -5018,9 +5031,9 @@ function renderTab(){
       <div class="card">
         <div class="flex aic jsb mb-sm"><div class="slbl" style="margin:0">Tarefas Pendentes</div>
         <button class="btn-sm btn-ghost" style="font-size:11px" onclick="switchTab('Tarefas')">Ver todas →</button></div>
-        ${tarefasPend.length>0?tarefasPend.map(t=>`<div class="task-item ${t.p}" style="margin-bottom:6px;padding:8px 12px">
+        ${tarefasPend.length>0?tarefasPend.map(t=>`<div class="task-item ${t.p||''}" style="margin-bottom:6px;padding:8px 12px">
           <span style="font-size:12px">${t.p==='alta'?'🔴':t.p==='media'?'🟡':'⚪'}</span>
-          <span style="font-size:13px;flex:1">${t.t}</span>
+          <span style="font-size:13px;flex:1">${escHtml(t.t||t.titulo||t.text||t.descricao||t.desc||'(sem título)')}</span>
         </div>`).join(''):'<div style="font-size:13px;color:var(--tx3);padding:8px">Nenhuma tarefa pendente</div>'}
       </div>
       <div class="card">
@@ -11321,7 +11334,7 @@ function taskCardHtml(t, status){
         <button class="eia-act-btn eia-act-rej" title="Remover" onclick="deleteTask(${t._idx})">🗑</button>
       </div>
     </div>
-    <div class="kan-title ${done?'done':''}">${escHtml(t.t)}</div>
+    <div class="kan-title ${done?'done':''}">${escHtml(t.t||t.titulo||t.text||t.descricao||t.desc||'(sem título)')}</div>
     ${desc}
     ${resp}
     ${prazo}
