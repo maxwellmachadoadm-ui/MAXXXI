@@ -3062,6 +3062,7 @@ html body { font-size: 12px !important; }
 // ── DADOS ──────────────────────────────────────────────────────────────────
 const EMPS = {
   dw:{id:'dw',nome:'Doctor Wealth',sigla:'DW',desc:'Ecossistema Financeiro Médico',
+    archived:true,
     cor:'#3b82f6',rgb:'59,130,246',score:80,status:'Crescimento',statusCor:'#10b981',
     fat:48500,meta:60000,result:22000,cresc:18.4,
     drive:'https://drive.google.com',
@@ -3095,6 +3096,7 @@ const EMPS = {
     decisoes:[{d:'Contratar comercial dedicado para novas turmas',dt:'Abr/2026'},{d:'Criar landing page Forme Seguro',dt:'Mar/2026'}],
     crm:[{fase:'Lead',cor:'#3b82f6',itens:[{n:'UNIFAL Medicina 2027',v:'Projeto 5 anos'},{n:'UFLA Medicina 2026',v:'Projeto 4 anos'}]},{fase:'Proposta',cor:'#8b5cf6',itens:[{n:'UNIFENAS Odonto 2026',v:'Projeto 3 anos'}]},{fase:'Negociação',cor:'#f59e0b',itens:[{n:'UNIMONTES Med 2026',v:'Projeto 4 anos'}]},{fase:'Fechado',cor:'#10b981',itens:[{n:'UNIFENAS Med 2026',v:'R$ 5.000/mês'}]}]},
   cdl:{id:'cdl',nome:'CDL Itaperuna',sigla:'CDL',desc:'Câmara de Dirigentes Lojistas Itaperuna',
+    archived:true,
     cor:'#10b981',rgb:'16,185,129',score:88,status:'Estável',statusCor:'#10b981',
     fat:35000,meta:40000,result:12000,cresc:5.3,
     drive:'https://drive.google.com',
@@ -3117,6 +3119,17 @@ const EMPS = {
     decisoes:[{d:'Aportar em FII — MXRF11',dt:'Mar/2026'},{d:'Contratar assessor de investimentos',dt:'Abr/2026'}],
     crm:[]}
 };
+
+// ── ARQUIVAMENTO DE EMPRESAS (v1.1.0) ─────────────────────────────────────
+// Empresas com archived:true não aparecem em listagens da UI, mas mantêm
+// dados, permissões, cálculos e histórico/auditoria intactos.
+function getActiveEmps(){
+  return Object.values(EMPS).filter(e => !e.archived);
+}
+function isEmpActive(empId){
+  const e = EMPS[empId];
+  return !!e && !e.archived;
+}
 
 const AGENDA = [
   {titulo:'Antonio Idea BH',dia:'QUA',num:'25',hora:'11:00 — 12:00',cor:'#3b82f6'},
@@ -4011,7 +4024,7 @@ function openInviteModal(){
   document.getElementById('inv-result').classList.add('hidden');
   document.getElementById('inv-email').value='';
   const el=document.getElementById('inv-empresas');
-  el.innerHTML=Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')).map(e=>
+  el.innerHTML=Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&!e.archived).map(e=>
     `<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--tx2);cursor:pointer;padding:4px 8px;background:var(--s2);border:1px solid var(--br);border-radius:6px"><input type="checkbox" value="${e.id}" checked style="width:14px;height:14px"> ${e.sigla}</label>`
   ).join('');
 }
@@ -4078,6 +4091,13 @@ function toggleAlerts(){}// replaced by toggleAlertsDd
 // ── INIT ──────────────────────────────────────────────────────────────────
 async function initPlatform(){
   Object.keys(localStorage).filter(k=>k.startsWith('orion_modulos_')).forEach(k=>localStorage.removeItem(k));
+  // v1.1.0 — esconde itens de sidebar de empresas arquivadas (IDs hardcoded: sb-<empId>)
+  try{
+    Object.values(EMPS).forEach(e=>{
+      const item = document.getElementById('sb-'+e.id);
+      if(item) item.style.display = e.archived ? 'none' : '';
+    });
+  }catch(err){}
   const d=new Date();
   const opts={weekday:'long',day:'numeric',month:'long',year:'numeric'};
   const ds=d.toLocaleDateString('pt-BR',opts);
@@ -4215,7 +4235,7 @@ function homeV2EmpSpark(e){
 function renderHomeV2Prioridades(){
   const el = document.getElementById('home-prio-grid');
   if(!el) return;
-  const all = Object.values(EMPS).filter(e=>e.id!=='gp'&&!e.id.startsWith('custom_'));
+  const all = Object.values(EMPS).filter(e=>e.id!=='gp'&&!e.id.startsWith('custom_')&&!e.archived);
   if(all.length===0){ el.innerHTML = ''; return; }
   const sorted = [...all].sort((a,b)=>a.cresc-b.cresc);
   const risco = sorted[0];
@@ -4241,7 +4261,7 @@ function renderHomeV2Prioridades(){
 function renderHomeV2Kpis(){
   const el = document.getElementById('home-kpi-grid');
   if(!el) return;
-  const emps = Object.values(EMPS).filter(e=>e.id!=='gp'&&!e.id.startsWith('custom_'));
+  const emps = Object.values(EMPS).filter(e=>e.id!=='gp'&&!e.id.startsWith('custom_')&&!e.archived);
   const totFat = emps.reduce((s,e)=>s+(e.fat||0),0);
   const totRes = emps.reduce((s,e)=>s+(e.result||0),0);
   const avgScore = emps.length? Math.round(emps.reduce((s,e)=>s+(e.score||0),0)/emps.length) : 0;
@@ -4313,7 +4333,7 @@ function renderHomeV2EmpCard(e, fullWidth){
 function renderEmpGrid(){
   const el = document.getElementById('home-emp-grid');
   if(!el) return;
-  const all = Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&e.id!=='gp');
+  const all = Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&e.id!=='gp'&&!e.archived);
   const custom = Object.values(EMPS).filter(e=>e.id.startsWith('custom_'));
   const list = [...all, ...custom].sort((a,b)=>(b.score||0)-(a.score||0));
   el.innerHTML = list.map((e,i)=>{
@@ -4348,7 +4368,7 @@ function renderHomeV2Recommend(){
 function renderHomeV2Alerts(){
   const el = document.getElementById('home-alerts');
   if(!el) return;
-  const emps = Object.values(EMPS);
+  const emps = getActiveEmps();
   const dw = emps.find(e=>e.id==='dw');
   const fs = emps.find(e=>e.id==='fs');
   const items = [
@@ -4502,7 +4522,7 @@ function ceoGerarPrioridades(kpis){
 }
 
 function renderCEO(){
-  const allEmps = Object.values(EMPS).filter(e=>!e.id.startsWith('custom_'));
+  const allEmps = Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&!e.archived);
   const kpis = allEmps.map(e=>ceoCalcEmpresa(e.id)).filter(Boolean);
   const portfolio = kpis.filter(k=>k.empresaId!=='gp');
   const per = getCeoPeriodo();
@@ -4701,7 +4721,7 @@ function renderCEO(){
 }
 
 function exportCeoCSV(){
-  const allEmps = Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&e.id!=='gp');
+  const allEmps = Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&e.id!=='gp'&&!e.archived);
   const kpis = allEmps.map(e=>ceoCalcEmpresa(e.id)).filter(Boolean);
   const header = 'Empresa,Receita,Despesa,Resultado,Margem%,HealthScore,Inadimplencia,TarefasAbertas';
   const rows = kpis.map(k=>`${k.nome},${k.receita},${k.despesa},${k.resultado},${k.margem},${k.score},${k.inadimplencia},${k.tarefasAbertas}`);
@@ -6675,7 +6695,7 @@ function navOpenEmpTab(tabName){
     const stored = localStorage.getItem('orion_empresa_ativa');
     if(stored && EMPS[stored]) empId = stored;
     else {
-      const first = Object.values(EMPS).find(e=>e.id!=='gp'&&!e.id.startsWith('custom_'));
+      const first = Object.values(EMPS).find(e=>e.id!=='gp'&&!e.id.startsWith('custom_')&&!e.archived);
       empId = first ? first.id : 'dw';
     }
   }
@@ -7146,9 +7166,9 @@ function eiaReliabilityMetrics(empId){
   const avgConf = processed ? Math.round(entries.reduce((s,e)=>s+(e.confidence||0),0)/processed) : 0;
   const taxaAutoApp = approved ? Math.round((autoApproved/approved)*100) : 0;
   const taxaHumana = approved ? Math.round((corrected/approved)*100) : 0;
-  // Pendentes por empresa (cross-empresa visão)
+  // Pendentes por empresa (cross-empresa visão) — apenas ativas
   const perEmp = {};
-  Object.values(EMPS).forEach(emp=>{
+  getActiveEmps().forEach(emp=>{
     try{
       const ents = eiaGet(emp.id).flatMap(d=>d.entries||[]);
       perEmp[emp.id] = {nome:emp.nome, cor:emp.cor, pending:ents.filter(e=>e.status==='pending').length, total:ents.length};
@@ -8496,8 +8516,7 @@ function orionRecommendForEmp(empId){
 }
 
 function orionRecommendAll(){
-  const all = Object.values(EMPS)
-    .filter(e=>!e.id.startsWith('custom_')||true)
+  const all = getActiveEmps()
     .flatMap(e=>orionRecommendForEmp(e.id));
   // Dedup por (empId+key) + ordena por urgência (critical > high > medium > low)
   const seen = new Set();
@@ -9609,7 +9628,7 @@ function deleteMembroOF(i){const eq=getEquipeOF();eq.splice(i,1);saveEquipeOF(eq
 // ── RELATÓRIO EXECUTIVO ──────────────────────────────────────────────────
 async function gerarRelatorioExecutivo(){
   const apiKey=localStorage.getItem('orion_api_key')||'';
-  const emps=Object.values(EMPS).filter(e=>!e.id.startsWith('custom_'));
+  const emps=Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&!e.archived);
   const dados=emps.map(e=>`${e.nome} (${e.sigla}): Fat ${FMT.brlK(e.fat)}, Result ${FMT.brlK(e.result)}, Score ${e.score}, Status ${e.status}`).join('\n');
   const alerts=getAlerts().filter(a=>!a.read).map(a=>a.text).join('; ');
   const prompt_text=`Gere um relatório executivo completo do ecossistema ORION de Maxwell Machado.
@@ -10603,7 +10622,7 @@ function checkDailyBriefing(){
   const u=JSON.parse(LS('session')||'{}');
   const name=u.name?u.name.split(' ')[0]:'';
   const alerts=getAlerts().filter(a=>!a.read);
-  const portfolio=Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&e.id!=='gp');
+  const portfolio=Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&e.id!=='gp'&&!e.archived);
   const totalResult=portfolio.reduce((s,e)=>s+FMT.num(e.result),0);
   const totalFat=portfolio.reduce((s,e)=>s+FMT.num(e.fat),0);
   const briefing=`Bom dia, ${name}! Briefing de hoje:<br><br>` +
@@ -10633,7 +10652,7 @@ function mxAnalyzeActive(){
       } else { el.innerHTML=mxLocalAnalysis(k); }
     }
   } else {
-    const kpis=Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&e.id!=='gp').map(e=>ceoCalcEmpresa(e.id)).filter(Boolean);
+    const kpis=Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&e.id!=='gp'&&!e.archived).map(e=>ceoCalcEmpresa(e.id)).filter(Boolean);
     const total=kpis.reduce((s,k)=>s+k.resultado,0);
     const melhor=ceoIdentificarMelhor(kpis);
     const pior=ceoIdentificarPior(kpis);
@@ -10664,7 +10683,7 @@ function renderHomeAlerts(){
 
 // ── VISÃO CONSOLIDADA ──────────────────────────────────────────────────────
 function renderVisaoConsolidada(){
-  const allEmps=Object.values(EMPS).filter(e=>!e.id.startsWith('custom_'));
+  const allEmps=Object.values(EMPS).filter(e=>!e.id.startsWith('custom_')&&!e.archived);
   const portfolio=allEmps.filter(e=>e.id!=='gp');
   const kpis=portfolio.map(e=>ceoCalcEmpresa(e.id)).filter(Boolean);
   const totalReceita=kpis.reduce((s,k)=>s+k.receita,0);
@@ -10934,7 +10953,7 @@ function generateAutoAlerts(){
   const now=new Date();
   const timeStr=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
   Object.values(EMPS).forEach(e=>{
-    if(e.id==='gp'||e.id.startsWith('custom_')) return;
+    if(e.id==='gp'||e.id.startsWith('custom_')||e.archived) return;
     const inadimp=e.id==='of'?8.7:e.id==='dw'?3.2:e.id==='cdl'?2.1:0;
     if(inadimp>5) auto.push({id:aid++,text:`${e.nome} — Inadimplência em ${inadimp}% (limite: 5%)`,level:'red',read:false,time:'Hoje '+timeStr});
     if(e.result<0) auto.push({id:aid++,text:`${e.nome} — Resultado negativo: ${FMT.brlK(e.result)}`,level:'red',read:false,time:'Hoje '+timeStr});
@@ -11040,7 +11059,7 @@ function filterCmd(){
   const searchResults=[];
   if(q&&q.length>=2){
     // Empresas (core + custom) — por nome ou sigla
-    Object.values(EMPS).forEach(e=>{
+    getActiveEmps().forEach(e=>{
       const s = (e.nome+' '+e.sigla+' '+(e.desc||'')).toLowerCase();
       if(s.includes(q)){
         searchResults.push({icon:'🏢',label:e.nome,hint:'Empresa · '+e.sigla,action:()=>{openEmp(e.id);closeCmdPalette()}});
@@ -11056,8 +11075,8 @@ function filterCmd(){
         }
       });
     }catch(e){}
-    // Tarefas + Contratos + Notas + Documentos + Extrato IA por empresa
-    Object.values(EMPS).forEach(e=>{
+    // Tarefas + Contratos + Notas + Documentos + Extrato IA por empresa (apenas ativas)
+    getActiveEmps().forEach(e=>{
       (e.tarefas||[]).forEach(t=>{
         if(t.t&&t.t.toLowerCase().includes(q)) searchResults.push({icon:'✅',label:t.t,hint:e.sigla+' · Tarefa',action:()=>{openEmp(e.id);curTab='Tarefas';renderTab();closeCmdPalette()}});
       });
@@ -11082,8 +11101,8 @@ function filterCmd(){
         });
       }catch(err){}
     });
-    // Shortcuts de Relatórios
-    Object.values(EMPS).forEach(e=>{
+    // Shortcuts de Relatórios (apenas empresas ativas)
+    getActiveEmps().forEach(e=>{
       if(('relatório relatorios '+e.nome).toLowerCase().includes(q)){
         searchResults.push({icon:'📊',label:'Relatórios · '+e.nome,hint:'Ir para relatórios',action:()=>{openEmp(e.id);curTab='Relatórios';renderTab();closeCmdPalette()}});
       }
