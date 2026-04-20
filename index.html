@@ -3756,6 +3756,36 @@ async function doResetPassword(){
   }
 }
 
+// Registra listener de onAuthStateChange do Supabase — dispara na presença de PASSWORD_RECOVERY
+// mesmo quando o SDK já consumiu o hash/query e limpou a URL antes de authDetectRecovery rodar.
+let _authStateListenerRegistered = false;
+function authRegisterStateListener(){
+  if(_authStateListenerRegistered) return;
+  try{ if(typeof initSupabase==='function' && !sb) initSupabase(); }catch(e){}
+  if(!(typeof sb!=='undefined' && sb && sb.auth && typeof sb.auth.onAuthStateChange==='function')) return;
+  sb.auth.onAuthStateChange((event, session)=>{
+    console.log('[onAuthStateChange]', event);
+    if(event === 'PASSWORD_RECOVERY'){
+      console.log('[authDetectRecovery] evento PASSWORD_RECOVERY detectado');
+      try{
+        const ls = document.getElementById('login-screen');
+        const pl = document.getElementById('platform');
+        const lf = document.getElementById('login-form');
+        const rf = document.getElementById('reset-form');
+        const rg = document.getElementById('register-form');
+        if(ls){ ls.classList.remove('hidden'); ls.style.display='flex'; }
+        if(pl){ pl.classList.add('hidden'); pl.style.display='none'; }
+        if(lf){ lf.classList.add('hidden'); lf.style.display='none'; }
+        if(rg){ rg.classList.add('hidden'); rg.style.display='none'; }
+        if(rf){ rf.classList.remove('hidden'); rf.style.display='block'; }
+        // Limpa sessão local para não re-enterPlatform acidentalmente
+        try{ localStorage.removeItem('orion_session'); }catch(e){}
+      }catch(e){ console.warn('[onAuthStateChange] erro ao exibir reset-form:', e && e.message); }
+    }
+  });
+  _authStateListenerRegistered = true;
+}
+
 // Detecta link de recuperação do Supabase — 3 formatos:
 //  (a) hash com type=recovery ou access_token= (fluxo implicit antigo)
 //  (b) query com type=recovery ou code= (fluxo PKCE novo)
@@ -3937,13 +3967,30 @@ function enterPlatform(u){
   initPlatform();
 }
 
-function autoLogin(){
+async function autoLogin(){
   // Maxwell pré-cadastrado
   const users=JSON.parse(LS('users')||'[]');
   if(users.length===0){
     const mx={name:'Maxwell Machado',email:'maxwell@orion.app',phone:'(38) 99999-9999',cpf:'000.000.000-00',pass:btoa('orion2026'),role:'admin',id:1};
     LS('users',JSON.stringify([mx]));
   }
+  // Se existe sessão Supabase vinda de fluxo de recovery, NÃO entrar na plataforma —
+  // deixa o evento PASSWORD_RECOVERY (listener) ou authDetectRecovery exibirem o reset-form.
+  try{
+    if(typeof sb!=='undefined' && sb && sb.auth && typeof sb.auth.getSession==='function'){
+      const { data } = await sb.auth.getSession();
+      const session = data && data.session;
+      if(session){
+        const aal = session.user && (session.user.aal || (session.user.app_metadata && session.user.app_metadata.aal));
+        const amr = (session.user && session.user.app_metadata && session.user.app_metadata.amr) || [];
+        const looksLikeRecovery = aal==='aal1' && Array.isArray(amr) && amr.some(a=>a && a.method==='recovery');
+        if(looksLikeRecovery){
+          console.log('[autoLogin] sessão de recovery detectada — aguardando reset-form');
+          return;
+        }
+      }
+    }
+  }catch(e){ console.warn('[autoLogin] getSession erro:', e && e.message); }
   const sess=LS('session');
   if(sess){
     try{
@@ -11456,7 +11503,10 @@ function logAction(action,detail){
 
 // ── START ──────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async ()=>{
-  // FASE 2B — se URL indica fluxo de recuperação, exibe tela de reset antes do autoLogin
+  // FASE 2B — init Supabase + listener onAuthStateChange (PASSWORD_RECOVERY) antes de qualquer fluxo
+  try{ if(typeof initSupabase==='function' && !sb) initSupabase(); }catch(e){}
+  try{ if(typeof authRegisterStateListener==='function') authRegisterStateListener(); }catch(e){}
+  // Detecção por URL (hash/query) — cobre casos em que o evento ainda não disparou
   try{
     const recovered = await authDetectRecovery();
     if(recovered) return;
