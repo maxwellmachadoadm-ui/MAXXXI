@@ -851,8 +851,8 @@ a{color:inherit;text-decoration:none}
 .card-sm{border-radius:10px}
 
 /* Tabs premium — pill active state + linha inferior refinada */
-.tabs{gap:2px;overflow-x:auto;padding-bottom:0;scrollbar-width:thin}
-.tab{border-radius:8px 8px 0 0;transition:color .12s,border-color .15s,background .15s}
+.tabs{gap:2px;overflow-x:auto;padding-bottom:0;scrollbar-width:thin;flex-wrap:nowrap}
+.tab{border-radius:8px 8px 0 0;transition:color .12s,border-color .15s,background .15s;white-space:nowrap;flex-shrink:0;font-size:11px !important;padding:9px 12px !important}
 .tab:hover{background:rgba(255,255,255,.03)}
 .tab.active{background:linear-gradient(180deg,rgba(59,130,246,.08),transparent);color:var(--blue3);border-bottom-color:var(--blue);box-shadow:0 1px 0 0 var(--blue)}
 
@@ -3258,22 +3258,41 @@ function calcularDRE(empresaId, mes){
       despPorCat[cat] = (despPorCat[cat]||0) + v;
     }
   });
-  // FASE 2 — agrega lançamentos EIA APROVADOS do mês (fonte IA)
+  // FASE 2 — agrega lançamentos EIA APROVADOS do mês (fonte IA) com deduplicação
+  // Evita duplo-cômputo: (a) ignora entries com flag 'duplicate' (cross-doc EIA);
+  // (b) ignora entries cuja assinatura (data+valor+prefixo descrição) já existe em manual.
   try{
+    const manualSigs = new Set();
+    filtered.forEach(l=>{
+      const v = Math.round(Math.abs(FMT.num(l.valor))*100);
+      const d = (l.data||'').slice(0,10);
+      const desc = String(l.descricao||'').toLowerCase().slice(0,24);
+      manualSigs.add(d+'|'+v+'|'+desc);
+      manualSigs.add(d+'|'+v); // match por data+valor mesmo com descrição diferente
+    });
+    const eiaSigs = new Set();
     const docs = (typeof eiaGet==='function') ? eiaGet(empresaId) : [];
     (docs||[]).forEach(d=>{
       (d.entries||[]).forEach(en=>{
         if(en.deleted) return;
         if(en.status!=='approved') return;
+        if(Array.isArray(en.flags) && en.flags.includes('duplicate')) return;
         const dt = en.date||'';
         if(!dt.startsWith(mes)) return;
-        const v = Math.abs(FMT.num(en.amount));
+        const v = Math.round(Math.abs(FMT.num(en.amount))*100);
+        const desc = String(en.description||'').toLowerCase().slice(0,24);
+        const sigFull = dt+'|'+v+'|'+desc;
+        const sigShort = dt+'|'+v;
+        if(manualSigs.has(sigFull) || manualSigs.has(sigShort)) return; // manual já contou
+        if(eiaSigs.has(sigFull)) return; // outro entry EIA já contou (cross-doc)
+        eiaSigs.add(sigFull); eiaSigs.add(sigShort);
+        const vR = Math.abs(FMT.num(en.amount));
         if((en.amount||0)>=0 || en.type==='entrada'){
-          receita += v;
+          receita += vR;
         } else {
-          despesa += v;
+          despesa += vR;
           const cat = en.suggestedCategory || 'Outras Despesas';
-          despPorCat[cat] = (despPorCat[cat]||0) + v;
+          despPorCat[cat] = (despPorCat[cat]||0) + vR;
         }
       });
     });
@@ -3315,13 +3334,29 @@ function calcularFluxoCaixa(empresaId, numMeses){
       if(l.type==='income') entradas += v;
       else if(l.type==='expense') saidas += v;
     });
-    // EIA approved no mês
+    // EIA approved no mês — com dedup contra manual + flag duplicate + cross-doc EIA
+    const manSigs = new Set();
+    ml.forEach(l=>{
+      const v = Math.round(Math.abs(FMT.num(l.valor))*100);
+      const d = (l.data||'').slice(0,10);
+      manSigs.add(d+'|'+v+'|'+String(l.descricao||'').toLowerCase().slice(0,24));
+      manSigs.add(d+'|'+v);
+    });
+    const eiaSigsM = new Set();
     (eiaDocs||[]).forEach(d=>{
       (d.entries||[]).forEach(en=>{
         if(en.deleted || en.status!=='approved') return;
-        if(!(en.date||'').startsWith(m.key)) return;
-        const v = Math.abs(FMT.num(en.amount));
-        if((en.amount||0)>=0 || en.type==='entrada') entradas += v; else saidas += v;
+        if(Array.isArray(en.flags) && en.flags.includes('duplicate')) return;
+        const dt = en.date||'';
+        if(!dt.startsWith(m.key)) return;
+        const v = Math.round(Math.abs(FMT.num(en.amount))*100);
+        const sigFull = dt+'|'+v+'|'+String(en.description||'').toLowerCase().slice(0,24);
+        const sigShort = dt+'|'+v;
+        if(manSigs.has(sigFull) || manSigs.has(sigShort)) return;
+        if(eiaSigsM.has(sigFull)) return;
+        eiaSigsM.add(sigFull); eiaSigsM.add(sigShort);
+        const vR = Math.abs(FMT.num(en.amount));
+        if((en.amount||0)>=0 || en.type==='entrada') entradas += vR; else saidas += vR;
       });
     });
     if(entradas===0 && saidas===0 && e) {
@@ -9680,7 +9715,8 @@ function deleteLancamento(empresaId, lancId){
   l.deleted = true;
   l.deletedAt = new Date().toISOString();
   saveLancamentos(empresaId, lancs);
-  try{ if(typeof sbPush==='function') sbPush('lancamentos', {id:l.id, empresa_id:empresaId, status:'excluído', deleted:true}); }catch(e){}
+  // Supabase sync — usa apenas colunas existentes do schema (status); não envia 'deleted' para evitar quebra
+  try{ if(typeof sbPush==='function') sbPush('lancamentos', {id:l.id, empresa_id:empresaId, status:'excluído'}); }catch(e){}
   renderTab();
 }
 
