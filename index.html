@@ -5616,7 +5616,7 @@ function wsRenderBlock1(e){
   let recs=[];
   if(typeof orionRecommendForEmp==='function'){
     recs=orionRecommendForEmp(e.id)||[];
-    recs.sort((a,b)=>{const r={critical:0,high:1,medium:2,low:3};return (r[a.urgency]||9)-(r[b.urgency]||9);});
+    recs.sort((a,b)=>{const r={critical:0,high:1,medium:2,low:3};return (r[a.urgency]??9)-(r[b.urgency]??9);});
   }
   const top=recs[0];
   if(!top){
@@ -9410,7 +9410,7 @@ function orionRecommendAll(){
     uniq.push(r);
   });
   const urgRank = {critical:0, high:1, medium:2, low:3};
-  uniq.sort((a,b)=> (urgRank[a.urgency]||9) - (urgRank[b.urgency]||9));
+  uniq.sort((a,b)=> (urgRank[a.urgency]??9) - (urgRank[b.urgency]??9));
   return uniq;
 }
 
@@ -9633,7 +9633,7 @@ function renderORIONWorkspaceBanner(empId){
   if(recs.length===0){ container.classList.add('hidden'); container.innerHTML=''; return; }
   // Ordena por urgência
   const urgRank = {critical:0, high:1, medium:2, low:3};
-  recs = recs.slice().sort((a,b)=> (urgRank[a.urgency]||9) - (urgRank[b.urgency]||9));
+  recs = recs.slice().sort((a,b)=> (urgRank[a.urgency]??9) - (urgRank[b.urgency]??9));
   container.classList.remove('hidden');
   const top = recs[0];
   const badge = orionUrgencyBadge(top.urgency);
