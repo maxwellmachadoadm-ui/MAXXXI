@@ -1,0 +1,9 @@
+# Build / dependências locais
+node_modules/
+
+# Configs locais (não versionar)
+.claude/
+.vercel/
+
+# Backups locais (dados sensíveis, não versionar)
+backups/
