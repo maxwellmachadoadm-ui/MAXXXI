@@ -2707,7 +2707,8 @@ html body { font-size: 12px !important; }
 .ws-acoes{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
 .ws-acao-item{background:#0d1225;border:1px solid #1e2a45;border-radius:10px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;min-height:80px;transition:all .15s}
 .ws-acao-item:hover{border-color:rgba(245,158,11,.4);background:#0d1428}
-.ws-acao-ico{font-size:20px}
+.ws-acao-ico{display:inline-flex;align-items:center;justify-content:center;color:#f59e0b;line-height:0}
+.ws-acao-item:hover .ws-acao-ico{color:#fbbf24}
 .ws-acao-lbl{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:#cbd5e1;letter-spacing:.3px}
 @media (max-width:900px){.ws-acoes{grid-template-columns:repeat(3,1fr)}}
 </style>
@@ -3109,7 +3110,7 @@ html body { font-size: 12px !important; }
     <div style="font-size:13px;color:var(--tx3);line-height:1.6" id="mx-analysis-content">Clique em "Analisar" para gerar insights da empresa ativa ou do ecossistema.</div>
   </div>
   <div style="padding:12px 18px;border-top:1px solid var(--br);display:flex;gap:8px;flex-shrink:0">
-    <button class="btn-sm btn-blue" style="flex:1" onclick="mxAnalyzeActive()">🔍 Analisar ${curEmp?'Empresa':'Ecossistema'}</button>
+    <button class="btn-sm btn-blue" style="flex:1" onclick="mxAnalyzeActive()">🔍 Analisar</button>
     <button class="btn-sm btn-ghost" onclick="gerarRelatorioExecutivo()">📊 Relatório</button>
   </div>
 </div>
@@ -4547,14 +4548,22 @@ function homeV2Spark(points, color, w, h){
   const max = Math.max(...points), min = Math.min(...points);
   const rng = (max-min)||1;
   const step = w/(points.length-1);
-  const path = points.map((v,i)=>{
-    const x = (i*step).toFixed(1);
-    const y = (h - ((v-min)/rng)*(h-4) - 2).toFixed(1);
-    return (i===0?'M':'L')+x+','+y;
-  }).join(' ');
-  const last = points[points.length-1];
-  const lastX = ((points.length-1)*step).toFixed(1);
-  const lastY = (h - ((last-min)/rng)*(h-4) - 2).toFixed(1);
+  const pts = points.map((v,i)=>({
+    x: +(i*step).toFixed(2),
+    y: +(h - ((v-min)/rng)*(h-4) - 2).toFixed(2)
+  }));
+  let path = `M${pts[0].x},${pts[0].y}`;
+  for(let i=1;i<pts.length-1;i++){
+    const xc = +((pts[i].x + pts[i+1].x)/2).toFixed(2);
+    const yc = +((pts[i].y + pts[i+1].y)/2).toFixed(2);
+    path += ` Q${pts[i].x},${pts[i].y} ${xc},${yc}`;
+  }
+  if(pts.length>1){
+    const last = pts[pts.length-1];
+    path += ` T${last.x},${last.y}`;
+  }
+  const lastX = pts[pts.length-1].x;
+  const lastY = pts[pts.length-1].y;
   return `<svg width="${w}" height="${h}" style="display:block">
     <path d="${path}" stroke="${color}" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="${lastX}" cy="${lastY}" r="2" fill="${color}"/>
@@ -4679,7 +4688,6 @@ function renderHomeV2EmpCard(e, fullWidth){
   const isTop = topId === e.id;
   const statusLower = String(st.label||'').toLowerCase();
   const trophy = (statusLower==='crescimento' && isTop) ? '<span class="home-v2-trophy" title="Top performer">🏆</span>' : '';
-  console.log('[DEBUG-B2][topPerformer] topId=', topId, 'current emp:', e.id, 'status:', st.label, 'trophy:', !!trophy);
   return `<div class="home-v2-emp-card${fullWidth?' full':''}" style="--emp-c:${e.cor};--emp-c2:${e.cor}88" onclick="openEmp('${e.id}')">
     <div class="home-v2-emp-head">
       <div class="home-v2-emp-id">
@@ -5309,7 +5317,7 @@ function openDrive(){window.open(curEmp?EMPS[curEmp]?.drive:'https://drive.googl
 const HIDDEN_TABS = new Set(['Pipeline','CRM']);
 const WS_TABS_ALL=['KPIs','Tarefas','Financeiro','Lançamentos','Extrato IA','Documentos','Relatórios','Notas'];
 const GP_TABS_DEFAULT=['KPIs','Tarefas','Financeiro','Lançamentos','Extrato IA','Documentos','Relatórios','Notas'];
-const FS_TABS_DEFAULT=['KPIs','Tarefas','Financeiro','Lançamentos','Extrato IA','Documentos','Relatórios','Notas'];
+const FS_TABS_DEFAULT=['KPIs','Tarefas','Financeiro','Lançamentos','Rentabilidade','Projeções','Fundos','Extrato IA','Documentos','Relatórios','Notas'];
 const DW_TABS_DEFAULT=['KPIs','Tarefas','Financeiro','Lançamentos','Extrato IA','Documentos','Relatórios','Notas'];
 const OF_TABS_DEFAULT=['KPIs','Tarefas','Financeiro','Lançamentos','Extrato IA','Documentos','Relatórios','Notas'];
 
@@ -5685,13 +5693,21 @@ function wsRenderBlock6(e){
 
 // BLOCO EXTRA — Ações rápidas contextuais (barra inferior 6 colunas)
 function wsRenderAcoes(e){
+  const SVG = {
+    upload: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3-3 3 3"/></svg>',
+    dollar: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+    fileText: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
+    trending: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
+    calendar: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+    folder: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>'
+  };
   const items=[
-    {i:'🤖',l:'Enviar Extrato',a:"switchTab('Extrato IA')"},
-    {i:'➕',l:'Novo Lançamento',a:"switchTab('Lançamentos');setTimeout(()=>openModal('modal-lancamento'),120)"},
-    {i:'📊',l:'Relatório',a:"switchTab('Relatórios')"},
-    {i:'🎯',l:'Simular Cenário',a:"showToast('Simulação — em breve')"},
-    {i:'📅',l:'Reunião',a:"showToast('Agendar reunião — em breve')"},
-    {i:'📁',l:'Documento',a:"switchTab('Documentos')"}
+    {i:SVG.upload,   l:'Enviar Extrato',  a:"switchTab('Extrato IA')"},
+    {i:SVG.dollar,   l:'Novo Lançamento', a:"switchTab('Lançamentos');setTimeout(()=>openModal('modal-lancamento'),120)"},
+    {i:SVG.fileText, l:'Relatório',       a:"switchTab('Relatórios')"},
+    {i:SVG.trending, l:'Simular Cenário', a:"showToast('Simulação — em breve')"},
+    {i:SVG.calendar, l:'Reunião',         a:"showToast('Agendar reunião — em breve')"},
+    {i:SVG.folder,   l:'Documento',       a:"switchTab('Documentos')"}
   ];
   return `<div class="ws-acoes">${items.map(it=>`
     <button class="ws-acao-item" onclick="${it.a}">
@@ -5929,6 +5945,13 @@ function fsProjGet(){
   }catch(e){ return {...FS_PROJ_DEFAULTS}; }
 }
 function fsProjSave(cfg){ localStorage.setItem('fs_projecoes', JSON.stringify(cfg)); }
+function fsProjNovaSimulacao(){
+  if(!confirm('Iniciar nova simulação? Os parâmetros atuais serão zerados.')) return;
+  localStorage.removeItem('fs_projecoes');
+  const e = EMPS.fs;
+  const c = document.getElementById('ws-content');
+  if(e && c) renderProjecoes(e, c, e.cor);
+}
 
 function fsProjCalc(cfg){
   const n = Math.max(0, parseInt(cfg.nTurmas)||0);
@@ -5961,6 +5984,7 @@ function renderProjecoes(e,c,co){
     <div class="fs-proj-header">
       <h2 class="fs-proj-title">Projeções — ${escHtml(e.nome)}</h2>
       <div class="fs-proj-actions">
+        <button class="fs-proj-btn fs-proj-btn-primary" onclick="fsProjNovaSimulacao()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="vertical-align:-2px;margin-right:6px"><path d="M12 5v14M5 12h14"/></svg>Nova simulação</button>
         <button class="fs-proj-btn fs-proj-btn-green" onclick="fsProjExportCSV()">⬇ CSV</button>
       </div>
     </div>
