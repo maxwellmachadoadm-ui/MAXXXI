@@ -2527,6 +2527,43 @@ html body { font-size: 12px !important; }
 }
 .home-v2-recommend-foot:hover{color:#fbbf24}
 
+/* Ciclo 4 — botão Detalhar + rec-done + drill-down modal */
+.home-v2-rec-drill{
+  font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;color:#f59e0b;
+  cursor:pointer;white-space:nowrap;flex-shrink:0;padding:3px 6px;border-radius:4px;
+  transition:background .15s;
+}
+.home-v2-rec-drill:hover{background:rgba(245,158,11,.1);color:#fbbf24}
+.ws-b1-drill{
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:#f59e0b;cursor:pointer;
+  padding:4px 8px;border-radius:4px;margin-left:auto;transition:background .15s;
+}
+.ws-b1-drill:hover{background:rgba(245,158,11,.1);color:#fbbf24}
+.ws-b1-foot .ws-b1-drill + .ws-b1-cta{margin-left:0}
+.rec-done{opacity:.4}
+.rec-done-badge{
+  display:inline-block;font-family:'DM Sans',sans-serif;font-size:9px;font-weight:800;
+  padding:2px 6px;border-radius:3px;background:rgba(16,185,129,.15);color:#10b981;
+  border:1px solid rgba(16,185,129,.35);letter-spacing:.5px;margin-left:6px;
+}
+.rec-drill-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.rec-drill-kpi{background:#0a0f1e;border:1px solid #1e2a45;border-radius:8px;padding:10px 12px}
+.rec-drill-kpi-lbl{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px}
+.rec-drill-kpi-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#f1f5f9}
+.rec-drill-section-title{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:2px;margin:14px 0 8px}
+.rec-drill-cats{display:flex;flex-direction:column;gap:6px}
+.rec-drill-cat-row{display:grid;grid-template-columns:140px 1fr 100px;gap:10px;align-items:center;font-size:12px}
+.rec-drill-cat-name{color:#cbd5e1;font-family:'DM Sans',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec-drill-cat-bar{height:8px;background:#0a0f1e;border-radius:4px;overflow:hidden;border:1px solid #1e2a45}
+.rec-drill-cat-fill{height:100%;background:linear-gradient(90deg,#f59e0b,#ef4444);border-radius:4px}
+.rec-drill-cat-val{text-align:right;color:#ef4444;font-family:'DM Sans',sans-serif;font-weight:600}
+.rec-drill-table{width:100%;border-collapse:collapse;font-family:'DM Sans',sans-serif;font-size:12px}
+.rec-drill-table th{padding:8px 10px;background:#0a0f1e;color:#94a3b8;font-size:10px;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid #1e2a45;text-align:left}
+.rec-drill-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:#cbd5e1}
+.rec-drill-explain{font-family:'DM Sans',sans-serif;font-size:12px;color:#94a3b8;line-height:1.5;margin-top:10px;padding:10px 12px;background:#0a0f1e;border-left:3px solid #f59e0b;border-radius:6px}
+.rec-drill-empty{font-family:'DM Sans',sans-serif;font-size:12px;color:#94a3b8;padding:20px;text-align:center;background:#0a0f1e;border:1px dashed #1e2a45;border-radius:8px}
+.rec-drill-steps{display:flex;flex-direction:column;gap:6px;font-family:'DM Sans',sans-serif;font-size:12.5px;color:#cbd5e1;line-height:1.5}
+
 /* ═══ FASE B.2 — Alertas agrupados por SEVERIDADE (não por empresa) ═══ */
 .home-v2-alert-sev{
   display:flex;align-items:flex-start;gap:10px;padding:8px 0;
@@ -3429,6 +3466,21 @@ html body { font-size: 12px !important; }
     <div class="fs-rent2-modal-actions">
       <button class="fs-rent2-btn" onclick="closeModal('modal-fs-rent2-turma')">Cancelar</button>
       <button class="fs-rent2-btn fs-rent2-btn-primary" onclick="fsRent2SaveTurma()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ORION DRILL-DOWN (Ciclo 4) -->
+<div class="overlay hidden" id="modal-rec-drill" onclick="if(event.target===this)closeModal('modal-rec-drill')">
+  <div class="modal" style="position:relative;width:640px;border-left:3px solid #f59e0b">
+    <button class="modal-close" onclick="closeModal('modal-rec-drill')">&times;</button>
+    <h2 id="modal-rec-drill-title">Detalhe da recomendação</h2>
+    <div id="modal-rec-drill-sub" style="font-size:12px;color:var(--tx3);margin-bottom:14px"></div>
+    <div id="modal-rec-drill-body"></div>
+    <div class="modal-actions">
+      <button class="btn-sm btn-ghost" onclick="closeModal('modal-rec-drill')">Fechar</button>
+      <button class="btn-sm" id="modal-rec-drill-resolve" style="background:#10b981;color:#fff;border:none">✓ Marcar como resolvido</button>
+      <button class="btn-sm btn-blue" id="modal-rec-drill-cta">Abrir módulo →</button>
     </div>
   </div>
 </div>
@@ -4813,10 +4865,14 @@ function renderHomeV2Recommend(){
         const empSigla = (EMPS[r.empId]&&EMPS[r.empId].sigla) || '';
         const txt = (r.action||r.problem||'Recomendação');
         const suffix = empSigla ? ` (${empSigla})` : '';
-        return `<div class="home-v2-rec-item" onclick="openEmp('${escHtml(r.empId)}')" title="${escHtml(r.explain||'')}">
+        const done = (typeof getRecStatus==='function') && getRecStatus(r.empId, r.key)==='done';
+        const doneCls = done ? ' rec-done' : '';
+        const doneBadge = done ? `<span class="rec-done-badge">✓ RESOLVIDO</span>` : '';
+        return `<div class="home-v2-rec-item${doneCls}" onclick="openEmp('${escHtml(r.empId)}')" title="${escHtml(r.explain||'')}">
           <span class="home-v2-rec-check">✓</span>
-          <span class="home-v2-rec-text">${escHtml(txt)}${suffix}</span>
+          <span class="home-v2-rec-text">${escHtml(txt)}${suffix}${doneBadge}</span>
           <span class="home-v2-rec-pill ${p.cls}">${p.label}</span>
+          <span class="home-v2-rec-drill" onclick="event.stopPropagation();openRecDrill('${escHtml(r.empId)}','${escHtml(r.key)}')">Detalhar →</span>
         </div>`;
       }).join('');
   el.innerHTML = `
@@ -5575,11 +5631,15 @@ function wsRenderBlock1(e){
   const pill=urg==='critical'?{cls:'urg',t:'Urgente'}:urg==='high'?{cls:'hi',t:'Impacto alto'}:{cls:'op',t:'Oportunidade'};
   const impactStr=(typeof top.impact==='number')?('+R$ '+(top.impact/1000).toFixed(1)+'k/mês')
                   :(top.impactLabel||'');
-  return `<div class="ws-b1 ws-b1-${prioCls}">
+  const done = (typeof getRecStatus==='function') && getRecStatus(top.empId, top.key)==='done';
+  const doneCls = done ? ' rec-done' : '';
+  const doneBadge = done ? `<span class="rec-done-badge" style="margin-left:8px">✓ RESOLVIDO</span>` : '';
+  return `<div class="ws-b1 ws-b1-${prioCls}${doneCls}">
     <div class="ws-b1-head">
       <span class="ws-b1-icon">🤖</span>
       <span class="ws-b1-title">ORION recomenda hoje</span>
       <span class="ws-b1-prio ${prioCls}">${prioLabel}</span>
+      ${doneBadge}
     </div>
     <div class="ws-b1-body">
       <div class="ws-b1-main">
@@ -5595,6 +5655,7 @@ function wsRenderBlock1(e){
       <span class="ws-b1-impact">${escHtml(impactStr)}</span>
       <span class="ws-b1-pri">Prioridade: ${prioLabel.charAt(0)+prioLabel.slice(1).toLowerCase()}</span>
       <span class="ws-b1-pill ${pill.cls}">${pill.t}</span>
+      <span class="ws-b1-drill" onclick="openRecDrill('${escHtml(top.empId)}','${escHtml(top.key)}')">Detalhar →</span>
       <span class="ws-b1-cta" onclick="switchTab('Extrato IA')">Ver plano completo →</span>
     </div>
   </div>`;
@@ -9246,6 +9307,7 @@ function orionRecommendForEmp(empId){
       action:'Abrir Extrato IA e usar Auto-aprovar ≥85%',
       actionTab:'Extrato IA',
       urgency:'high',
+      impact: (emp.fat||0) * 0.03,
       impactLabel:'Destrava relatórios mensais'
     });
   }
@@ -9256,14 +9318,15 @@ function orionRecommendForEmp(empId){
     const raw = String(inad.v).replace(/[^\d,.-]/g,'').replace(',','.');
     const pct = parseFloat(raw);
     if(!isNaN(pct) && pct > 5){
+      const inadImpact = (emp.fat||0) * (pct/100);
       recs.push({
         key:'inadimplencia', empId, emp:emp.nome,
         problem:'Inadimplência em '+pct.toFixed(1)+'%',
-        explain:'Taxa de inadimplência acima de 5% afeta o fluxo de caixa.',
+        explain:'Inadimplência em '+pct.toFixed(1)+'% (limite 5%) representa '+FMT.brl(inadImpact)+' em risco de caixa.',
         action:'Ativar régua de cobrança e revisar crédito',
         actionTab:'Contratos',
         urgency:'critical',
-        impact: (emp.fat||0) * (pct/100)
+        impact: inadImpact
       });
     }
   }
@@ -9301,10 +9364,11 @@ function orionRecommendForEmp(empId){
     recs.push({
       key:'eia_flags', empId, emp:emp.nome,
       problem:flagCount+' lançamentos com alertas',
-      explain:'Extrato IA detectou duplicatas, outliers ou categorias ausentes.',
+      explain:flagCount+' lançamentos com flags no Extrato IA (duplicatas, outliers ou categorias ausentes).',
       action:'Revisar linhas com borda vermelha no Extrato IA',
       actionTab:'Extrato IA',
       urgency:'medium',
+      impact: (emp.fat||0) * 0.02,
       impactLabel:'Precisão contábil'
     });
   }
@@ -9329,8 +9393,13 @@ function orionRecommendForEmp(empId){
 }
 
 function orionRecommendAll(){
-  const all = getActiveEmps()
+  let all = getActiveEmps()
     .flatMap(e=>orionRecommendForEmp(e.id));
+  // Ciclo 4 — prioridade híbrida: escala relativa ao faturamento
+  all = all.map(r=>{
+    const empFat = (EMPS[r.empId] && EMPS[r.empId].fat) || 0;
+    return { ...r, urgency: ajustarPrioridade(r.urgency, r.impact||0, empFat) };
+  });
   // Dedup por (empId+key) + ordena por urgência (critical > high > medium > low)
   const seen = new Set();
   const uniq = [];
@@ -9385,6 +9454,175 @@ function orionUrgencyBadge(urg){
 
 function orionUrgencyCls(urg){
   return urg==='critical'?'red':urg==='high'?'amber':urg==='medium'?'purple':'green';
+}
+
+// ─── Ciclo 4 — Motor LITE: status pendente/resolvido (localStorage) ────────
+function getRecStatus(empId, recKey){
+  try{
+    const data = JSON.parse(localStorage.getItem('orion_rec_status') || '{}');
+    return (data[empId+'|'+recKey] && data[empId+'|'+recKey].status) || 'pending';
+  }catch(e){ return 'pending'; }
+}
+function setRecStatus(empId, recKey, status){
+  try{
+    const data = JSON.parse(localStorage.getItem('orion_rec_status') || '{}');
+    data[empId+'|'+recKey] = { status, at: new Date().toISOString() };
+    localStorage.setItem('orion_rec_status', JSON.stringify(data));
+  }catch(e){}
+}
+
+// ─── Ciclo 4 — Prioridade híbrida: escala relativa ao faturamento ───────────
+function ajustarPrioridade(baseUrgency, impactValue, empFat){
+  const ref = (empFat || 0);
+  if(ref > 0 && impactValue > ref * 0.20){
+    if(baseUrgency === 'low')    return 'medium';
+    if(baseUrgency === 'medium') return 'high';
+  }
+  return baseUrgency;
+}
+
+// ─── Ciclo 4 — Drill-down modal acionável ───────────────────────────────────
+function openRecDrill(empId, recKey){
+  const body = document.getElementById('modal-rec-drill-body');
+  const title = document.getElementById('modal-rec-drill-title');
+  const sub = document.getElementById('modal-rec-drill-sub');
+  const cta = document.getElementById('modal-rec-drill-cta');
+  const resolveBtn = document.getElementById('modal-rec-drill-resolve');
+  if(!body) return;
+  body.innerHTML = '';
+  const recs = (typeof orionRecommendForEmp==='function') ? orionRecommendForEmp(empId) : [];
+  const rec = recs.find(r=>r.key===recKey);
+  if(!rec){
+    body.innerHTML = '<div style="padding:16px;color:var(--tx3)">Recomendação não encontrada ou já não se aplica.</div>';
+    openModal('modal-rec-drill');
+    return;
+  }
+  const emp = EMPS[empId];
+  if(title) title.textContent = rec.problem || 'Detalhe da recomendação';
+  if(sub) sub.textContent = (emp ? emp.nome+' · ' : '') + (rec.action||'');
+  // CTA contextual
+  const actionTab = rec.actionTab || 'Financeiro';
+  if(cta){
+    cta.textContent = 'Abrir '+actionTab+' →';
+    cta.onclick = function(){
+      closeModal('modal-rec-drill');
+      if(empId && curEmp !== empId && typeof openEmp==='function') openEmp(empId);
+      if(typeof switchTab==='function') switchTab(actionTab);
+    };
+  }
+  // Botão Marcar resolvido
+  if(resolveBtn){
+    const done = getRecStatus(empId, recKey)==='done';
+    resolveBtn.textContent = done ? '↺ Reabrir' : '✓ Marcar como resolvido';
+    resolveBtn.onclick = function(){
+      setRecStatus(empId, recKey, done ? 'pending' : 'done');
+      closeModal('modal-rec-drill');
+      if(window.curEmp) { if(typeof renderTab==='function') renderTab(); }
+      else { if(typeof renderHomeV2Recommend==='function') renderHomeV2Recommend(); }
+    };
+  }
+  // Renderizador por chave
+  switch(recKey){
+    case 'expense_over_revenue':
+    case 'low_margin':
+      renderDrillCustos(empId, rec, body); break;
+    case 'negative_growth':
+    case 'scale':
+      renderDrillCrescimento(empId, rec, body); break;
+    case 'inadimplencia':
+      renderDrillInadimplencia(empId, rec, body); break;
+    default:
+      renderDrillGenerico(rec, body);
+  }
+  openModal('modal-rec-drill');
+}
+
+function renderDrillCustos(empId, rec, container){
+  const a = (typeof relAggregate==='function') ? relAggregate(empId) : {byCat:{}, receita:0, despesas:0};
+  const cats = Object.entries(a.byCat||{}).sort((x,y)=>y[1]-x[1]).slice(0,5);
+  const emp = EMPS[empId] || {};
+  let html = `<div class="rec-drill-kpis">
+    <div class="rec-drill-kpi"><div class="rec-drill-kpi-lbl">Receita</div><div class="rec-drill-kpi-val" style="color:#10b981">${FMT.brl(a.receita||0)}</div></div>
+    <div class="rec-drill-kpi"><div class="rec-drill-kpi-lbl">Despesas</div><div class="rec-drill-kpi-val" style="color:#ef4444">${FMT.brl(a.despesas||0)}</div></div>
+    <div class="rec-drill-kpi"><div class="rec-drill-kpi-lbl">Impacto estimado</div><div class="rec-drill-kpi-val" style="color:#f59e0b">${FMT.brl(rec.impact||0)}</div></div>
+  </div>`;
+  if(cats.length===0){
+    html += `<div class="rec-drill-empty">Sem dados de despesas categorizadas ainda. Adicione lançamentos no Financeiro.</div>`;
+  } else {
+    const max = Math.max(...cats.map(c=>c[1]));
+    html += `<div class="rec-drill-section-title">Top 5 categorias de despesa</div>
+      <div class="rec-drill-cats">${cats.map(([cat,v])=>{
+        const pct = (v/max)*100;
+        return `<div class="rec-drill-cat-row">
+          <div class="rec-drill-cat-name">${escHtml(cat)}</div>
+          <div class="rec-drill-cat-bar"><div class="rec-drill-cat-fill" style="width:${pct}%"></div></div>
+          <div class="rec-drill-cat-val">${FMT.brl(v)}</div>
+        </div>`;
+      }).join('')}</div>`;
+  }
+  html += `<div class="rec-drill-explain">${escHtml(rec.explain||'')}</div>`;
+  container.innerHTML = html;
+}
+
+function renderDrillCrescimento(empId, rec, container){
+  const a = (typeof relAggregate==='function') ? relAggregate(empId) : {byMonth:{}};
+  const emp = EMPS[empId] || {};
+  const keys = Object.keys(a.byMonth||{}).sort().slice(-8);
+  let html = `<div class="rec-drill-kpis">
+    <div class="rec-drill-kpi"><div class="rec-drill-kpi-lbl">Crescimento</div><div class="rec-drill-kpi-val" style="color:${(emp.cresc||0)>=0?'#10b981':'#ef4444'}">${(emp.cresc||0).toFixed(1)}%</div></div>
+    <div class="rec-drill-kpi"><div class="rec-drill-kpi-lbl">Faturamento</div><div class="rec-drill-kpi-val">${FMT.brl(emp.fat||0)}</div></div>
+    <div class="rec-drill-kpi"><div class="rec-drill-kpi-lbl">Impacto estimado</div><div class="rec-drill-kpi-val" style="color:#f59e0b">${FMT.brl(rec.impact||0)}</div></div>
+  </div>`;
+  if(keys.length===0){
+    html += `<div class="rec-drill-empty">Sem dados mensais ainda. Registre lançamentos no Extrato IA para ver evolução.</div>`;
+  } else {
+    html += `<div class="rec-drill-section-title">Últimos ${keys.length} meses</div>
+      <table class="rec-drill-table">
+        <thead><tr><th>Mês</th><th style="text-align:right">Receita</th><th style="text-align:right">Despesa</th><th style="text-align:right">Resultado</th></tr></thead>
+        <tbody>${keys.map(k=>{
+          const m = a.byMonth[k]||{in:0,out:0};
+          const res = m.in - m.out;
+          return `<tr>
+            <td>${k}</td>
+            <td style="text-align:right;color:#10b981">${FMT.brl(m.in)}</td>
+            <td style="text-align:right;color:#ef4444">${FMT.brl(m.out)}</td>
+            <td style="text-align:right;color:${res>=0?'#10b981':'#ef4444'}">${FMT.brl(res)}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`;
+  }
+  html += `<div class="rec-drill-explain">${escHtml(rec.explain||'')}</div>`;
+  container.innerHTML = html;
+}
+
+function renderDrillInadimplencia(empId, rec, container){
+  const emp = EMPS[empId] || {};
+  const inadKpi = (emp.kpis||[]).find(k=>/inadim/i.test(k.l||''));
+  const pctStr = inadKpi ? inadKpi.v : '—';
+  container.innerHTML = `<div class="rec-drill-kpis">
+      <div class="rec-drill-kpi"><div class="rec-drill-kpi-lbl">Inadimplência atual</div><div class="rec-drill-kpi-val" style="color:#ef4444">${escHtml(pctStr)}</div></div>
+      <div class="rec-drill-kpi"><div class="rec-drill-kpi-lbl">Limite saudável</div><div class="rec-drill-kpi-val">5,0%</div></div>
+      <div class="rec-drill-kpi"><div class="rec-drill-kpi-lbl">Valor em risco</div><div class="rec-drill-kpi-val" style="color:#f59e0b">${FMT.brl(rec.impact||0)}</div></div>
+    </div>
+    <div class="rec-drill-section-title">O que fazer</div>
+    <div class="rec-drill-steps">
+      <div>1. Ativar régua de cobrança automatizada em Contratos.</div>
+      <div>2. Revisar critérios de concessão de crédito antes de novos fechamentos.</div>
+      <div>3. Acompanhar aging semanal e priorizar contatos com atraso &gt; 30 dias.</div>
+    </div>
+    <div class="rec-drill-explain">${escHtml(rec.explain||'')}</div>`;
+}
+
+function renderDrillGenerico(rec, container){
+  const impactStr = (typeof rec.impact==='number') ? FMT.brl(rec.impact) : (rec.impactLabel||'—');
+  container.innerHTML = `<div class="rec-drill-kpis">
+      <div class="rec-drill-kpi"><div class="rec-drill-kpi-lbl">Impacto estimado</div><div class="rec-drill-kpi-val" style="color:#f59e0b">${escHtml(impactStr)}</div></div>
+    </div>
+    <div class="rec-drill-section-title">Problema</div>
+    <div class="rec-drill-explain">${escHtml(rec.problem||'')}</div>
+    ${rec.explain?`<div class="rec-drill-section-title">Contexto</div><div class="rec-drill-explain">${escHtml(rec.explain)}</div>`:''}
+    <div class="rec-drill-section-title">Ação sugerida</div>
+    <div class="rec-drill-explain">${escHtml(rec.action||'—')}</div>`;
 }
 
 // Painel no topo do workspace — FASE L: ordena por urgência + CTAs ricos
