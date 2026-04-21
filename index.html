@@ -807,6 +807,16 @@ a{color:inherit;text-decoration:none}
 .home-v2-quick-btn{background:rgba(255,255,255,.03);border:1px solid var(--br);border-radius:10px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--tx2);font-size:10px;font-weight:600;cursor:pointer;transition:.15s;text-align:center}
 .home-v2-quick-btn:hover{border-color:var(--br2);color:var(--tx);background:rgba(59,130,246,.05)}
 .home-v2-quick-btn span:first-child{font-size:16px}
+/* Ciclo 3 B2 — Ações Rápidas em barra horizontal no MAIN */
+.home-v2-actions-bar{background:var(--s1);border:1px solid var(--br);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.home-v2-actions-label{font-size:11px;color:var(--tx2);font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+.home-v2-actions-row{display:flex;gap:10px;flex-wrap:wrap}
+.home-v2-action-btn{flex:1 1 0;min-width:120px;background:rgba(255,255,255,.02);border:1px solid var(--br);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--tx2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.home-v2-action-btn:hover{border-color:rgba(245,158,11,.4);color:var(--tx);background:rgba(245,158,11,.05)}
+.home-v2-action-ico{display:inline-flex;align-items:center;justify-content:center;color:#f59e0b;line-height:0;flex-shrink:0}
+.home-v2-action-btn:hover .home-v2-action-ico{color:#fbbf24}
+.home-v2-action-lbl{white-space:nowrap}
+@media (max-width:900px){.home-v2-action-btn{flex:1 1 45%;min-width:unset}}
 .home-v2-meet-row{display:flex;align-items:center;gap:10px}
 .home-v2-meet-cal{width:32px;height:32px;border-radius:8px;background:rgba(59,130,246,.15);color:var(--blue3);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
 .home-v2-meet-info{flex:1;min-width:0}
@@ -1926,7 +1936,7 @@ h1,h2{font-family:'Syne',sans-serif !important}
 .home-v2-side .home-v2-side-card,.home-v2-side .home-v2-recommend{
   background:#0a0f1e !important;border:1px solid #1e2a45 !important
 }
-.home-v2-recommend{background:linear-gradient(145deg,rgba(167,139,250,.10),#0a0f1e) !important;border:1px solid rgba(167,139,250,.25) !important}
+.home-v2-recommend{background:linear-gradient(135deg,rgba(139,92,246,.10) 0%,rgba(139,92,246,.04) 60%,rgba(13,18,37,.95) 100%),#0d1225 !important;border:1px solid rgba(139,92,246,.28) !important;box-shadow:0 0 0 1px rgba(139,92,246,.08), 0 4px 20px -8px rgba(139,92,246,.25) !important}
 
 /* Card de empresa na home — border-left 4px na cor da empresa */
 .home-v2-emp-card{border-left:4px solid var(--emp-c,#3b82f6) !important;border-radius:8px !important}
@@ -2151,8 +2161,8 @@ select{background:#0a0f1e !important;border:1px solid #1e2a45 !important;color:#
   background:rgba(59,130,246,.04) !important
 }
 
-/* Kill background gradients em recommend/insight que viraram ruído */
-.home-v2-recommend{background:#0a0f1e !important;border:1px solid rgba(167,139,250,.25) !important}
+/* Ciclo 3 B1 — gradient roxo intensificado (revogado "kill gradients" para dar destaque ao card herói) */
+.home-v2-recommend{background:linear-gradient(135deg,rgba(139,92,246,.10) 0%,rgba(139,92,246,.04) 60%,rgba(13,18,37,.95) 100%),#0d1225 !important;border:1px solid rgba(139,92,246,.28) !important;box-shadow:0 0 0 1px rgba(139,92,246,.08), 0 4px 20px -8px rgba(139,92,246,.25) !important}
 .eia-summary{background:#0d1225 !important;border:1px solid rgba(167,139,250,.25) !important}
 .orion-banner{background:#0d1225 !important}
 .orion-banner-red{border-left-color:#ef4444 !important;background:#0d1225 !important}
@@ -2455,11 +2465,13 @@ html body { font-size: 12px !important; }
 }
 
 /* ═══ FASE B.2 — ORION card compacto (lista de 3 checkmarks) ═══ */
+/* Ciclo 3 B1 — destaque roxo intensificado */
 .home-v2-recommend{
-  background:linear-gradient(135deg,rgba(59,130,246,.04) 0%,rgba(167,139,250,.04) 50%,rgba(245,158,11,.04) 100%),#0d1225;
-  border:1px solid #1e2a45;border-radius:12px;padding:16px;
+  background:linear-gradient(135deg,rgba(139,92,246,.10) 0%,rgba(139,92,246,.04) 60%,rgba(13,18,37,.95) 100%),#0d1225;
+  border:1px solid rgba(139,92,246,.28);border-radius:12px;padding:16px;
   display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;
   min-height:200px;
+  box-shadow:0 0 0 1px rgba(139,92,246,.08), 0 4px 20px -8px rgba(139,92,246,.25);
 }
 .home-v2-recommend::after{
   content:'';position:absolute;left:0;right:0;bottom:0;height:2px;
@@ -2520,6 +2532,19 @@ html body { font-size: 12px !important; }
   font-family:'DM Sans',sans-serif;font-size:11px;font-weight:400;color:#94a3b8;
   margin-top:2px;line-height:1.3;
 }
+/* Ciclo 3 B4 — header com contagem dos 3 buckets */
+.home-v2-alert-buckets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.05)}
+.hab{display:inline-flex;align-items:center;gap:5px;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:700;color:#cbd5e1;letter-spacing:.3px}
+.hab-dot{width:7px;height:7px;border-radius:50%;box-shadow:0 0 4px currentColor}
+.hab-crit{color:#ef4444}
+.hab-att{color:#f59e0b}
+.hab-opp{color:#10b981}
+.hab .hab-dot{background:currentColor}
+/* Ciclo 3 B5 — Impactos Esperados */
+.home-v2-impactos-list{display:flex;flex-direction:column;gap:8px}
+.home-v2-impacto-row{display:flex;align-items:flex-start;gap:10px;padding:6px 0;font-family:'DM Sans',sans-serif;font-size:12px;color:#cbd5e1;line-height:1.35}
+.home-v2-impacto-ico{font-size:14px;line-height:1.2;flex-shrink:0;opacity:.85}
+.home-v2-impacto-txt{flex:1}
 
 /* ═══ FASE B.2 — Trophy top performer ═══ */
 .home-v2-trophy{margin-left:6px;font-size:12px;filter:drop-shadow(0 0 4px rgba(245,158,11,.6))}
@@ -2576,9 +2601,10 @@ html body { font-size: 12px !important; }
 
 /* BLOCO 1 — ORION recomenda hoje (wide) */
 .ws-b1{
-  background:linear-gradient(135deg,rgba(59,130,246,.05) 0%,rgba(167,139,250,.05) 50%,rgba(245,158,11,.05) 100%),#0d1225;
-  border:1px solid #1e2a45;border-radius:12px;padding:20px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,rgba(139,92,246,.11) 0%,rgba(139,92,246,.04) 60%,rgba(13,18,37,.95) 100%),#0d1225;
+  border:1px solid rgba(139,92,246,.28);border-radius:12px;padding:20px;position:relative;overflow:hidden;
   min-height:160px;display:flex;flex-direction:column;gap:12px;
+  box-shadow:0 0 0 1px rgba(139,92,246,.08), 0 4px 20px -8px rgba(139,92,246,.25);
 }
 .ws-b1::after{
   content:'';position:absolute;left:0;right:0;bottom:0;height:2px;
@@ -2921,6 +2947,8 @@ html body { font-size: 12px !important; }
       <div class="home-v2-section-label">KPIs Consolidados</div>
       <div class="home-v2-kpi-grid" id="home-kpi-grid"></div>
 
+      <div class="home-v2-actions-bar" id="home-quick"></div>
+
       <div class="home-v2-section-label">
         <span>Portfólio de Empresas</span>
         <span class="home-v2-order">Ordenar: Health Score ▾</span>
@@ -2930,8 +2958,8 @@ html body { font-size: 12px !important; }
 
     <div class="home-v2-side">
       <div class="home-v2-side-card" id="home-alerts"></div>
-      <div class="home-v2-side-card" id="home-quick"></div>
       <div class="home-v2-side-card" id="home-meeting"></div>
+      <div class="home-v2-side-card" id="home-impactos"></div>
       <div class="home-v2-side-card" id="home-activity"></div>
     </div>
   </div>
@@ -4620,10 +4648,10 @@ function renderHomeV2Kpis(){
   const sparkFat = [100,105,108,112,118,121,125,126.5].map(v=>v);
   const sparkRes = [35,37,38,41,42,44,46,46.7];
   const kpis = [
-    {icon:'💰', bg:'rgba(59,130,246,.15)', lbl:'Faturamento do Ecossistema', val:FMT.brlK(totFat), delta:'▲ +8,2% vs mês anterior', cls:'up', spark:homeV2Spark(sparkFat, 'var(--blue3)', 70, 34)},
-    {icon:'📈', bg:'rgba(16,185,129,.15)', lbl:'Resultado Líquido',          val:FMT.brlK(totRes), delta:'▲ +12,1% vs mês anterior', cls:'up', spark:homeV2Spark(sparkRes, 'var(--green)', 70, 34)},
-    {icon:'🎯', bg:'rgba(167,139,250,.15)', lbl:'Health Score Médio',         val:String(avgScore), delta:emps.length+' empresas ativas', cls:'neu', spark:homeV2Ring(avgScore, 42)},
-    {icon:'📊', bg:'rgba(245,158,11,.15)', lbl:'Tendência Geral',             val:`<span style="color:${tendCol}">${tendLabel}</span>`, delta:`Projeção 30d: ${avgCresc>=0?'+':''}${avgCresc.toFixed(1)}%`, cls:avgCresc>=0?'up':'down', spark:homeV2Spark([50,52,54,56,58,60,62,64], tendCol, 70, 34)}
+    {icon:'💰', bg:'rgba(59,130,246,.15)', lbl:'Faturamento do Ecossistema', val:FMT.brlK(totFat), delta:'▲ +8,2% vs mês anterior', cls:'up', spark:homeV2Spark(sparkFat, 'var(--blue3)', 56, 28)},
+    {icon:'📈', bg:'rgba(16,185,129,.15)', lbl:'Resultado Líquido',          val:FMT.brlK(totRes), delta:'▲ +12,1% vs mês anterior', cls:'up', spark:homeV2Spark(sparkRes, 'var(--green)', 56, 28)},
+    {icon:'🎯', bg:'rgba(167,139,250,.15)', lbl:'Health Score Médio',         val:String(avgScore), delta:emps.length+' empresas ativas', cls:'neu', spark:homeV2Ring(avgScore, 38)},
+    {icon:'📊', bg:'rgba(245,158,11,.15)', lbl:'Tendência Geral',             val:`<span style="color:${tendCol}">${tendLabel}</span>`, delta:`Projeção 30d: ${avgCresc>=0?'+':''}${avgCresc.toFixed(1)}%`, cls:avgCresc>=0?'up':'down', spark:homeV2Spark([50,52,54,56,58,60,62,64], tendCol, 56, 28)}
   ];
   el.innerHTML = kpis.map(k=>`<div class="home-v2-kpi-card">
     <div>
@@ -4813,38 +4841,73 @@ function renderHomeV2Alerts(){
   const atencao  = alerts.filter(a=>['warning','media','amber'].includes(a.level));
   const oportun  = alerts.filter(a=>['info','baixa','green'].includes(a.level) || a.type==='opportunity');
   const totalUnread = alerts.length;
-  const rows = [];
-  if(criticos.length>0) rows.push({dot:'var(--red)',   count:criticos.length, label:'crítico',      sub:criticos[0].text||''});
-  if(atencao.length>0)  rows.push({dot:'var(--amber)', count:atencao.length,  label:'atenção',      sub:atencao[0].text||''});
-  if(oportun.length>0)  rows.push({dot:'var(--green)', count:oportun.length,  label:'oportunidade', sub:oportun[0].text||''});
-  el.innerHTML = `<div class="home-v2-side-title"><span>Alertas Ativos</span><span class="home-v2-side-badge">${totalUnread}</span></div>
-    ${rows.length===0
-      ? '<div style="font-size:12px;color:var(--tx3);padding:10px 0">Nenhum alerta pendente. ✓</div>'
-      : rows.map(r=>`<div class="home-v2-alert-sev">
-          <span class="home-v2-alert-sev-dot" style="background:${r.dot}"></span>
+  // Ciclo 3 B4 — header com contagem de todos os buckets (omite apenas se TODOS forem zero)
+  const bucketsHtml = (criticos.length+atencao.length+oportun.length)>0
+    ? `<div class="home-v2-alert-buckets">
+        <span class="hab hab-crit"><span class="hab-dot"></span>${criticos.length} crítico${criticos.length===1?'':'s'}</span>
+        <span class="hab hab-att"><span class="hab-dot"></span>${atencao.length} atenção</span>
+        <span class="hab hab-opp"><span class="hab-dot"></span>${oportun.length} oportunidade${oportun.length===1?'':'s'}</span>
+      </div>` : '';
+  const top = alerts.slice(0,3);
+  const itemsHtml = top.length===0
+    ? '<div style="font-size:12px;color:var(--tx3);padding:10px 0">Nenhum alerta pendente. ✓</div>'
+    : top.map(a=>{
+        const dot = ['critical','alta','red'].includes(a.level) ? 'var(--red)'
+                  : ['warning','media','amber'].includes(a.level) ? 'var(--amber)'
+                  : 'var(--green)';
+        return `<div class="home-v2-alert-sev">
+          <span class="home-v2-alert-sev-dot" style="background:${dot}"></span>
           <div class="home-v2-alert-sev-body">
-            <div class="home-v2-alert-sev-lbl">${r.count} ${escHtml(r.label)}${r.count>1?'s':''}</div>
-            ${r.sub?`<div class="home-v2-alert-sev-sub">${escHtml(r.sub)}</div>`:''}
+            <div class="home-v2-alert-sev-sub">${escHtml(a.text||'')}</div>
           </div>
-        </div>`).join('')
-    }
+        </div>`;
+      }).join('');
+  el.innerHTML = `<div class="home-v2-side-title"><span>Alertas Ativos</span><span class="home-v2-side-badge">${totalUnread}</span></div>
+    ${bucketsHtml}
+    ${itemsHtml}
     <div style="font-size:11px;color:var(--amber);margin-top:10px;cursor:pointer;font-weight:600" onclick="toggleAlertsDd()">Ver todos os alertas →</div>`;
 }
 
 function renderHomeV2Quick(){
   const el = document.getElementById('home-quick');
   if(!el) return;
+  const SVG = {
+    fileText:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
+    trending:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
+    folder:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
+    target:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+    calendar:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+    barChart:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>'
+  };
   const actions = [
-    {i:'📄', l:'Relatório', a:"showToast('Relatório — em breve')"},
-    {i:'⚡', l:'Simular', a:"showToast('Simulação — em breve')"},
-    {i:'📁', l:'Documento', a:"openDrive()"},
-    {i:'🎯', l:'Meta', a:"showToast('Definir meta — em breve')"},
-    {i:'🗓️', l:'Reunião', a:"openModal('modal-evento')"},
-    {i:'📊', l:'Benchmark', a:"goCEO()"}
+    {i:SVG.fileText, l:'Relatório',  a:"showToast('Relatório — em breve')"},
+    {i:SVG.trending, l:'Simular',    a:"showToast('Simulação — em breve')"},
+    {i:SVG.folder,   l:'Documento',  a:"openDrive()"},
+    {i:SVG.target,   l:'Meta',       a:"showToast('Definir meta — em breve')"},
+    {i:SVG.calendar, l:'Reunião',    a:"openModal('modal-evento')"},
+    {i:SVG.barChart, l:'Benchmark',  a:"goCEO()"}
   ];
-  el.innerHTML = `<div class="home-v2-side-title">Ações Rápidas</div>
-    <div class="home-v2-quick-grid">
-      ${actions.map(a=>`<button class="home-v2-quick-btn" onclick="${a.a}"><span>${a.i}</span><span>${a.l}</span></button>`).join('')}
+  el.innerHTML = `<div class="home-v2-actions-label">Ações Rápidas</div>
+    <div class="home-v2-actions-row">
+      ${actions.map(a=>`<button class="home-v2-action-btn" onclick="${a.a}"><span class="home-v2-action-ico">${a.i}</span><span class="home-v2-action-lbl">${a.l}</span></button>`).join('')}
+    </div>`;
+}
+
+// Ciclo 3 B5 — Impactos Esperados (bloco institucional estático)
+function renderHomeV2Impactos(){
+  const el = document.getElementById('home-impactos');
+  if(!el) return;
+  const items = [
+    {i:'⚡', t:'Tomada de decisão 70% mais rápida'},
+    {i:'🎯', t:'Foco no que realmente importa'},
+    {i:'🔍', t:'Mais clareza e contexto'},
+    {i:'🤖', t:'Ações guiadas pelo ORION'},
+    {i:'✨', t:'Melhor experiência para o CEO'},
+    {i:'📈', t:'Aumento de produtividade'}
+  ];
+  el.innerHTML = `<div class="home-v2-side-title">Impactos Esperados</div>
+    <div class="home-v2-impactos-list">
+      ${items.map(x=>`<div class="home-v2-impacto-row"><span class="home-v2-impacto-ico">${x.i}</span><span class="home-v2-impacto-txt">${x.t}</span></div>`).join('')}
     </div>`;
 }
 
@@ -4888,6 +4951,7 @@ function renderHomeV2(){
   renderHomeV2Alerts();
   renderHomeV2Quick();
   renderHomeV2Meeting();
+  renderHomeV2Impactos();
   renderHomeV2Activity();
 }
 
@@ -5499,7 +5563,7 @@ function wsRenderBlock1(e){
   const prioCls=urg==='critical'?'crit':urg==='high'?'alta':urg==='medium'?'media':'baixa';
   const pill=urg==='critical'?{cls:'urg',t:'Urgente'}:urg==='high'?{cls:'hi',t:'Impacto alto'}:{cls:'op',t:'Oportunidade'};
   const impactStr=(typeof top.impact==='number')?('+R$ '+(top.impact/1000).toFixed(1)+'k/mês')
-                  :(top.impactLabel||'Impacto estimado a calcular');
+                  :(top.impactLabel||'');
   return `<div class="ws-b1 ws-b1-${prioCls}">
     <div class="ws-b1-head">
       <span class="ws-b1-icon">🤖</span>
@@ -9157,7 +9221,8 @@ function orionRecommendForEmp(empId){
       explain:'As despesas aprovadas ('+FMT.brl(a.despesas)+') superaram a receita ('+FMT.brl(a.receita)+') em '+overBy.toFixed(0)+'%.',
       action:'Revisar custos fixos e categorias com maior impacto',
       actionTab:'Relatórios',
-      urgency:'critical'
+      urgency:'critical',
+      impact: (a.despesas - a.receita)
     });
   }
 
@@ -9169,7 +9234,8 @@ function orionRecommendForEmp(empId){
       explain:'Há mais de 10 lançamentos pendentes no Extrato IA. Aprove os de alta confiança para destravar relatórios.',
       action:'Abrir Extrato IA e usar Auto-aprovar ≥85%',
       actionTab:'Extrato IA',
-      urgency:'high'
+      urgency:'high',
+      impactLabel:'Destrava relatórios mensais'
     });
   }
 
@@ -9185,7 +9251,8 @@ function orionRecommendForEmp(empId){
         explain:'Taxa de inadimplência acima de 5% afeta o fluxo de caixa.',
         action:'Ativar régua de cobrança e revisar crédito',
         actionTab:'Contratos',
-        urgency:'critical'
+        urgency:'critical',
+        impact: (emp.fat||0) * (pct/100)
       });
     }
   }
@@ -9198,19 +9265,22 @@ function orionRecommendForEmp(empId){
       explain:'Empresa apresenta queda no período. Risco de contração.',
       action:'Diagnosticar causas e traçar plano de recuperação',
       actionTab:'KPIs',
-      urgency:'high'
+      urgency:'high',
+      impact: (emp.fat||0) * Math.abs(emp.cresc)/100
     });
   }
 
-  // 5) Oportunidade de escala
+  // 5) Oportunidade de escala (Ciclo 3 B6 — urgency tiered por cresc)
   if(emp.cresc !== undefined && emp.cresc >= 15){
+    const urg = emp.cresc >= 30 ? 'high' : emp.cresc >= 20 ? 'medium' : 'low';
     recs.push({
       key:'scale', empId, emp:emp.nome,
       problem:'Oportunidade de escala',
       explain:'Crescimento acelerado (+'+emp.cresc.toFixed(1)+'%) sugere aumentar investimento.',
       action:'Aumentar orçamento de marketing/comercial',
       actionTab:'Financeiro',
-      urgency:'low'
+      urgency:urg,
+      impact: (emp.fat||0) * 0.10
     });
   }
 
@@ -9223,8 +9293,25 @@ function orionRecommendForEmp(empId){
       explain:'Extrato IA detectou duplicatas, outliers ou categorias ausentes.',
       action:'Revisar linhas com borda vermelha no Extrato IA',
       actionTab:'Extrato IA',
-      urgency:'medium'
+      urgency:'medium',
+      impactLabel:'Precisão contábil'
     });
+  }
+
+  // 7) Ciclo 3 B6 — Margem baixa (<15%)
+  if(emp.fat > 0 && emp.result !== undefined){
+    const mg = (emp.result/emp.fat)*100;
+    if(mg < 15 && mg >= 0){
+      recs.push({
+        key:'low_margin', empId, emp:emp.nome,
+        problem:'Margem baixa ('+mg.toFixed(0)+'%)',
+        explain:'Margem líquida abaixo de 15%. Revisar estrutura de custos e precificação.',
+        action:'Revisar custos fixos e precificação',
+        actionTab:'Financeiro',
+        urgency:'high',
+        impact: (emp.fat||0) * 0.05
+      });
+    }
   }
 
   return recs;
