@@ -2958,11 +2958,6 @@ html body { font-size: 12px !important; }
     <div class="sb-item active" id="nav-home" onclick="goHome()">🏠 Home</div>
     <div class="sb-item" id="nav-ceo" onclick="goCEO()">🏢 Empresas <span class="sb-arrow">›</span></div>
     <div class="sb-sub" id="sb-empresas-list">
-      <div class="sb-item sb-sub-item" id="sb-dw" data-emp="dw" onclick="openEmp('dw')">
-        <div class="sb-dot" style="background:#3b82f6"></div>
-        <span style="flex:1;font-size:13px">Doctor Wealth</span>
-        <span class="sb-score good">80</span>
-      </div>
       <div class="sb-item sb-sub-item" id="sb-of" data-emp="of" onclick="openEmp('of')">
         <div class="sb-dot" style="background:#f59e0b"></div>
         <span style="flex:1;font-size:13px">Original Foto.</span>
@@ -4754,13 +4749,29 @@ function renderHomeV2Kpis(){
   const avgCresc = emps.length? (emps.reduce((s,e)=>s+(e.cresc||0),0)/emps.length) : 0;
   const tendLabel = avgCresc>=8?'Positiva':avgCresc>=0?'Neutra':'Negativa';
   const tendCol = avgCresc>=8?'var(--green)':avgCresc>=0?'var(--amber)':'var(--red)';
-  const sparkFat = [100,105,108,112,118,121,125,126.5].map(v=>v);
-  const sparkRes = [35,37,38,41,42,44,46,46.7];
+  // Sparklines derivadas de byMonth real (agregando empresas ativas)
+  const sumByMonth = {};
+  emps.forEach(e => {
+    try {
+      const agg = (typeof relAggregate==='function') ? relAggregate(e.id) : null;
+      if(!agg || !agg.byMonth) return;
+      Object.entries(agg.byMonth).forEach(([k,v]) => {
+        if(!sumByMonth[k]) sumByMonth[k] = {in:0, out:0};
+        sumByMonth[k].in += (v.in||0);
+        sumByMonth[k].out += (v.out||0);
+      });
+    } catch(e){}
+  });
+  const monthKeys = Object.keys(sumByMonth).sort().slice(-6);
+  const sparkFat = monthKeys.map(k => sumByMonth[k].in || 0);
+  const sparkRes = monthKeys.map(k => (sumByMonth[k].in||0) - (sumByMonth[k].out||0));
+  const hasSpark = monthKeys.length >= 2;
+  const sparkTend = hasSpark ? sparkRes : [];
   const kpis = [
-    {icon:'💰', bg:'rgba(59,130,246,.15)', lbl:'Faturamento do Ecossistema', val:FMT.brlK(totFat), delta:'▲ +8,2% vs mês anterior', cls:'up', spark:homeV2Spark(sparkFat, 'var(--blue3)', 56, 28)},
-    {icon:'📈', bg:'rgba(16,185,129,.15)', lbl:'Resultado Líquido',          val:FMT.brlK(totRes), delta:'▲ +12,1% vs mês anterior', cls:'up', spark:homeV2Spark(sparkRes, 'var(--green)', 56, 28)},
+    {icon:'💰', bg:'rgba(59,130,246,.15)', lbl:'Faturamento do Ecossistema', val:FMT.brlK(totFat), delta:emps.length+' empresas ativas', cls:'neu', spark:hasSpark?homeV2Spark(sparkFat, 'var(--blue3)', 56, 28):''},
+    {icon:'📈', bg:'rgba(16,185,129,.15)', lbl:'Resultado Líquido',          val:FMT.brlK(totRes), delta:'Consolidado portfólio',       cls:'neu', spark:hasSpark?homeV2Spark(sparkRes, 'var(--green)', 56, 28):''},
     {icon:'🎯', bg:'rgba(167,139,250,.15)', lbl:'Health Score Médio',         val:String(avgScore), delta:emps.length+' empresas ativas', cls:'neu', spark:homeV2Ring(avgScore, 38)},
-    {icon:'📊', bg:'rgba(245,158,11,.15)', lbl:'Tendência Geral',             val:`<span style="color:${tendCol}">${tendLabel}</span>`, delta:`Projeção 30d: ${avgCresc>=0?'+':''}${avgCresc.toFixed(1)}%`, cls:avgCresc>=0?'up':'down', spark:homeV2Spark([50,52,54,56,58,60,62,64], tendCol, 56, 28)}
+    {icon:'📊', bg:'rgba(245,158,11,.15)', lbl:'Tendência Geral',             val:`<span style="color:${tendCol}">${tendLabel}</span>`, delta:`Crescimento médio: ${avgCresc>=0?'+':''}${avgCresc.toFixed(1)}%`, cls:avgCresc>=0?'up':'down', spark:hasSpark?homeV2Spark(sparkTend, tendCol, 56, 28):''}
   ];
   el.innerHTML = kpis.map(k=>`<div class="home-v2-kpi-card">
     <div>
@@ -5065,29 +5076,72 @@ function renderHomeV2Impactos(){
 function renderHomeV2Meeting(){
   const el = document.getElementById('home-meeting');
   if(!el) return;
-  const d = new Date();
-  const when = String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' - 14:00';
+  let agenda = [];
+  try { agenda = JSON.parse(localStorage.getItem('orion_agenda') || '[]') || []; } catch(e){}
+  const evt = Array.isArray(agenda) ? agenda.find(a => a && (a.titulo || a.title)) : null;
+  if(!evt){
+    el.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+  el.style.display = '';
+  const titulo = evt.titulo || evt.title || 'Evento';
+  const parts = [];
+  if(evt.dia) parts.push(String(evt.dia));
+  if(evt.num) parts.push(String(evt.num));
+  if(evt.hora) parts.push(String(evt.hora));
+  const quando = parts.length ? parts.join(' · ') : '—';
   el.innerHTML = `<div class="home-v2-meet-row">
     <div class="home-v2-meet-cal">📅</div>
     <div class="home-v2-meet-info">
       <div style="font-size:10px;color:var(--tx3);letter-spacing:1.5px;text-transform:uppercase;font-weight:700">Próxima reunião</div>
-      <div class="home-v2-meet-title">Revisão Estratégica</div>
-      <div class="home-v2-meet-time">${when}</div>
+      <div class="home-v2-meet-title">${escHtml(titulo)}</div>
+      <div class="home-v2-meet-time">${escHtml(quando)}</div>
     </div>
     <button class="home-v2-meet-btn" onclick="openModal('modal-evento')">Entrar →</button>
   </div>`;
 }
 
+function activityTimeAgo(iso){
+  try {
+    const t = new Date(iso).getTime();
+    if(isNaN(t)) return '';
+    const diff = Math.max(0, Date.now() - t);
+    const mins = Math.floor(diff/60000);
+    if(mins < 1) return 'agora';
+    if(mins < 60) return 'há '+mins+' min';
+    const hrs = Math.floor(mins/60);
+    if(hrs < 24) return 'há '+hrs+'h';
+    const days = Math.floor(hrs/24);
+    return 'há '+days+'d';
+  } catch(e){ return ''; }
+}
+
 function renderHomeV2Activity(){
   const el = document.getElementById('home-activity');
   if(!el) return;
-  const items = [
-    {t:'Relatório mensal gerado', w:'há 10 min'},
-    {t:'ORION analisou Doctor Wealth', w:'há 25 min'},
-    {t:'Novo documento adicionado', w:'há 1h'}
-  ];
+  const items = [];
+  // Recomendações resolvidas (orion_rec_status) — fonte real com timestamp
+  try {
+    const data = JSON.parse(localStorage.getItem('orion_rec_status') || '{}');
+    Object.entries(data).forEach(([key, v]) => {
+      if(!v || v.status !== 'done' || !v.at) return;
+      const [empId] = key.split('|');
+      const emp = EMPS[empId];
+      if(!emp || emp.archived) return;
+      items.push({ t:'Recomendação resolvida — '+(emp.sigla||emp.nome), w:activityTimeAgo(v.at), at:v.at });
+    });
+  } catch(e){}
+  items.sort((a,b) => (b.at||'').localeCompare(a.at||''));
+  const top = items.slice(0, 3);
+  if(top.length === 0){
+    el.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+  el.style.display = '';
   el.innerHTML = `<div class="home-v2-side-title">Atividade recente</div>
-    ${items.map(i=>`<div class="home-v2-act-item">
+    ${top.map(i=>`<div class="home-v2-act-item">
       <div class="home-v2-act-dot"></div>
       <div class="home-v2-act-text">${escHtml(i.t)}</div>
       <div class="home-v2-act-time">${escHtml(i.w)}</div>
@@ -5857,7 +5911,7 @@ function wsRenderBlock5(e){
   }
   return `<div class="ws-b5">${header}
     ${tarefas.map(t=>{
-      const txt=t.t||t.titulo||t.text||t.descricao||t.desc||'(sem título)';
+      const txt=t.t||t.titulo||t.text||t.descricao||t.desc||'Tarefa sem título';
       const prio=t.p||'media';
       const src=t.source==='orion'?'ORION':'Manual';
       const prazo=t.prazo||(t.dia?t.dia:'—');
@@ -12099,12 +12153,8 @@ document.addEventListener('click',e=>{
 });
 
 // ── ALERTS ──────────────────────────────────────────────────────────────────
-const ALERTS_DATA=[
-  {id:1,text:'Original Fotografia — Inadimplência em 8,7% (limite: 5%)',level:'red',read:false,time:'Hoje 09:15'},
-  {id:2,text:'Original Fotografia — Contrato cliente XYZ inadimplente há 60 dias',level:'red',read:false,time:'Hoje 08:30'},
-  {id:3,text:'Forme Seguro — Meta mensal: apenas 30% atingida (R$ 15k / R$ 50k)',level:'amber',read:false,time:'Ontem 17:00'},
-  {id:4,text:'Doctor Wealth — 3 tarefas de alta prioridade pendentes',level:'amber',read:false,time:'Ontem 14:22'},
-];
+// ALERTS_DATA: fallback vazio — alertas reais vêm de generateAutoAlerts() baseado em EMPS
+const ALERTS_DATA=[];
 function generateAutoAlerts(){
   const auto=[];
   let aid=100;
@@ -12188,10 +12238,9 @@ function openProfileModal(){closeAllDd();alert('Perfil — Em breve!')}
 const CMD_ITEMS=[
   {icon:'🏠',label:'Home',hint:'Voltar ao início',action:()=>{goHome();closeCmdPalette()}},
   {icon:'📊',label:'Visão CEO',hint:'Dashboard consolidado',action:()=>{goCEO();closeCmdPalette()}},
-  {icon:'💼',label:'Doctor Wealth',hint:'Empresa',action:()=>{openEmp('dw');closeCmdPalette()}},
   {icon:'📸',label:'Original Fotografia',hint:'Empresa',action:()=>{openEmp('of');closeCmdPalette()}},
   {icon:'🎓',label:'Forme Seguro',hint:'Empresa',action:()=>{openEmp('fs');closeCmdPalette()}},
-  {icon:'🏪',label:'CDL Itaperuna',hint:'Empresa',action:()=>{openEmp('cdl');closeCmdPalette()}},
+  {icon:'🏪',label:'CDL Divinópolis',hint:'Empresa',action:()=>{openEmp('cdl');closeCmdPalette()}},
   {icon:'💰',label:'Gestão Pessoal',hint:'Finanças pessoais',action:()=>{openEmp('gp');closeCmdPalette()}},
   {icon:'➕',label:'Nova Empresa',hint:'Criar empresa',action:()=>{closeCmdPalette();addEmpresa()}},
   {icon:'✅',label:'Nova Tarefa',hint:'Adicionar tarefa',action:()=>{closeCmdPalette();openModal('modal-task')}},
@@ -12479,7 +12528,7 @@ function taskCardHtml(t, status){
         <button class="eia-act-btn eia-act-rej" title="Remover" onclick="deleteTask(${t._idx})">🗑</button>
       </div>
     </div>
-    <div class="kan-title ${done?'done':''}">${escHtml(t.t||t.titulo||t.text||t.descricao||t.desc||'(sem título)')}</div>
+    <div class="kan-title ${done?'done':''}">${escHtml(t.t||t.titulo||t.text||t.descricao||t.desc||'Tarefa sem título')}</div>
     ${desc}
     ${resp}
     ${prazo}
