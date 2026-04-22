@@ -4878,8 +4878,8 @@ function generateEmpInsights(e){
   // Regra: crescimento acelerado
   if(cresc > 20) out.push({icon:'↗', type:'op',    text:`Crescimento acelerado +${cresc.toFixed(0)}%`});
   else if(cresc > 0 && cresc <= 20 && out.length<3) out.push({icon:'↗', type:'op', text:`Tendência positiva +${cresc.toFixed(1)}%`});
-  // Regra: inadimplência (valor hardcoded na plataforma)
-  const inadimp = e.id==='of'?8.7:e.id==='dw'?3.2:e.id==='cdl'?2.1:e.id==='fs'?0:0;
+  // Regra: inadimplência (v1.2.0 — derivada de orion_contratos_*)
+  const inadimp = getInadimplenciaPct(e);
   if(inadimp > 5) out.push({icon:'⚠', type:'risco', text:`Inadimplência ${inadimp}% (limite 5%)`});
   // Regra: health score
   if(score < 60) out.push({icon:'⚠', type:'atencao', text:`Health score em atenção (${score})`});
@@ -5074,7 +5074,7 @@ function renderHomeV2Alerts(){
     const derived = [];
     getActiveEmps().forEach(e=>{
       if(e.id.startsWith('custom_')) return;
-      const inadimp = e.id==='of'?8.7:e.id==='dw'?3.2:e.id==='cdl'?2.1:e.id==='fs'?0:0;
+      const inadimp = getInadimplenciaPct(e);
       if(inadimp > 5) derived.push({level:'red', text:`${e.nome}: Inadimplência ${inadimp}% (limite 5%)`});
       if((e.cresc||0) < 0) derived.push({level:'amber', text:`${e.nome}: Crescimento ${(e.cresc||0).toFixed(1)}%`});
       if((e.score||0) < 60) derived.push({level:'amber', text:`${e.nome}: Health score ${e.score}`});
@@ -5290,7 +5290,7 @@ function ceoCalcEmpresa(empresaId){
   const resultado = receita - despesa;
   const margem = (receita > 0 && resultado !== 0) ? parseFloat((resultado/receita*100).toFixed(1)) : 0;
   const tarefasAbertas = e.tarefas ? e.tarefas.filter(t=>!t.k).length : 0;
-  const inadimplencia = e.id==='of'?8.7:e.id==='dw'?3.2:e.id==='cdl'?2.1:0;
+  const inadimplencia = getInadimplenciaPct(e);
   const hs = FMT.calcHealthScore(receita, resultado, FMT.num(e.meta), inadimplencia);
   return { empresaId, sigla:e.sigla, nome:e.nome, cor:e.cor, receita, despesa, resultado, margem, score:hs, cresc:e.cresc, tarefasAbertas, inadimplencia, kpis:e.kpis, crm:e.crm||[] };
 }
@@ -5888,7 +5888,7 @@ function wsRenderBlock1(e){
 function wsRenderBlock2(e){
   let alerts=(typeof getAlerts==='function')?getAlerts().filter(a=>!a.read && (a.text||'').toLowerCase().includes((e.nome||'').toLowerCase())):[];
   if(alerts.length===0){
-    const inad=e.id==='of'?8.7:e.id==='dw'?3.2:e.id==='cdl'?2.1:e.id==='fs'?0:0;
+    const inad=getInadimplenciaPct(e);
     const derived=[];
     if(inad>5) derived.push({level:'red',sev:'Crítico',text:`Inadimplência ${inad}% (limite 5%)`});
     if((e.cresc||0)<0) derived.push({level:'amber',sev:'Alto',text:`Crescimento ${(e.cresc||0).toFixed(1)}%`});
@@ -5949,22 +5949,41 @@ function wsRenderBlock3(e){
 }
 
 // BLOCO 4 — Portfólio de Turmas (APENAS Forme Seguro)
+// v1.2.0 Fase 1: conecta a fs2-turmas real (não usa seed hardcoded)
 function wsRenderBlock4(e){
   if(e.id!=='fs') return '';
-  const turmas=[
-    {nome:'Turma Medicina 2026',   alunos:150, margem:62, status:'Lucrativa', cls:'ok'},
-    {nome:'Turma Direito Noturno', alunos:130, margem:18, status:'Atenção',   cls:'mid'},
-    {nome:'Turma Eng. Civil',      alunos:80,  margem:-8, status:'Crítica',   cls:'bad'}
-  ];
+  let turmasRaw = [];
+  try { turmasRaw = JSON.parse(localStorage.getItem('fs2-turmas')||'[]') || []; } catch(err){}
+  // Converte turma FS para resumo {nome, alunos, margem, status, cls}
+  const turmas = (turmasRaw||[]).slice(0,6).map(t => {
+    const meses = Array.isArray(t.meses) ? t.meses : [];
+    const entrada = meses.reduce((s,m)=>s + (Number(m.boletos)||0) + (Number(m.eventos)||0), 0);
+    const despesas = meses.reduce((s,m)=>s + (Number(m.taxa)||0) + (Number(m.cerimonial)||0) + (Number(m.rifa)||0) + (Number(m.devolucao)||0) + (Number(m.outras)||0), 0);
+    const margem = entrada>0 ? Math.round(((entrada-despesas)/entrada)*100) : 0;
+    const status = margem>=30 ? 'Lucrativa' : margem>=0 ? 'Atenção' : 'Crítica';
+    const cls = margem>=30 ? 'ok' : margem>=0 ? 'mid' : 'bad';
+    return { nome: t.nome || 'Turma sem nome', alunos: Number(t.alunos)||0, margem, status, cls };
+  });
+  if(turmas.length === 0){
+    return `<div class="ws-b4">
+      <div class="ws-b4-head">
+        <span class="ws-b4-title">Portfólio de Turmas</span>
+        <span class="ws-b4-foot" onclick="switchTab('Rentabilidade')">Cadastrar primeira turma →</span>
+      </div>
+      <div class="ws-b4-empty" style="padding:20px;text-align:center;color:var(--tx3);font-size:12.5px">
+        Nenhuma turma cadastrada.<br/>Abra <b>Rentabilidade</b> para registrar a primeira turma.
+      </div>
+    </div>`;
+  }
   return `<div class="ws-b4">
     <div class="ws-b4-head">
       <span class="ws-b4-title">Portfólio de Turmas</span>
-      <span class="ws-b4-foot" onclick="switchTab('Fundos')">Ver todas as turmas →</span>
+      <span class="ws-b4-foot" onclick="switchTab('Rentabilidade')">Ver todas as turmas →</span>
     </div>
     ${turmas.map(t=>`<div class="ws-b4-row">
       <div class="ws-b4-info">
         <div class="ws-b4-nome">${escHtml(t.nome)}</div>
-        <div class="ws-b4-alunos">${t.alunos} alunos</div>
+        <div class="ws-b4-alunos">${t.alunos} aluno${t.alunos===1?'':'s'}</div>
       </div>
       <div class="ws-b4-margem ${t.margem>=30?'pos':t.margem>=0?'mid':'neg'}">${t.margem>=0?'+':''}${t.margem}%</div>
       <span class="ws-b4-status ${t.cls}">${t.status}</span>
@@ -10173,23 +10192,19 @@ function orionRecommendForEmp(empId){
     });
   }
 
-  // 3) Inadimplência > 5% (via KPI)
-  const inad = (emp.kpis||[]).find(k=>/inadim/i.test(k.l||''));
-  if(inad){
-    const raw = String(inad.v).replace(/[^\d,.-]/g,'').replace(',','.');
-    const pct = parseFloat(raw);
-    if(!isNaN(pct) && pct > 5){
-      const inadImpact = (emp.fat||0) * (pct/100);
-      recs.push({
-        key:'inadimplencia', empId, emp:emp.nome,
-        problem:'Inadimplência em '+pct.toFixed(1)+'%',
-        explain:'Inadimplência em '+pct.toFixed(1)+'% (limite 5%) representa '+FMT.brl(inadImpact)+' em risco de caixa.',
-        action:'Ativar régua de cobrança e revisar crédito',
-        actionTab:'Contratos',
-        urgency:'critical',
-        impact: inadImpact
-      });
-    }
+  // 3) Inadimplência > 5% (v1.2.0 — derivada de orion_contratos_*)
+  const pct = (typeof getInadimplenciaPct==='function') ? getInadimplenciaPct(emp) : 0;
+  if(pct > 5){
+    const inadImpact = (emp.fat||0) * (pct/100);
+    recs.push({
+      key:'inadimplencia', empId, emp:emp.nome,
+      problem:'Inadimplência em '+pct.toFixed(1)+'%',
+      explain:'Inadimplência em '+pct.toFixed(1)+'% (limite 5%) representa '+FMT.brl(inadImpact)+' em risco de caixa.',
+      action:'Ativar régua de cobrança e revisar crédito',
+      actionTab:'Contratos',
+      urgency:'critical',
+      impact: inadImpact
+    });
   }
 
   // 4) Crescimento negativo
@@ -10480,8 +10495,17 @@ function renderDrillCrescimento(empId, rec, container){
 
 function renderDrillInadimplencia(empId, rec, container){
   const emp = EMPS[empId] || {};
-  const inadKpi = (emp.kpis||[]).find(k=>/inadim/i.test(k.l||''));
-  const pctStr = inadKpi ? inadKpi.v : '—';
+  const pct = (typeof getInadimplenciaPct==='function') ? getInadimplenciaPct(emp) : 0;
+  let contratos = [];
+  try { contratos = JSON.parse(localStorage.getItem('orion_contratos_'+empId) || '[]') || []; } catch(e){}
+  if(!Array.isArray(contratos) || contratos.length === 0){
+    container.innerHTML = `<div class="rec-drill-empty">
+        Sem dados de cobrança cadastrados para <b>${escHtml(emp.nome||empId)}</b>.<br/>
+        Cadastre contratos no módulo <b>Contratos</b> para que o ORION calcule a inadimplência real.
+      </div>`;
+    return;
+  }
+  const pctStr = pct.toFixed(1).replace('.',',')+'%';
   container.innerHTML = `<div class="rec-drill-kpis">
       <div class="rec-drill-kpi"><div class="rec-drill-kpi-lbl">Inadimplência atual</div><div class="rec-drill-kpi-val" style="color:#ef4444">${escHtml(pctStr)}</div></div>
       <div class="rec-drill-kpi"><div class="rec-drill-kpi-lbl">Limite saudável</div><div class="rec-drill-kpi-val">5,0%</div></div>
@@ -12877,6 +12901,22 @@ document.addEventListener('click',e=>{
 // ── ALERTS ──────────────────────────────────────────────────────────────────
 // ALERTS_DATA: fallback vazio — alertas reais vêm de generateAutoAlerts() baseado em EMPS
 const ALERTS_DATA=[];
+
+// v1.2.0 Fase 1 — Inadimplência real a partir de contratos cadastrados.
+// Lê orion_contratos_{empId}. Se não houver dados, retorna 0 (empresa vazia = sem inadimplência).
+// Remove hardcoded "e.id === 'of' ? 8.7 : ..." espalhado pelo código.
+function getInadimplenciaPct(emp){
+  if(!emp) return 0;
+  try {
+    const raw = localStorage.getItem('orion_contratos_'+emp.id);
+    if(!raw) return 0;
+    const contratos = JSON.parse(raw);
+    if(!Array.isArray(contratos) || contratos.length === 0) return 0;
+    const total = contratos.length;
+    const inadim = contratos.filter(c => c && (c.status === 'inadim' || c.inadimplente === true)).length;
+    return total > 0 ? parseFloat(((inadim/total)*100).toFixed(1)) : 0;
+  } catch(e){ return 0; }
+}
 function generateAutoAlerts(){
   const auto=[];
   let aid=100;
@@ -12884,7 +12924,7 @@ function generateAutoAlerts(){
   const timeStr=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
   Object.values(EMPS).forEach(e=>{
     if(e.id==='gp'||e.id.startsWith('custom_')||e.archived) return;
-    const inadimp=e.id==='of'?8.7:e.id==='dw'?3.2:e.id==='cdl'?2.1:0;
+    const inadimp=getInadimplenciaPct(e);
     if(inadimp>5) auto.push({id:aid++,text:`${e.nome} — Inadimplência em ${inadimp}% (limite: 5%)`,level:'red',read:false,time:'Hoje '+timeStr});
     if(e.result<0) auto.push({id:aid++,text:`${e.nome} — Resultado negativo: ${FMT.brlK(e.result)}`,level:'red',read:false,time:'Hoje '+timeStr});
     if(e.meta>0&&e.fat/e.meta>=0.9) auto.push({id:aid++,text:`${e.nome} — Meta ${(e.fat/e.meta*100).toFixed(0)}% atingida!`,level:'green',read:false,time:'Hoje '+timeStr});
