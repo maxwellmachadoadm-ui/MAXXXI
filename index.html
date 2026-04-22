@@ -2451,6 +2451,66 @@ html body .home-v2-kpi-val, html body .val, html body .ws-b3-val { font-size: va
 html body .val-sm, html body .ws-kn .val { font-size: var(--text-md) !important; font-weight: 700 !important; }
 html body .home-v2-emp-name, html body .ws-n { font-size: var(--text-md) !important; font-weight: 700 !important; }
 html body .lbl, html body [class*="-lbl"], html body [class*="-label"] { font-size: var(--text-xs) !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: .08em !important; color: var(--tx2) !important; }
+
+/* Ciclo 10A — polish drill-down empresa (maxxxi ref). Só visual, zero lógica. */
+/* Breadcrumb ws-crumbs (já existe, refina opacity + hover) */
+html body .ws-crumbs{padding:12px 0 14px 0!important;margin-bottom:0!important;font-size:var(--text-xs)!important;opacity:.85}
+html body .ws-crumb{color:var(--tx2)!important;font-weight:500!important;transition:color .15s,background .15s}
+html body .ws-crumb:not(.active){cursor:pointer}
+html body .ws-crumb:not(.active):hover{color:var(--tx)!important;background:rgba(255,255,255,.04)!important}
+html body .ws-crumb.active{color:var(--amber)!important;font-weight:600!important}
+html body .ws-crumb-sep{opacity:.35!important;margin:0 2px}
+/* Cabeçalho da empresa — tipografia DM Sans nos valores (alinhado maxxxi) */
+html body .ws-sig{
+  width:56px!important;height:56px!important;border-radius:14px!important;
+  font-family:var(--font-display)!important;font-size:18px!important;font-weight:800!important;
+  box-shadow:0 6px 18px rgba(0,0,0,.25)!important;
+}
+html body .ws-header-left{gap:16px!important}
+html body .ws-n{
+  font-family:var(--font-display)!important;font-size:var(--text-lg)!important;
+  font-weight:700!important;letter-spacing:-.01em!important;color:var(--tx)!important;
+}
+html body .ws-d{
+  font-size:var(--text-sm)!important;color:var(--tx3)!important;
+  margin-top:4px!important;opacity:.85;
+}
+/* KPIs inline (.ws-kn .nl = label / .nv = value) — padrão maxxxi DM Sans */
+html body .ws-kn{display:flex!important;flex-direction:column!important;gap:4px!important}
+html body .ws-kn .nl{
+  font-family:var(--font-sans)!important;font-size:var(--text-xs)!important;
+  font-weight:600!important;text-transform:uppercase!important;letter-spacing:.12em!important;
+  color:var(--tx3)!important;opacity:.85;margin-bottom:0!important;
+}
+html body .ws-kn .nv{
+  font-family:var(--font-sans)!important;font-size:19px!important;font-weight:700!important;
+  letter-spacing:-.005em!important;font-variant-numeric:tabular-nums!important;
+}
+/* Botão Análise IA — aspecto consistente */
+html body .ws-header-right .btn.btn-ia{
+  padding:10px 16px!important;border-radius:10px!important;
+  font-size:var(--text-sm)!important;font-weight:600!important;
+  display:inline-flex!important;align-items:center!important;gap:8px;
+  background:rgba(245,158,11,.1)!important;border:1px solid rgba(245,158,11,.3)!important;color:var(--amber)!important;
+  transition:background .15s,border-color .15s;
+}
+html body .ws-header-right .btn.btn-ia:hover{background:rgba(245,158,11,.18)!important;border-color:var(--amber)!important}
+/* Tabs — espaçamento + scroll horizontal em mobile */
+html body #ws-tabs{overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+html body #ws-tabs::-webkit-scrollbar{display:none}
+html body #ws-tabs .tab{padding:10px 14px!important;margin-right:16px!important;font-size:var(--text-sm)!important;font-weight:600!important;opacity:.55;transition:opacity .15s,color .15s}
+html body #ws-tabs .tab:hover{opacity:.85}
+html body #ws-tabs .tab.active{opacity:1!important;color:var(--amber)!important}
+/* Responsivo < 1280px */
+@media (max-width:1280px){
+  html body .ws-header-inner{flex-direction:column!important;align-items:flex-start!important;gap:14px!important}
+  html body .ws-header-right{justify-content:flex-start!important;gap:18px!important;flex-wrap:wrap!important;width:100%}
+  html body .ws-kn .nv{font-size:17px!important}
+}
+@media (max-width:768px){
+  html body .ws-kn{min-width:auto!important}
+  html body .ws-crumbs{font-size:10px!important}
+}
 html body .sb-item, html body .nav-item { font-size: var(--text-sm) !important; font-weight: 400 !important; }
 html body .badge, html body [class*="-badge"], html body [class*="-pill"] { font-size: var(--text-xs) !important; font-weight: 600 !important; padding: 4px 9px !important; }
 
