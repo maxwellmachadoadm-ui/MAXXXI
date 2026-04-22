@@ -9289,9 +9289,19 @@ function hasPerm(modKey, action, empresaId){
 function hasEiaPerm(key, empresaId){
   // key ∈ upload|view|editClass|approve|reprocess|retrain|export|delete
   const u = currentUser();
-  // BYPASS admin / super_admin — sempre full access no Extrato IA
+  /* Ciclo 11.1 — admin bypass upload: robustez contra session sem role */
   const r = (u && u.role || '').toLowerCase();
-  if(r==='admin' || r==='super_admin') return true;
+  // BYPASS 1: roles explícitos (admin/super_admin/owner/dono/proprietario)
+  if(['admin','super_admin','owner','dono','proprietario'].includes(r)) return true;
+  // BYPASS 2: flags booleanos alternativos (isAdmin, is_admin, owner)
+  if(u && (u.isAdmin===true || u.is_admin===true || u.owner===true || u.is_owner===true)) return true;
+  // BYPASS 3: email do owner seed (Maxwell@orion.app) — defesa para session sem role
+  if(u && typeof u.email === 'string' && u.email.toLowerCase() === 'maxwell@orion.app') return true;
+  // BYPASS 4: se há apenas 1 usuário cadastrado em orion_users, ele é admin de fato
+  try {
+    const all = JSON.parse(localStorage.getItem('orion_users')||'[]');
+    if(Array.isArray(all) && all.length === 1 && u) return true;
+  } catch(e){}
   if(!u) return false;
   if(isSuperAdmin(u)) return true;
   const empId = empresaId||curEmp;
