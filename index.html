@@ -6588,7 +6588,8 @@ function renderTab(){
       </div>`;
   }
   // ── EMPRESA-SPECIFIC TABS ──
-  else if(curTab==='Extrato IA'){ renderExtratoIA(e,c,co) }
+  /* Ciclo 11.2 — v1 removida, v2 é única (Haiku + Supabase + PDF/Excel/CSV) */
+  else if(curTab==='Extrato IA'){ renderExtratoIAv2(e.id) }
   else if(curTab==='Documentos'){ renderDocumentos(e,c,co) }
   else if(curTab==='Relatórios'){ renderRelatorios(e,c,co) }
   else if(curTab==='Projeções'){ renderProjecoes(e,c,co) }
@@ -7268,7 +7269,7 @@ const EIAv2 = (function(){
   };
 })();
 
-// Ciclo Extratos IA Fase 1 — UI v2 opcional (coexiste com renderExtratoIA)
+// Ciclo 11.2 — UI v2 é a UNICA interface do Extrato IA (v1 legada mantida no arquivo como dead code para rollback)
 async function renderExtratoIAv2(empId){
   const container = document.getElementById('ws-content');
   if(!container || !empId) return;
@@ -7305,7 +7306,6 @@ async function renderExtratoIAv2(empId){
       <div class="eia-v2-actions">
         <input type="file" id="eia-v2-file-input" accept=".csv,.pdf,.xlsx,.xls,text/csv,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none" onchange="EIAv2.handleUpload(event, '${escHtml(empId)}')"/>
         <button class="btn btn-blue" onclick="document.getElementById('eia-v2-file-input').click()">📤 Importar CSV / PDF / Excel</button>
-        <button class="btn btn-ghost" onclick="renderTab()">← Voltar UI clássica</button>
       </div>
     </div>
     <div class="eia-v2-stats">
@@ -9799,7 +9799,8 @@ function renderExtratoIA(e,c,co){
       </div>
       <div class="flex aic gap8">
         ${totDocs>0?`<span class="home-v2-badge home-v2-badge-escalar">${totDocs} doc${totDocs===1?'':'s'} · ${totEntries} lançamentos</span>`:''}
-        <button class="btn btn-ghost btn-sm" onclick="renderExtratoIAv2('${escHtml(e.id)}')" title="Versão v2: Supabase + Claude Haiku + aprendizado persistido">🧪 UI v2 (Haiku)</button>
+        <!-- Ciclo 11.2 — botão UI v2 removido: v2 agora é a UI única -->
+        <!-- <button class="btn btn-ghost btn-sm" onclick="renderExtratoIAv2('${escHtml(e.id)}')" title="Versão v2">🧪 UI v2</button> -->
       </div>
     </div>
 
