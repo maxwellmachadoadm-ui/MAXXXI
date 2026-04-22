@@ -6362,7 +6362,7 @@ function renderProjecoes(e,c,co){
             <div class="fs-proj-row-2">
               <div>
                 <div class="fs-proj-lbl">Meta Individual (R$)</div>
-                <input class="fs-proj-inp" type="number" min="0" step="100" id="fs-sim-meta" placeholder="Ex: 30000" oninput="FSSimV10.gerar()"/>
+                <input class="fs-proj-inp" type="text" inputmode="decimal" id="fs-sim-meta" placeholder="Ex: 30.000" oninput="FSSimV10.maskBRL(this);FSSimV10.gerar()"/>
               </div>
               <div>
                 <div class="fs-proj-lbl">Nº Alunos</div>
@@ -6388,7 +6388,7 @@ function renderProjecoes(e,c,co){
             <div class="fs-proj-row-2">
               <div>
                 <div class="fs-proj-lbl">Valor (R$)</div>
-                <input class="fs-proj-inp" type="number" min="0" step="50" id="fs-sim-adesao-val" placeholder="Ex: 500" oninput="FSSimV10.gerar()"/>
+                <input class="fs-proj-inp" type="text" inputmode="decimal" id="fs-sim-adesao-val" placeholder="Ex: 500" oninput="FSSimV10.maskBRL(this);FSSimV10.gerar()"/>
               </div>
               <div>
                 <div class="fs-proj-lbl">Mês da cobrança</div>
@@ -6409,7 +6409,7 @@ function renderProjecoes(e,c,co){
               </div>
               <div>
                 <div class="fs-proj-lbl">Valor anual (R$)</div>
-                <input class="fs-proj-inp" type="number" min="0" step="100" id="fs-sim-rifa-val" placeholder="Ex: 500" oninput="FSSimV10.gerar()"/>
+                <input class="fs-proj-inp" type="text" inputmode="decimal" id="fs-sim-rifa-val" placeholder="Ex: 500" oninput="FSSimV10.maskBRL(this);FSSimV10.gerar()"/>
               </div>
             </div>
           </div>
@@ -6823,6 +6823,41 @@ const FSSimV10 = (function(){
     return all[turmaId] || null;
   }
 
+  // ── Ciclo 7.3: máscara de milhar para inputs monetários ───────
+  // Aceita dígitos e vírgula decimal. Pontos de milhar automáticos.
+  // "30000" → "30.000" | "30000,50" → "30.000,50" | "1500" → "1.500"
+  function maskBRL(el){
+    if(!el) return;
+    const raw = el.value.replace(/[^\d,]/g,'');
+    const firstComma = raw.indexOf(',');
+    let intPart, decPart = null;
+    if(firstComma === -1){
+      intPart = raw.replace(/,/g,'');
+    } else {
+      intPart = raw.slice(0, firstComma).replace(/,/g,'');
+      decPart = raw.slice(firstComma+1).replace(/,/g,'').slice(0,2);
+    }
+    intPart = intPart.replace(/^0+(\d)/, '$1');
+    if(intPart === '') intPart = decPart !== null ? '0' : '';
+    const intFmt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    el.value = decPart !== null ? (intFmt + ',' + decPart) : intFmt;
+    try { el.setSelectionRange(el.value.length, el.value.length); } catch(e){}
+  }
+  // Parse "30.000,50" → 30000.50 | "1.500" → 1500 | "" → 0
+  function parseBRL(str){
+    if(!str) return 0;
+    const clean = String(str).replace(/\./g,'').replace(',','.');
+    const n = parseFloat(clean);
+    return isNaN(n) ? 0 : n;
+  }
+  // Formata número → "30.000" ou "30.000,50"
+  function fmtBRL(num){
+    if(num === undefined || num === null || isNaN(num)) return '';
+    const n = Number(num);
+    const hasDec = (n % 1) !== 0;
+    return n.toLocaleString('pt-BR', {minimumFractionDigits: hasDec?2:0, maximumFractionDigits:2});
+  }
+
   // ── Ciclo 7.2: datas digitáveis dd.mm.aaaa ─────────────────────
   // Máscara: insere pontos enquanto digita (01012028 → 01.01.2028)
   function maskData(el){
@@ -6879,14 +6914,14 @@ const FSSimV10 = (function(){
     return {
       turmaId: val('fs-sim-turma'),
       nomeTurma: val('fs-sim-nome').trim(),
-      meta: parseFloat(val('fs-sim-meta'))||0,
+      meta: parseBRL(val('fs-sim-meta')),
       alunos: parseInt(val('fs-sim-alunos'))||0,
       inicioKey: dataToKey(val('fs-sim-inicio')),
       fimKey: dataToKey(val('fs-sim-fim')),
-      adesaoValor: parseFloat(val('fs-sim-adesao-val'))||0,
+      adesaoValor: parseBRL(val('fs-sim-adesao-val')),
       adesaoMesKey: dataToKey(val('fs-sim-adesao-mes')),
       rifaFreq: parseInt(val('fs-sim-rifa-freq'))||0,
-      rifaAnual: parseFloat(val('fs-sim-rifa-val'))||0,
+      rifaAnual: parseBRL(val('fs-sim-rifa-val')),
       gSemPct: parseFloat(val('fs-sim-g'))||0,
       pctBalaoPct: parseFloat(val('fs-sim-balao'))||30,
       planoAtivo: document.querySelector('.fssim-tab.active')?.dataset.tab || 'VARIAVEL'
@@ -7002,15 +7037,16 @@ const FSSimV10 = (function(){
       const inp = saved.inputs;
       const set = (id,v)=>{ const el=document.getElementById(id); if(el && v!==undefined && v!==null) el.value = v; };
       set('fs-sim-nome', inp.nomeTurma);
-      set('fs-sim-meta', inp.meta);
+      // Ciclo 7.3: formata monetários com máscara BRL ao carregar
+      set('fs-sim-meta', fmtBRL(inp.meta));
       set('fs-sim-alunos', inp.alunos);
       // Ciclo 7.2: converte yyyy-mm interno → dd.mm.aaaa visível
       set('fs-sim-inicio', keyToData(inp.inicioKey));
       set('fs-sim-fim', keyToData(inp.fimKey));
-      set('fs-sim-adesao-val', inp.adesaoValor);
+      set('fs-sim-adesao-val', fmtBRL(inp.adesaoValor));
       set('fs-sim-adesao-mes', keyToData(inp.adesaoMesKey));
       set('fs-sim-rifa-freq', inp.rifaFreq);
-      set('fs-sim-rifa-val', inp.rifaAnual);
+      set('fs-sim-rifa-val', fmtBRL(inp.rifaAnual));
       set('fs-sim-g', inp.gSemPct);
       set('fs-sim-balao', inp.pctBalaoPct);
       if(inp.planoAtivo) setActiveTab(inp.planoAtivo);
@@ -7059,6 +7095,7 @@ const FSSimV10 = (function(){
   return {
     gerar, carregarTurmas, onTurmaChange, setActiveTab, imprimir,
     maskData, validarData, parseData, dataToKey, keyToData,
+    maskBRL, parseBRL, fmtBRL,
     // exposto para o render
     _internal: {calcularTudo, lerInputs, buildMatrix, renderTable}
   };
