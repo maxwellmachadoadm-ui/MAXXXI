@@ -12,6 +12,10 @@
     {
       "src": "api/classificar.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "api/parse-extrato.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -26,6 +30,10 @@
     {
       "src": "/api/classificar",
       "dest": "/api/classificar.js"
+    },
+    {
+      "src": "/api/parse-extrato",
+      "dest": "/api/parse-extrato.js"
     },
     {
       "src": "/(.*)",

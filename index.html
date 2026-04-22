@@ -7014,25 +7014,135 @@ const EIAv2 = (function(){
     }
   }
 
-  // Upload + parse + classificação + persistência Supabase
+  // Ciclo 11 — Fase 2: leitura multi-formato (CSV/PDF/Excel) ─────────────────
+  function detectarTipo(file){
+    const n = (file?.name||'').toLowerCase();
+    if(n.endsWith('.pdf')) return 'pdf';
+    if(n.endsWith('.xlsx') || n.endsWith('.xls')) return 'xlsx';
+    if(n.endsWith('.csv')) return 'csv';
+    // Fallback via mime
+    const t = (file?.type||'').toLowerCase();
+    if(t.includes('pdf')) return 'pdf';
+    if(t.includes('spreadsheet') || t.includes('excel')) return 'xlsx';
+    return 'csv'; // default mais seguro
+  }
+
+  async function lerTextoPDF(file){
+    // pdfjs-dist via ESM (CDN jsdelivr, já whitelisted no CSP)
+    try {
+      const pdfjsLib = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/+esm');
+      // Worker via mesmo CDN
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs';
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const partes = [];
+      for(let p=1; p<=pdf.numPages; p++){
+        const page = await pdf.getPage(p);
+        const content = await page.getTextContent();
+        const texto = content.items.map(it=>it.str).join(' ');
+        partes.push(texto);
+      }
+      return partes.join('\n');
+    } catch(e){
+      console.error('lerTextoPDF falhou:', e);
+      return '';
+    }
+  }
+
+  function lerTextoExcel(file){
+    return new Promise((resolve, reject)=>{
+      if(typeof XLSX === 'undefined'){ resolve(''); return; }
+      const reader = new FileReader();
+      reader.onload = (e)=>{
+        try {
+          const data = new Uint8Array(e.target.result);
+          const wb = XLSX.read(data, { type:'array' });
+          const partes = [];
+          wb.SheetNames.forEach(name=>{
+            const ws = wb.Sheets[name];
+            // CSV-like: cada linha separada por \n, campos por ;
+            const csv = XLSX.utils.sheet_to_csv(ws, { FS: ';', blankrows: false });
+            if(csv && csv.trim()) partes.push('=== '+name+' ===\n'+csv);
+          });
+          resolve(partes.join('\n\n'));
+        } catch(err){ console.error('lerTextoExcel falhou:', err); resolve(''); }
+      };
+      reader.onerror = ()=>resolve('');
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  async function extrairTransacoesViaIA(texto, tipo, origem){
+    try {
+      const response = await fetch('/api/parse-extrato', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ texto, tipo, origem })
+      });
+      if(!response.ok){
+        const err = await response.json().catch(()=>({}));
+        console.error('parse-extrato erro:', err);
+        return null;
+      }
+      const data = await response.json();
+      return data.transacoes || [];
+    } catch(e){
+      console.error('extrairTransacoesViaIA falhou:', e);
+      return null;
+    }
+  }
+
+  // Upload + parse + classificação + persistência Supabase (CSV/PDF/Excel)
   async function processarArquivo(file, empId){
     if(!file || !empId){ if(typeof showToast==='function') showToast('Arquivo ou empresa inválida'); return; }
     if(typeof sb === 'undefined' || !sb){ if(typeof showToast==='function') showToast('Supabase não configurado — configure em ⚙️ Supabase'); return; }
-    showToast('Processando CSV...');
 
-    const text = await file.text();
-    const parsed = parseCSV(text);
-    if(!parsed.rows || parsed.rows.length === 0){
-      showToast('CSV vazio ou mal formatado');
+    // Validação tamanho 10MB (Ciclo 11 — Fase 2)
+    const MAX_BYTES = 10 * 1024 * 1024;
+    if(file.size > MAX_BYTES){
+      showToast('Arquivo muito grande (máx 10MB)');
       return;
     }
 
-    const transacoes = parsed.rows
-      .map(r=>normalizarTransacao(r))
-      .filter(t=>t.descricao && t.valor > 0 && t.data_transacao);
+    const tipo = detectarTipo(file);
+    const tipoLabel = tipo === 'pdf' ? 'PDF' : tipo === 'xlsx' ? 'Excel' : 'CSV';
+    showToast('Processando '+tipoLabel+'...');
+
+    let transacoes = [];
+
+    if(tipo === 'csv'){
+      // Pipeline Fase 1 preservado (parse local, mais rápido e sem custo de IA)
+      const text = await file.text();
+      const parsed = parseCSV(text);
+      if(!parsed.rows || parsed.rows.length === 0){ showToast('CSV vazio ou mal formatado'); return; }
+      transacoes = parsed.rows
+        .map(r=>normalizarTransacao(r))
+        .filter(t=>t.descricao && t.valor > 0 && t.data_transacao);
+    } else {
+      // Fase 2: PDF/Excel → extração de texto → Haiku extrai transações estruturadas
+      const texto = tipo === 'pdf' ? await lerTextoPDF(file) : await lerTextoExcel(file);
+      if(!texto || texto.length < 10){
+        showToast('Falha ao ler conteúdo do '+tipoLabel);
+        return;
+      }
+      showToast(tipoLabel+' lido. Extraindo transações via IA...');
+      const extracao = await extrairTransacoesViaIA(texto.slice(0, 75000), tipo, file.name);
+      if(!Array.isArray(extracao) || extracao.length === 0){
+        showToast('Nenhuma transação identificada pela IA');
+        return;
+      }
+      // Adapta formato {data, descricao, valor, tipo} → {data_transacao, descricao, valor, tipo, raw_data}
+      transacoes = extracao.map(t => ({
+        data_transacao: t.data,
+        descricao: String(t.descricao||'').trim(),
+        valor: Math.abs(Number(t.valor)||0),
+        tipo: t.tipo === 'credito' ? 'credito' : 'debito',
+        raw_data: {}
+      })).filter(t=>t.descricao && t.valor > 0 && t.data_transacao);
+    }
 
     if(transacoes.length === 0){
-      showToast('Nenhuma transação válida encontrada no CSV');
+      showToast('Nenhuma transação válida encontrada');
       return;
     }
 
@@ -7048,14 +7158,14 @@ const EIAv2 = (function(){
     const periodo_inicio = datas[0] || null;
     const periodo_fim = datas[datas.length-1] || null;
 
-    // 1) Inserir extrato
+    // 1) Inserir extrato (Ciclo 11 — origem dinâmica: csv/pdf/xlsx)
     const { data:extrato, error:e1 } = await sb
       .from('extratos')
       .insert({
         user_id: userId,
         emp_id: empId,
         nome_arquivo: file.name,
-        origem: 'csv',
+        origem: tipo,
         periodo_inicio,
         periodo_fim,
         total_transacoes: transacoes.length,
@@ -7152,7 +7262,9 @@ const EIAv2 = (function(){
   return {
     parseCSV, parseCSVLine, normalizarTransacao,
     heuristicas, classificarLocal, classificarIA,
-    processarArquivo, validar, handleUpload
+    processarArquivo, validar, handleUpload,
+    // Ciclo 11 — Fase 2 PDF/Excel
+    detectarTipo, lerTextoPDF, lerTextoExcel, extrairTransacoesViaIA
   };
 })();
 
@@ -7188,11 +7300,11 @@ async function renderExtratoIAv2(empId){
     <div class="eia-v2-header">
       <div>
         <h2 class="eia-v2-title">Extrato IA v2 · ${escHtml(emp.nome||empId)}</h2>
-        <p class="eia-v2-sub">Claude Haiku 4.5 · Supabase · Classificação com aprendizado</p>
+        <p class="eia-v2-sub">Ciclo 11 — CSV / PDF / Excel · Claude Haiku 4.5 · Supabase</p>
       </div>
       <div class="eia-v2-actions">
-        <input type="file" id="eia-v2-file-input" accept=".csv,text/csv" style="display:none" onchange="EIAv2.handleUpload(event, '${escHtml(empId)}')"/>
-        <button class="btn btn-blue" onclick="document.getElementById('eia-v2-file-input').click()">📤 Importar CSV</button>
+        <input type="file" id="eia-v2-file-input" accept=".csv,.pdf,.xlsx,.xls,text/csv,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none" onchange="EIAv2.handleUpload(event, '${escHtml(empId)}')"/>
+        <button class="btn btn-blue" onclick="document.getElementById('eia-v2-file-input').click()">📤 Importar CSV / PDF / Excel</button>
         <button class="btn btn-ghost" onclick="renderTab()">← Voltar UI clássica</button>
       </div>
     </div>
