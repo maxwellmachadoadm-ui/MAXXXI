@@ -3182,6 +3182,179 @@ html body .home-v2-emp-card .home-v2-emp-info{flex:1 1 auto;min-width:0}
 html body .home-v2-emp-metrics{display:grid !important;grid-template-columns:repeat(3,1fr) !important;gap:10px !important}
 /* ═══ /Ciclo 12A.0.1 ═══ */
 
+/* ═══ Ciclo 12C — Central CEO v3 Fase 3 (escala sênior + hero + portfolio + ações + impactos) ═══ */
+/* Sandbox root */
+#home-v3-sandbox{
+  margin:20px 0 24px;padding:0;border:none;background:transparent;
+}
+.v3-root{font-family:'Inter Variable','Inter',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--tx)}
+/* Header: saudação + título hero */
+.v3-header{margin-bottom:22px}
+.v3-greet{
+  font-size:10px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--tx3);opacity:.55;margin-bottom:6px;
+}
+.v3-title{
+  font-family:'Inter Variable','Inter',system-ui,sans-serif;
+  font-size:26px;font-weight:700;letter-spacing:-0.02em;line-height:1.1;
+  margin:0;background:linear-gradient(92deg,#f1f5f9 0%,#c4b5fd 55%,#a78bfa 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+/* Grid principal 2 colunas */
+.v3-main-grid{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:20px;align-items:start}
+.v3-main{display:flex;flex-direction:column;gap:22px;min-width:0}
+.v3-side{position:sticky;top:20px;min-width:0}
+/* Section */
+.v3-section{display:flex;flex-direction:column;gap:0}
+.sec-hd{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sec-hd__num{
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(139,92,246,0.15);color:var(--purple,#a78bfa);
+  font-size:11px;font-weight:700;font-family:'Inter Variable','Inter',sans-serif;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.sec-hd__lbl{
+  font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.14em;color:var(--tx2);opacity:.75;
+}
+/* Empty state */
+.v3-empty{padding:16px 18px;border-radius:10px;background:rgba(255,255,255,.02);border:1px dashed rgba(255,255,255,.06);color:var(--tx3);font-size:13px;text-align:center;opacity:.8}
+.v3-empty--cta a{color:var(--purple,#a78bfa);text-decoration:none;font-weight:600;margin-left:6px}
+.v3-empty--cta a:hover{text-decoration:underline}
+
+/* KPI grid 4 cols + escala reduzida (sobrescreve 12A nos tamanhos) */
+.v3-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+#home-v3-sandbox .kpi-card-v3__value{font-size:22px!important;font-weight:700!important;letter-spacing:-0.02em!important}
+#home-v3-sandbox .kpi-card-v3__label{font-size:10px!important;letter-spacing:.14em!important;font-weight:600!important;opacity:.5!important}
+
+/* ORION RECOMENDA HERO */
+.orion-hero{
+  padding:22px 24px;border-radius:16px;
+  background:linear-gradient(135deg, rgba(139,92,246,0.09), rgba(59,130,246,0.04));
+  border:1px solid rgba(139,92,246,0.18);
+  display:flex;flex-direction:column;gap:14px;
+}
+.orion-hero--empty{border-style:dashed;background:rgba(255,255,255,.02);border-color:rgba(255,255,255,.06)}
+.orion-hero__header{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.orion-hero__badge{
+  font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  padding:4px 10px;border-radius:999px;
+}
+.orion-hero__badge--critico{background:rgba(239,68,68,.15);color:var(--red,#ef4444)}
+.orion-hero__badge--alto{background:rgba(245,158,11,.15);color:var(--amber,#f59e0b)}
+.orion-hero__badge--atencao{background:rgba(234,179,8,.12);color:#eab308}
+.orion-hero__emp{font-size:11px;color:var(--tx3);opacity:.7;font-weight:500}
+.orion-hero__title{font-size:20px;font-weight:700;letter-spacing:-0.01em;color:var(--tx);line-height:1.3}
+.orion-hero__explain{font-size:13px;color:var(--tx2);opacity:.85;line-height:1.5}
+.orion-hero__acao{
+  padding:12px 14px;border-radius:10px;
+  background:rgba(0,0,0,0.22);border:1px solid rgba(255,255,255,0.05);
+}
+.orion-hero__acao-lbl{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--purple,#a78bfa);opacity:.8;margin-bottom:4px}
+.orion-hero__acao-txt{font-size:13px;color:var(--tx);line-height:1.4}
+.orion-hero__foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.orion-hero__pills{display:flex;gap:6px;flex-wrap:wrap}
+.orion-hero__pill{
+  font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px;letter-spacing:.08em;
+}
+.orion-hero__pill--impact{background:rgba(16,185,129,.15);color:var(--green,#10b981)}
+.orion-hero__pill--oport{background:rgba(139,92,246,.15);color:var(--purple,#a78bfa)}
+.orion-hero__cta{
+  background:linear-gradient(135deg,var(--purple,#8b5cf6),var(--blue,#3b82f6));
+  color:#fff;padding:8px 14px;border:none;border-radius:8px;
+  font-weight:600;font-size:12px;cursor:pointer;transition:.15s;
+  font-family:inherit;
+}
+.orion-hero__cta:hover{filter:brightness(1.15);transform:translateY(-1px)}
+
+/* PORTFOLIO — lista horizontal */
+.v3-portfolio{display:flex;flex-direction:column;gap:8px}
+.pf-row{
+  display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:20px;align-items:center;
+  padding:12px 16px;border-radius:10px;
+  background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);
+  cursor:pointer;transition:all .15s;
+}
+.pf-row:hover{background:rgba(255,255,255,0.04);transform:translateX(2px);border-color:rgba(255,255,255,.1)}
+.pf-row__main{min-width:0;overflow:hidden}
+.pf-row__nome{font-weight:600;font-size:14px;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-row__tipo{font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:.08em;margin-top:2px;color:var(--tx3);font-weight:500}
+.pf-row__metric{text-align:right}
+.pf-row__lbl{font-size:9px;text-transform:uppercase;letter-spacing:.14em;opacity:.5;font-weight:600;color:var(--tx3)}
+.pf-row__val{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px;letter-spacing:-.01em}
+.pf-row__val--crescimento{color:var(--green,#10b981)}
+.pf-row__val--atencao{color:var(--amber,#f59e0b)}
+.pf-row__val--critico{color:var(--red,#ef4444)}
+.pf-row__val--oportunidade{color:var(--purple,#a78bfa)}
+.pf-badge{
+  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  padding:4px 9px;border-radius:6px;
+}
+.pf-badge--crescimento{background:rgba(16,185,129,.15);color:var(--green,#10b981)}
+.pf-badge--atencao{background:rgba(245,158,11,.15);color:var(--amber,#f59e0b)}
+.pf-badge--critico{background:rgba(239,68,68,.15);color:var(--red,#ef4444)}
+.pf-badge--oportunidade{background:rgba(139,92,246,.15);color:var(--purple,#a78bfa)}
+
+/* TAREFAS GRID 3 cols */
+.v3-tasks-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+
+/* AÇÕES RÁPIDAS — 6 cols */
+.qa-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.qa-btn{
+  padding:12px 14px;border-radius:10px;
+  background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);
+  cursor:pointer;display:flex;flex-direction:column;gap:4px;text-align:left;
+  font-family:inherit;color:var(--tx);transition:all .15s;
+}
+.qa-btn:hover{background:rgba(139,92,246,0.06);border-color:rgba(139,92,246,0.25);transform:translateY(-1px)}
+.qa-btn__lbl{font-size:12px;font-weight:600;display:flex;gap:6px;align-items:center;color:var(--tx)}
+.qa-btn__ico{font-size:14px}
+.qa-btn__sub{font-size:9px;opacity:.5;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3);font-weight:500}
+
+/* IMPACTOS ESPERADOS — sidebar */
+.v3-impactos{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04)}
+.v3-impactos__list{display:flex;flex-direction:column;gap:8px}
+.v3-impacto{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:12px;color:var(--tx2);line-height:1.3}
+.v3-impacto__ico{font-size:14px}
+.v3-impacto__txt{font-size:12px;color:var(--tx);font-weight:500}
+.v3-impacto__nivel{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:2px 7px;border-radius:5px;white-space:nowrap}
+.v3-impacto__nivel--alto{background:rgba(16,185,129,.15);color:var(--green,#10b981)}
+.v3-impacto__nivel--medio{background:rgba(245,158,11,.15);color:var(--amber,#f59e0b)}
+.v3-impacto__nivel--baixo{background:rgba(239,68,68,.12);color:var(--red,#ef4444)}
+.v3-impactos__legenda{display:flex;gap:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.05);font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase}
+.v3-impactos__legenda span{display:flex;align-items:center;gap:5px}
+.v3-impactos__dot{width:8px;height:8px;border-radius:50%}
+.v3-impactos__dot--alto{background:var(--green,#10b981)}
+.v3-impactos__dot--medio{background:var(--amber,#f59e0b)}
+.v3-impactos__dot--baixo{background:var(--red,#ef4444)}
+
+/* Responsivo v3 */
+@media (max-width:1024px){
+  #home-v3-sandbox .v3-main-grid{grid-template-columns:1fr!important}
+  #home-v3-sandbox .v3-side{position:static;top:auto}
+  #home-v3-sandbox .v3-kpi-grid{grid-template-columns:repeat(2,1fr)}
+  #home-v3-sandbox .v3-tasks-grid{grid-template-columns:repeat(2,1fr)}
+  #home-v3-sandbox .qa-grid{grid-template-columns:repeat(3,1fr)}
+}
+@media (max-width:640px){
+  #home-v3-sandbox .v3-kpi-grid{grid-template-columns:1fr}
+  #home-v3-sandbox .v3-tasks-grid{grid-template-columns:1fr}
+  #home-v3-sandbox .qa-grid{grid-template-columns:repeat(2,1fr)}
+  #home-v3-sandbox .pf-row{grid-template-columns:1fr;gap:8px}
+  #home-v3-sandbox .pf-row__metric{text-align:left}
+  #home-v3-sandbox .v3-title{font-size:22px}
+  #home-v3-sandbox .orion-hero__title{font-size:17px}
+}
+
+/* Ciclo 12C Bloco G — MAXXXI drawer escala sênior */
+html body .mx-drawer{width:340px!important}
+@media (max-width:640px){html body .mx-drawer{width:100vw!important;max-width:100vw!important}}
+html body .mx-hname{font-size:16px!important;font-weight:700!important;letter-spacing:.04em!important;font-family:'Inter Variable','Inter',system-ui,sans-serif!important}
+html body .mx-hsub{font-size:9px!important;font-weight:600!important;letter-spacing:.16em!important;text-transform:uppercase!important;opacity:.5!important}
+html body .mx-section-hdr{font-size:10px!important;font-weight:700!important;letter-spacing:.14em!important;opacity:.55!important;padding:9px 18px!important}
+html body .mx-alert-item,html body .msg-bubble-ai,html body .msg-bubble-u{font-size:12px!important;line-height:1.5!important}
+/* ═══ /Ciclo 12C ═══ */
+
 /* ═══ Ciclo 12B — AlertPill + TaskCard (Fase 2) ═══ */
 .alert-pill{
   display:flex;gap:10px;padding:9px 12px;border-radius:10px;
@@ -5909,6 +6082,131 @@ function renderTaskCard(opts){
   </div>`;
 }
 
+// ═══ Ciclo 12C — section header, hero, portfolio, acoes, impactos ═══
+function renderSectionHeader(num, label){
+  return `<div class="sec-hd">
+    <span class="sec-hd__num">${escHtml(String(num))}</span>
+    <span class="sec-hd__lbl">${escHtml(label)}</span>
+  </div>`;
+}
+
+function renderOrionRecomendaHero(){
+  const recs = (typeof gerarPlanoDoDia === 'function') ? (gerarPlanoDoDia(1)||[]) : [];
+  if(!recs || recs.length === 0){
+    return `<div class="orion-hero orion-hero--empty">
+      <div class="orion-hero__title">✓ Nenhuma ação crítica agora</div>
+      <div class="orion-hero__meta">Operação saudável — aproveite para revisar planejamento estratégico.</div>
+    </div>`;
+  }
+  const r = recs[0];
+  const empNome = (typeof EMPS !== 'undefined' && EMPS[r.empId] && EMPS[r.empId].nome) || r.emp || r.empId || '';
+  const prio = r.urgency === 'critical' ? 'Crítica' : r.urgency === 'high' ? 'Alta' : r.urgency === 'medium' ? 'Média' : 'Baixa';
+  const prioSev = r.urgency === 'critical' ? 'critico' : r.urgency === 'high' ? 'alto' : 'atencao';
+  const impactK = (r.impact && r.impact > 0) ? FMT.brlK(r.impact) : '';
+  return `<div class="orion-hero">
+    <div class="orion-hero__header">
+      <span class="orion-hero__badge orion-hero__badge--${prioSev}">Prioridade ${prio}</span>
+      ${empNome ? `<span class="orion-hero__emp">${escHtml(empNome)}</span>` : ''}
+    </div>
+    <div class="orion-hero__title">${escHtml(r.problem || 'Ação recomendada')}</div>
+    ${r.explain ? `<div class="orion-hero__explain">${escHtml(r.explain)}</div>` : ''}
+    <div class="orion-hero__acao">
+      <div class="orion-hero__acao-lbl">Ação sugerida</div>
+      <div class="orion-hero__acao-txt">${escHtml(r.action || r.problem || '—')}</div>
+    </div>
+    <div class="orion-hero__foot">
+      <div class="orion-hero__pills">
+        ${impactK ? `<span class="orion-hero__pill orion-hero__pill--impact">+${impactK}/mês</span>` : ''}
+        <span class="orion-hero__pill orion-hero__pill--oport">${prio}</span>
+      </div>
+      <button class="orion-hero__cta" onclick="${typeof openRecDrill==='function' ? `openRecDrill('${escHtml(r.empId||'')}','${escHtml(r.key||'')}')` : `showToast('Plano completo — em breve')`}">Ver plano completo →</button>
+    </div>
+  </div>`;
+}
+
+function getPortfolioEmpresas(){
+  const emps = (typeof EMPS === 'object' && EMPS)
+    ? Object.values(EMPS).filter(e => e && !e.archived && !String(e.id||'').startsWith('custom_'))
+    : [];
+  return emps.slice(0, 6).map(e => {
+    const fat = Number(e.fat) || 0;
+    const res = Number(e.result) || 0;
+    const cresc = Number(e.cresc) || 0;
+    const margem = fat > 0 ? (res / fat) * 100 : 0;
+    let status = 'atencao', label = 'Atenção';
+    if(margem >= 30 && cresc >= 10){ status = 'crescimento'; label = 'Lucrativa'; }
+    else if(margem >= 15 && cresc >= 0){ status = 'crescimento'; label = 'Crescimento'; }
+    else if(margem < 0 || cresc < -5){ status = 'critico'; label = 'Crítico'; }
+    else if(cresc > 20){ status = 'oportunidade'; label = 'Oportunidade'; }
+    else if(margem < 15){ status = 'atencao'; label = 'Atenção'; }
+    const tipoCtx = e.tipo || (e.id === 'fs' ? 'Fundos de Formatura' : e.id === 'gp' ? 'Pessoal' : e.id === 'dw' ? 'Saúde' : e.id === 'of' ? 'Fotografia' : e.id === 'cdl' ? 'Associação' : 'Portfólio');
+    return {
+      id: e.id, nome: e.nome || e.id, tipo: tipoCtx,
+      margem: margem.toFixed(0),
+      margemDeltaPct: cresc,
+      status, label
+    };
+  });
+}
+
+function renderPortfolioCard(p){
+  return `<div class="pf-row" onclick="${typeof openEmp==='function' ? `openEmp('${escHtml(p.id)}')` : `showToast('Empresa — em breve')`}">
+    <div class="pf-row__main">
+      <div class="pf-row__nome">${escHtml(p.nome)}</div>
+      <div class="pf-row__tipo">${escHtml(p.tipo)}</div>
+    </div>
+    <div class="pf-row__metric">
+      <div class="pf-row__lbl">Margem</div>
+      <div class="pf-row__val pf-row__val--${p.status}">${p.margem}%</div>
+    </div>
+    <div class="pf-row__status">
+      <span class="pf-badge pf-badge--${p.status}">${escHtml(p.label)}</span>
+    </div>
+  </div>`;
+}
+
+function renderAcoesRapidas(){
+  const acoes = [
+    { icon:'📤', lbl:'Enviar Extrato',   sub:'Análise IA',  act: `if(window.curEmp){switchTab('Extrato IA')}else{showToast('Selecione uma empresa')}` },
+    { icon:'➕', lbl:'Novo Lançamento',  sub:'Manual',      act: `if(typeof openModal==='function'){openModal('modal-lancamento')}else{showToast('Em breve')}` },
+    { icon:'📊', lbl:'Relatório',        sub:'Financeiro',  act: `showToast('Relatório — em breve')` },
+    { icon:'🎯', lbl:'Simular Cenário',  sub:'Projeções',   act: `if(window.curEmp){switchTab('Projeções')}else{showToast('Selecione uma empresa')}` },
+    { icon:'📅', lbl:'Reunião',          sub:'Agendar',     act: `if(typeof openModal==='function'){openModal('modal-evento')}else{showToast('Em breve')}` },
+    { icon:'📄', lbl:'Documento',        sub:'Novo',        act: `showToast('Upload doc — em breve')` }
+  ];
+  return `<div class="qa-grid">${acoes.map(a=>`
+    <button class="qa-btn" onclick="${a.act}">
+      <span class="qa-btn__lbl"><span class="qa-btn__ico">${a.icon}</span>${escHtml(a.lbl)}</span>
+      <span class="qa-btn__sub">${escHtml(a.sub)}</span>
+    </button>`).join('')}</div>`;
+}
+
+function renderImpactosEsperados(){
+  const items = [
+    { icon:'🧠', txt:'Tomada de decisão 70% mais rápida', nivel:'alto' },
+    { icon:'🎯', txt:'Foco no que realmente importa',     nivel:'alto' },
+    { icon:'💡', txt:'Mais clareza e contexto',           nivel:'medio' },
+    { icon:'⚡', txt:'Ações guiadas pelo ORION',          nivel:'alto' },
+    { icon:'⭐', txt:'Melhor experiência para o CEO',     nivel:'medio' },
+    { icon:'📈', txt:'Aumento de produtividade',          nivel:'alto' }
+  ];
+  const nivelLbl = n => n==='alto'?'Alto':n==='medio'?'Médio':'Baixo';
+  return `<div class="v3-impactos">
+    <div class="v3-impactos__list">
+      ${items.map(i=>`<div class="v3-impacto">
+        <span class="v3-impacto__ico">${i.icon}</span>
+        <span class="v3-impacto__txt">${escHtml(i.txt)}</span>
+        <span class="v3-impacto__nivel v3-impacto__nivel--${i.nivel}">${nivelLbl(i.nivel)}</span>
+      </div>`).join('')}
+    </div>
+    <div class="v3-impactos__legenda">
+      <span><span class="v3-impactos__dot v3-impactos__dot--alto"></span>Alto</span>
+      <span><span class="v3-impactos__dot v3-impactos__dot--medio"></span>Médio</span>
+      <span><span class="v3-impactos__dot v3-impactos__dot--baixo"></span>Baixo</span>
+    </div>
+  </div>`;
+}
+
 function renderV3KpiSandbox(){
   if(localStorage.getItem('orionV3Preview') !== '1') return;
   const container = document.querySelector('.home-v2-main');
@@ -5917,47 +6215,83 @@ function renderV3KpiSandbox(){
   if(!mount){
     mount = document.createElement('div');
     mount.id = 'home-v3-sandbox';
-    mount.style.cssText = 'margin:20px 0 24px;padding:20px;border:1px dashed rgba(59,130,246,.35);border-radius:14px;background:rgba(59,130,246,.02)';
     container.prepend(mount);
   }
   const k = getConsolidatedKPIs();
-  const alertas = (typeof getAlertasAtivos === 'function') ? getAlertasAtivos() : {critico:[],alto:[],atencao:[],total:0};
-  const tarefas = (typeof getTarefasPrioritarias === 'function') ? getTarefasPrioritarias(5) : [];
-  // Lista plana top 5 alertas ordenada crítico→alto→atenção
-  const topAlertas = [...alertas.critico, ...alertas.alto, ...alertas.atencao].slice(0, 5);
+  const portfolio = (typeof getPortfolioEmpresas==='function') ? getPortfolioEmpresas() : [];
+  const tarefas = (typeof getTarefasPrioritarias==='function') ? getTarefasPrioritarias(6) : [];
+
+  const hour = new Date().getHours();
+  const saudacao = hour < 6 ? 'BOA NOITE' : hour < 12 ? 'BOM DIA' : hour < 18 ? 'BOA TARDE' : 'BOA NOITE';
+  const userSess = (typeof currentUser==='function') ? currentUser() : null;
+  const nomeCompleto = (userSess && (userSess.name||userSess.nome)) ? String(userSess.name||userSess.nome) : 'Maxwell';
+  const primeiroNome = nomeCompleto.split(' ')[0].toUpperCase();
 
   mount.innerHTML = `
-    <div style="font-size:11px;font-weight:700;letter-spacing:.14em;opacity:.55;margin-bottom:14px;text-transform:uppercase;color:var(--tx2)">🧪 Preview Central CEO v3 — Fase 2 (KPIs + Alertas + Tarefas)</div>
-
-    <!-- Row 1: KPIs 2x2 + Alertas à direita -->
-    <div class="v3-row-1" style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px">
-      <div class="v3-kpis" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
-        ${renderKpiCard({ label:'Faturamento', value:k.faturamento.valor, format:'brl', delta:k.faturamento.deltaPct, deltaLabel:k.faturamento.variacao, trend:k.faturamento.trend, tone:'primary' })}
-        ${renderKpiCard({ label:'Resultado Líquido', value:k.resultadoLiquido.valor, format:'brl', delta:k.resultadoLiquido.deltaPct, deltaLabel:k.resultadoLiquido.variacao, trend:k.resultadoLiquido.trend, tone:'positive' })}
-        ${renderKpiCard({ label:'Margem Líquida', value:k.margemLiquida.valor, format:'pct', delta:k.margemLiquida.deltaPct, deltaLabel:k.margemLiquida.variacao, trend:k.margemLiquida.trend, tone: k.margemLiquida.valor>=15?'warn':'critical' })}
-        ${renderKpiCard({ label:'Health Score', value:k.healthScore.valor, format:'score', delta:k.healthScore.deltaAbs, deltaLabel:k.healthScore.variacao, trend:k.healthScore.trend, tone: k.healthScore.valor>=70?'positive':k.healthScore.valor>=50?'warn':'critical' })}
+    <div class="v3-root">
+      <div class="v3-header">
+        <div class="v3-greet">${saudacao}, ${escHtml(primeiroNome)}</div>
+        <h1 class="v3-title">Central do CEO</h1>
       </div>
 
-      <div class="v3-alerts" style="display:flex;flex-direction:column;gap:8px">
-        <div style="font-size:11px;font-weight:700;letter-spacing:.14em;opacity:.6;text-transform:uppercase;color:var(--tx2);display:flex;justify-content:space-between;align-items:center">
-          <span>Alertas Ativos</span>
-          <span style="font-size:10px;opacity:.8">${alertas.total}</span>
+      <div class="v3-main-grid">
+        <div class="v3-main">
+          <!-- 1. ORION RECOMENDA HOJE -->
+          <div class="v3-section">
+            ${renderSectionHeader('1', 'ORION Recomenda Hoje')}
+            ${renderOrionRecomendaHero()}
+          </div>
+
+          <!-- 2. KPIS CONSOLIDADOS -->
+          <div class="v3-section">
+            ${renderSectionHeader('2', 'KPIs Consolidados')}
+            <div class="v3-kpi-grid">
+              ${renderKpiCard({ label:'Faturamento', value:k.faturamento.valor, format:'brl', delta:k.faturamento.deltaPct, deltaLabel:k.faturamento.variacao, trend:k.faturamento.trend, tone:'primary' })}
+              ${renderKpiCard({ label:'Resultado Líquido', value:k.resultadoLiquido.valor, format:'brl', delta:k.resultadoLiquido.deltaPct, deltaLabel:k.resultadoLiquido.variacao, trend:k.resultadoLiquido.trend, tone:'positive' })}
+              ${renderKpiCard({ label:'Margem Líquida', value:k.margemLiquida.valor, format:'pct', delta:k.margemLiquida.deltaPct, deltaLabel:k.margemLiquida.variacao, trend:k.margemLiquida.trend, tone: k.margemLiquida.valor>=15?'warn':'critical' })}
+              ${renderKpiCard({ label:'Health Score', value:k.healthScore.valor, format:'score', delta:k.healthScore.deltaAbs, deltaLabel:k.healthScore.variacao, trend:k.healthScore.trend, tone: k.healthScore.valor>=70?'positive':k.healthScore.valor>=50?'warn':'critical' })}
+            </div>
+          </div>
+
+          <!-- 3. PORTFÓLIO DE EMPRESAS -->
+          <div class="v3-section">
+            ${renderSectionHeader('3', 'Portfólio de Empresas')}
+            <div class="v3-portfolio">
+              ${portfolio.length === 0 ? '<div class="v3-empty">Nenhuma empresa no portfólio.</div>' : portfolio.map(p=>renderPortfolioCard(p)).join('')}
+            </div>
+          </div>
+
+          <!-- 4. TAREFAS PRIORITÁRIAS -->
+          <div class="v3-section">
+            ${renderSectionHeader('4', 'Tarefas Prioritárias')}
+            ${tarefas.length === 0
+              ? '<div class="v3-empty">Nenhuma tarefa prioritária.</div>'
+              : `<div class="v3-tasks-grid v3-tasks-grid--${Math.min(tarefas.length,3)}">${tarefas.map(t=>renderTaskCard(t)).join('')}</div>`}
+          </div>
+
+          <!-- 5. ÚLTIMOS LANÇAMENTOS -->
+          <div class="v3-section">
+            ${renderSectionHeader('5', 'Últimos Lançamentos')}
+            <div class="v3-empty v3-empty--cta">
+              Nenhum lançamento recente.
+              <a href="#" onclick="event.preventDefault();if(typeof openModal==='function'){openModal('modal-lancamento')}">Registrar primeiro lançamento →</a>
+            </div>
+          </div>
+
+          <!-- 6. AÇÕES RÁPIDAS -->
+          <div class="v3-section">
+            ${renderSectionHeader('6', 'Ações Rápidas')}
+            ${renderAcoesRapidas()}
+          </div>
         </div>
-        ${topAlertas.length === 0
-          ? '<div style="padding:16px;color:var(--tx3);font-size:12px;text-align:center;opacity:.7">Nenhum alerta ativo</div>'
-          : topAlertas.map(a=>renderAlertPill(a)).join('')}
-      </div>
-    </div>
 
-    <!-- Row 2: Tarefas Prioritárias (linha única) -->
-    <div class="v3-row-2" style="margin-top:16px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.14em;opacity:.6;text-transform:uppercase;color:var(--tx2);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
-        <span>Tarefas Prioritárias</span>
-        <span style="font-size:10px;opacity:.8">${tarefas.length}</span>
+        <aside class="v3-side">
+          <div class="v3-section">
+            ${renderSectionHeader('✨', 'Impactos Esperados')}
+            ${renderImpactosEsperados()}
+          </div>
+        </aside>
       </div>
-      ${tarefas.length === 0
-        ? '<div style="padding:16px;color:var(--tx3);font-size:12px;text-align:center;opacity:.7">Nenhuma tarefa prioritária</div>'
-        : `<div class="v3-tasks-grid" style="display:grid;grid-template-columns:repeat(${Math.min(tarefas.length,5)},1fr);gap:10px">${tarefas.map(t=>renderTaskCard(t)).join('')}</div>`}
     </div>`;
 }
 // ═══════════════════════════════════════════════════════════════════════════
