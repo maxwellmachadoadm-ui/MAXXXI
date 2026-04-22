@@ -600,6 +600,37 @@ a{color:inherit;text-decoration:none}
 .fs-proj-table .rent{color:#3b82f6}
 .fs-proj-table .hon{color:#f59e0b}
 .fs-proj-table tfoot td{font-weight:700;border-top:2px solid rgba(255,255,255,0.15);background:#0f172a}
+/* Ciclo 7 — Simulador v10 (4 planos) */
+.fssim-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+.fssim-tab{background:#0a0f1e;color:#cbd5e1;border:1px solid #1e2a45;border-radius:8px;padding:10px 6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:.15s}
+.fssim-tab:hover{border-color:#3b82f6}
+.fssim-tab.active{background:#3b82f6;border-color:#3b82f6;color:#fff}
+.fssim-empty{padding:30px;text-align:center;color:#94a3b8;font-size:13px;font-style:italic}
+.fssim-err{padding:16px;border:1.5px solid #ef4444;border-radius:10px;background:rgba(239,68,68,.08);color:#fca5a5;font-weight:700;font-size:13px}
+.fssim-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#f1f5f9;margin:4px 0 12px;letter-spacing:-.2px}
+.fssim-table-sub{font-size:11px;color:#94a3b8;margin:6px 0 10px}
+.fssim-table{width:100%;border-collapse:collapse;font-size:11px;min-width:680px}
+.fssim-table th{padding:8px 6px;background:rgba(13,178,170,.14);color:#cbd5e1;font-weight:700;font-size:10px;text-align:center;border:1px solid #1e2a45}
+.fssim-table td{padding:8px 6px;border:1px solid #1e2a45;text-align:center;color:#f1f5f9;background:#0a0f1e}
+.fssim-table tbody th{text-align:left;background:#0d1225;color:#cbd5e1;font-weight:700}
+.fssim-year{display:block;font-weight:800;color:#94a3b8;font-size:9px;margin-top:2px}
+.fssim-virada td,.fssim-virada th{background:rgba(13,178,170,.07)}
+.fssim-total-row th,.fssim-total-row td{background:rgba(13,178,170,.22)!important;font-weight:800;color:#f1f5f9}
+.fssim-col-turma{background:rgba(167,139,250,.08)!important}
+.fssim-cell-wrap{display:grid;gap:3px}
+.fssim-cell-line{display:grid;gap:1px}
+.fssim-cell-lbl{font-size:8px;font-weight:700;color:#94a3b8;letter-spacing:.4px}
+.fssim-cell-lbl.ades{color:#f59e0b}
+.fssim-cell-val{font-size:11px;font-weight:800;color:#f1f5f9}
+.fssim-turma-val{font-weight:800;color:#a78bfa}
+.fssim-turma-sub{font-size:9px;color:#94a3b8;display:block;margin-top:2px}
+.fssim-aviso{border:1px solid rgba(245,158,11,.4);border-radius:10px;padding:12px 14px;background:rgba(245,158,11,.06);margin:6px 0 14px}
+.fssim-aviso-t{font-weight:800;color:#f59e0b;font-size:12px;margin-bottom:4px;letter-spacing:.3px}
+.fssim-aviso-d{font-size:12px;color:#cbd5e1;line-height:1.5;margin-bottom:10px}
+.fssim-aviso-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.fssim-aviso-kpis > div{background:#0a0f1e;border:1px solid #1e2a45;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:4px}
+.fssim-aviso-kpis .lbl{font-size:9px;color:#94a3b8;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.fssim-aviso-kpis .v{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#f1f5f9}
 @media (max-width:900px){
   .fs-proj-grid{grid-template-columns:1fr}
   .fs-proj-kpis{grid-template-columns:1fr 1fr}
@@ -6254,12 +6285,112 @@ function fsProjCalc(cfg){
 }
 
 function renderProjecoes(e,c,co){
+  // Ciclo 7: para FS, usar simulador v10. Para outras empresas, mantém legado.
+  if(e && e.id === 'fs'){
+    c.innerHTML = `<div class="fs-proj-wrap" id="fs-proj-root">
+      <div class="fs-proj-header">
+        <h2 class="fs-proj-title">Projeções de Formatura — ${escHtml(e.nome)}</h2>
+        <div class="fs-proj-actions">
+          <button class="fs-proj-btn fs-proj-btn-green" onclick="FSSimV10.imprimir()">🖨 PDF (4 planos)</button>
+        </div>
+      </div>
+      <div class="fs-proj-grid">
+        <div class="fs-proj-panel">
+          <div class="fs-proj-panel-title">Parâmetros</div>
+          <div class="fs-proj-lbl">Turma</div>
+          <select class="fs-proj-inp" id="fs-sim-turma" onchange="FSSimV10.onTurmaChange()"></select>
+          <div class="fs-proj-lbl">Nome da Turma (PDF)</div>
+          <input class="fs-proj-inp" type="text" id="fs-sim-nome" placeholder="Ex: Medicina UFMG 2030"/>
+          <div class="fs-proj-row-2">
+            <div>
+              <div class="fs-proj-lbl">Meta Individual (R$)</div>
+              <input class="fs-proj-inp" type="number" min="0" step="100" id="fs-sim-meta" placeholder="30000" oninput="FSSimV10.gerar()"/>
+            </div>
+            <div>
+              <div class="fs-proj-lbl">Nº Alunos</div>
+              <input class="fs-proj-inp" type="number" min="0" step="1" id="fs-sim-alunos" placeholder="40" oninput="FSSimV10.gerar()"/>
+            </div>
+          </div>
+          <div class="fs-proj-row-2">
+            <div>
+              <div class="fs-proj-lbl">Início</div>
+              <input class="fs-proj-inp" type="month" id="fs-sim-inicio" oninput="FSSimV10.gerar()"/>
+            </div>
+            <div>
+              <div class="fs-proj-lbl">Fim</div>
+              <input class="fs-proj-inp" type="month" id="fs-sim-fim" oninput="FSSimV10.gerar()"/>
+            </div>
+          </div>
+          <div class="fs-proj-row-2">
+            <div>
+              <div class="fs-proj-lbl">Adesão (R$)</div>
+              <input class="fs-proj-inp" type="number" min="0" step="50" id="fs-sim-adesao-val" placeholder="1000" oninput="FSSimV10.gerar()"/>
+            </div>
+            <div>
+              <div class="fs-proj-lbl">Mês Adesão</div>
+              <input class="fs-proj-inp" type="month" id="fs-sim-adesao-mes" oninput="FSSimV10.gerar()"/>
+            </div>
+          </div>
+          <div class="fs-proj-row-2">
+            <div>
+              <div class="fs-proj-lbl">Rifas</div>
+              <select class="fs-proj-inp" id="fs-sim-rifa-freq" onchange="FSSimV10.gerar()">
+                <option value="0">Nenhuma</option>
+                <option value="1">Anual (1/ano)</option>
+                <option value="2">Semestral (2/ano)</option>
+              </select>
+            </div>
+            <div>
+              <div class="fs-proj-lbl">Rifa Anual (R$)</div>
+              <input class="fs-proj-inp" type="number" min="0" step="100" id="fs-sim-rifa-val" placeholder="0" oninput="FSSimV10.gerar()"/>
+            </div>
+          </div>
+          <div class="fs-proj-row-2">
+            <div>
+              <div class="fs-proj-lbl">Variável: cresc. sem. (%)</div>
+              <input class="fs-proj-inp" type="number" min="0" max="50" step="0.5" id="fs-sim-g" value="10" oninput="FSSimV10.gerar()"/>
+            </div>
+            <div>
+              <div class="fs-proj-lbl">Balão: % saldo (máx 30)</div>
+              <input class="fs-proj-inp" type="number" min="1" max="30" step="1" id="fs-sim-balao" value="30" oninput="FSSimV10.gerar()"/>
+            </div>
+          </div>
+        </div>
+        <div class="fs-proj-panel">
+          <div class="fs-proj-panel-title">Indicadores</div>
+          <div class="fs-proj-kpis" id="fssim-kpis"></div>
+          <div class="fs-proj-panel-title" style="margin-top:14px">Plano Ativo</div>
+          <div class="fssim-tabs">
+            <button class="fssim-tab active" data-tab="VARIAVEL" onclick="FSSimV10.setActiveTab('VARIAVEL')">VARIÁVEL</button>
+            <button class="fssim-tab" data-tab="FIXO" onclick="FSSimV10.setActiveTab('FIXO')">FIXO</button>
+            <button class="fssim-tab" data-tab="BALAO" onclick="FSSimV10.setActiveTab('BALAO')">BALÃO</button>
+            <button class="fssim-tab" data-tab="FUTURO" onclick="FSSimV10.setActiveTab('FUTURO')">FUTURO</button>
+          </div>
+        </div>
+      </div>
+      <div class="fs-proj-table-wrap">
+        <div id="fssim-output"><div class="fssim-empty">Selecione uma turma ou preencha os parâmetros acima para gerar a projeção.</div></div>
+      </div>
+    </div>`;
+    FSSimV10.carregarTurmas();
+    // Se houver turma padrão (última usada), carregar
+    const lastTurma = localStorage.getItem('orion_proj_fs_last_turma');
+    if(lastTurma){
+      const sel = document.getElementById('fs-sim-turma');
+      if(sel && Array.from(sel.options).some(o=>o.value===lastTurma)){
+        sel.value = lastTurma;
+        FSSimV10.onTurmaChange();
+      }
+    }
+    return;
+  }
+  // Fallback legacy — para outras empresas (não FS): render antigo se ainda aplicável
   const cfg = fsProjGet();
   c.innerHTML = `<div class="fs-proj-wrap" id="fs-proj-root">
     <div class="fs-proj-header">
       <h2 class="fs-proj-title">Projeções — ${escHtml(e.nome)}</h2>
       <div class="fs-proj-actions">
-        <button class="fs-proj-btn fs-proj-btn-primary" onclick="fsProjNovaSimulacao()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="vertical-align:-2px;margin-right:6px"><path d="M12 5v14M5 12h14"/></svg>Nova simulação</button>
+        <button class="fs-proj-btn fs-proj-btn-primary" onclick="fsProjNovaSimulacao()">Nova simulação</button>
         <button class="fs-proj-btn fs-proj-btn-green" onclick="fsProjExportCSV()">⬇ CSV</button>
       </div>
     </div>
@@ -6267,34 +6398,16 @@ function renderProjecoes(e,c,co){
       <div class="fs-proj-panel">
         <div class="fs-proj-panel-title">Parâmetros</div>
         <div class="fs-proj-row-2">
-          <div>
-            <div class="fs-proj-lbl">Nº de Turmas</div>
-            <input class="fs-proj-inp" type="number" min="0" id="fs-proj-nTurmas" value="${cfg.nTurmas}" oninput="fsProjUpdate()"/>
-          </div>
-          <div>
-            <div class="fs-proj-lbl">Ticket Médio (R$)</div>
-            <input class="fs-proj-inp" type="number" min="0" step="0.01" id="fs-proj-ticket" value="${cfg.ticketMedio}" oninput="fsProjUpdate()"/>
-          </div>
+          <div><div class="fs-proj-lbl">Nº de Turmas</div><input class="fs-proj-inp" type="number" min="0" id="fs-proj-nTurmas" value="${cfg.nTurmas}" oninput="fsProjUpdate()"/></div>
+          <div><div class="fs-proj-lbl">Ticket Médio (R$)</div><input class="fs-proj-inp" type="number" min="0" step="0.01" id="fs-proj-ticket" value="${cfg.ticketMedio}" oninput="fsProjUpdate()"/></div>
         </div>
         <div class="fs-proj-row-2">
-          <div>
-            <div class="fs-proj-lbl">Aporte Mensal/Turma (R$)</div>
-            <input class="fs-proj-inp" type="number" min="0" step="0.01" id="fs-proj-aporte" value="${cfg.aporteMensal}" oninput="fsProjUpdate()"/>
-          </div>
-          <div>
-            <div class="fs-proj-lbl">Crescimento Mensal (%)</div>
-            <input class="fs-proj-inp" type="number" step="0.1" id="fs-proj-cresc" value="${cfg.crescimentoMensal}" oninput="fsProjUpdate()"/>
-          </div>
+          <div><div class="fs-proj-lbl">Aporte Mensal/Turma (R$)</div><input class="fs-proj-inp" type="number" min="0" step="0.01" id="fs-proj-aporte" value="${cfg.aporteMensal}" oninput="fsProjUpdate()"/></div>
+          <div><div class="fs-proj-lbl">Crescimento Mensal (%)</div><input class="fs-proj-inp" type="number" step="0.1" id="fs-proj-cresc" value="${cfg.crescimentoMensal}" oninput="fsProjUpdate()"/></div>
         </div>
         <div class="fs-proj-row-2">
-          <div>
-            <div class="fs-proj-lbl">Prazo (meses, 6-120)</div>
-            <input class="fs-proj-inp" type="number" min="6" max="120" id="fs-proj-prazo" value="${cfg.prazo}" oninput="fsProjUpdate()"/>
-          </div>
-          <div>
-            <div class="fs-proj-lbl">Honorários Forme (%)</div>
-            <input class="fs-proj-inp" type="number" step="0.1" min="0" max="100" id="fs-proj-honor" value="${cfg.honorariosPct}" oninput="fsProjUpdate()"/>
-          </div>
+          <div><div class="fs-proj-lbl">Prazo (meses, 6-120)</div><input class="fs-proj-inp" type="number" min="6" max="120" id="fs-proj-prazo" value="${cfg.prazo}" oninput="fsProjUpdate()"/></div>
+          <div><div class="fs-proj-lbl">Honorários Forme (%)</div><input class="fs-proj-inp" type="number" step="0.1" min="0" max="100" id="fs-proj-honor" value="${cfg.honorariosPct}" oninput="fsProjUpdate()"/></div>
         </div>
         <div class="fs-proj-lbl">Taxa Mensal (%/mês)</div>
         <div class="fs-proj-rate-grid">
@@ -6378,6 +6491,461 @@ function fsProjExportCSV(){
 }
 // Legacy entrypoint
 function editProjecoes(){ /* no-op: agora é inline */ }
+
+// ════════════════════════════════════════════════════════════════════════════
+// Ciclo 7 — Simulador v10 (4 planos: VARIÁVEL, FIXO, BALÃO, FUTURO)
+// Portado de simuladores/projecao-forme-seguro-v10.html
+// ════════════════════════════════════════════════════════════════════════════
+const FSSimV10 = (function(){
+  const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  const STAGES = ["1 e 2","3 e 4","5 e 6","7 e 8","9 e 10","11 e 12","13 e 14","15 e 16"];
+
+  function round2(x){ return Math.round((x + Number.EPSILON) * 100) / 100; }
+  function brl(v){ return (v ?? 0).toLocaleString("pt-BR", {style:"currency", currency:"BRL", minimumFractionDigits:2, maximumFractionDigits:2}); }
+  function ymLabel(key){ const [y,m] = key.split("-").map(Number); return MESES[m-1]+"/"+y; }
+  function monthRange(startKey, endKey){
+    const [sy,sm] = startKey.split("-").map(Number);
+    const [ey,em] = endKey.split("-").map(Number);
+    const out = [];
+    let y=sy, m=sm;
+    while(y<ey || (y===ey && m<=em)){
+      out.push({y,m});
+      m++; if(m===13){ m=1; y++; }
+    }
+    return out;
+  }
+
+  function computeRifas(range, freq, rifaAnual){
+    if(freq===0 || rifaAnual<=0) return {total:0, eventos:new Map()};
+    const years = [...new Set(range.map(x=>x.y))];
+    const eventos = new Map();
+    for(const y of years){
+      const yearMonths = range.filter(x=>x.y===y).map(x=>x.m).sort((a,b)=>a-b);
+      if(!yearMonths.length) continue;
+      if(freq===1){
+        const mDec = yearMonths.includes(12) ? 12 : Math.max(...yearMonths);
+        const key = y+"-"+String(mDec).padStart(2,"0");
+        eventos.set(key, round2((eventos.get(key)||0)+rifaAnual));
+      } else if(freq===2){
+        const half = round2(rifaAnual/2);
+        const h2 = yearMonths.filter(m=>m>=7 && m<=12);
+        if(h2.length){
+          const mJul = h2.includes(7) ? 7 : Math.min(...h2);
+          const keyJul = y+"-"+String(mJul).padStart(2,"0");
+          eventos.set(keyJul, round2((eventos.get(keyJul)||0)+half));
+          const mDez = h2.includes(12) ? 12 : Math.max(...h2);
+          const keyDez = y+"-"+String(mDez).padStart(2,"0");
+          eventos.set(keyDez, round2((eventos.get(keyDez)||0)+half));
+        }
+      }
+    }
+    const total = round2([...eventos.values()].reduce((a,b)=>a+b,0));
+    return {total, eventos};
+  }
+
+  function buildChargeMask(range, adesaoMesKey){
+    return range.map(x=>{
+      const key = x.y+"-"+String(x.m).padStart(2,"0");
+      return key !== adesaoMesKey;
+    });
+  }
+
+  function buildJanJulPeriods(range, chargeMask){
+    const periods = [];
+    let current = null;
+    for(let i=0;i<range.length;i++){
+      if(!chargeMask[i]) continue;
+      const m = range[i].m, y = range[i].y;
+      const half = (m<=6) ? 1 : 2;
+      const key = y+"-H"+half;
+      if(!current || current.key !== key){ current = {key, idxs:[]}; periods.push(current); }
+      current.idxs.push(i);
+    }
+    return periods;
+  }
+
+  function planFixo(saldo, range, chargeMask){
+    const idxs = [];
+    for(let i=0;i<range.length;i++) if(chargeMask[i]) idxs.push(i);
+    const N = idxs.length;
+    if(N===0) return Array.from({length:range.length}, ()=>0);
+    const base = saldo/N;
+    const raw = Array.from({length:range.length}, ()=>0);
+    for(const i of idxs) raw[i] = base;
+    const out = raw.map(v=>round2(v));
+    const sum = round2(out.reduce((a,b)=>a+b,0));
+    const dif = round2(saldo-sum);
+    const lastIdx = idxs[idxs.length-1];
+    out[lastIdx] = round2(out[lastIdx]+dif);
+    return out;
+  }
+
+  function planVariavelJanJul(saldo, range, chargeMask, g){
+    const periods = buildJanJulPeriods(range, chargeMask);
+    if(periods.length===0) return Array.from({length:range.length}, ()=>0);
+    const weights = periods.map((_,p)=>Math.pow(1+g, p));
+    let denom = 0;
+    for(let p=0;p<periods.length;p++) denom += periods[p].idxs.length*weights[p];
+    const base = saldo/denom;
+    const raw = Array.from({length:range.length}, ()=>0);
+    for(let p=0;p<periods.length;p++){
+      const v = base*weights[p];
+      for(const idx of periods[p].idxs) raw[idx] = v;
+    }
+    const out = raw.map(v=>round2(v));
+    const sum = round2(out.reduce((a,b)=>a+b,0));
+    const dif = round2(saldo-sum);
+    let lastIdx = -1;
+    for(let i=range.length-1;i>=0;i--) if(chargeMask[i]){ lastIdx=i; break; }
+    if(lastIdx>=0) out[lastIdx] = round2(out[lastIdx]+dif);
+    return out;
+  }
+
+  function planBalaoFinal(saldo, range, chargeMask, pctBalao){
+    let lastIdx = -1;
+    for(let i=range.length-1;i>=0;i--) if(chargeMask[i]){ lastIdx=i; break; }
+    if(lastIdx<0) return Array.from({length:range.length}, ()=>0);
+    const idxs = [];
+    for(let i=0;i<range.length;i++) if(chargeMask[i] && i!==lastIdx) idxs.push(i);
+    const balao = saldo*pctBalao;
+    const baseTotal = saldo-balao;
+    const baseMes = idxs.length>0 ? baseTotal/idxs.length : 0;
+    const raw = Array.from({length:range.length}, ()=>0);
+    for(const i of idxs) raw[i] = baseMes;
+    raw[lastIdx] = balao;
+    const out = raw.map(v=>round2(v));
+    const sum = round2(out.reduce((a,b)=>a+b,0));
+    const dif = round2(saldo-sum);
+    out[lastIdx] = round2(out[lastIdx]+dif);
+    return out;
+  }
+
+  function planPagamentoFuturo(totalComJuros, range, chargeMask){
+    const idxsCobrados = [];
+    for(let i=0;i<range.length;i++) if(chargeMask[i]) idxsCobrados.push(i);
+    const ultimos6 = idxsCobrados.slice(-6);
+    if(ultimos6.length===0) return Array.from({length:range.length}, ()=>0);
+    const parcela = round2(totalComJuros/6);
+    const raw = Array.from({length:range.length}, ()=>0);
+    for(const i of ultimos6) raw[i] = parcela;
+    const out = raw.map(v=>round2(v));
+    const totalPago = round2(out.reduce((a,b)=>a+b,0));
+    const dif = round2(totalComJuros-totalPago);
+    const lastFuturo = ultimos6[ultimos6.length-1];
+    out[lastFuturo] = round2(out[lastFuturo]+dif);
+    return out;
+  }
+
+  function buildPlan(range, mensalArr, chargeMask, adesaoMesKey, adesaoValor, rifasEventos){
+    const map = new Map();
+    range.forEach((x,idx)=>{
+      const key = x.y+"-"+String(x.m).padStart(2,"0");
+      const mensal = chargeMask[idx] ? mensalArr[idx] : 0;
+      const adesao = (key === adesaoMesKey) ? adesaoValor : 0;
+      const rifa = rifasEventos.has(key) ? rifasEventos.get(key) : 0;
+      const total = round2(mensal+adesao+rifa);
+      map.set(key, {mensal, rifa, adesao, total});
+    });
+    return map;
+  }
+
+  function buildPlanFuturo(range, mensalArr, chargeMask, adesaoMesKey, adesaoValor, rifasEventos){
+    const map = new Map();
+    range.forEach((x,idx)=>{
+      const key = x.y+"-"+String(x.m).padStart(2,"0");
+      const mensal = mensalArr[idx];
+      const adesao = (key === adesaoMesKey) ? round2(adesaoValor*2) : 0;
+      const rifa = rifasEventos.has(key) ? rifasEventos.get(key) : 0;
+      const total = round2(mensal+adesao+rifa);
+      map.set(key, {mensal, rifa, adesao, total});
+    });
+    return map;
+  }
+
+  function buildMatrix(range, valuesByMonthKey){
+    const years = [...new Set(range.map(x=>x.y))];
+    const minY = Math.min(...years), maxY = Math.max(...years);
+    const allYears = [];
+    for(let y=minY;y<=maxY;y++) allYears.push(y);
+    const set = new Set(range.map(x=>x.y+"-"+String(x.m).padStart(2,"0")));
+    const rows = MESES.map((mes, mi)=>{
+      const m = mi+1;
+      const row = {mes};
+      for(const y of allYears){
+        const key = y+"-"+String(m).padStart(2,"0");
+        if(!set.has(key)) row[y] = {type:"dash"};
+        else row[y] = {type:"val", key, data:(valuesByMonthKey.get(key)||{mensal:0,rifa:0,adesao:0,total:0})};
+      }
+      return row;
+    });
+    return {years:allYears, rows};
+  }
+
+  function renderCellLines(d){
+    const lines = [];
+    if(d.adesao && d.adesao!==0) lines.push('<div class="fssim-cell-lbl ades">TX. ADESÃO</div><div class="fssim-cell-val">'+brl(d.adesao)+'</div>');
+    if(d.mensal && d.mensal!==0) lines.push('<div class="fssim-cell-lbl">MENSALIDADE</div><div class="fssim-cell-val">'+brl(d.mensal)+'</div>');
+    if(d.rifa && d.rifa!==0) lines.push('<div class="fssim-cell-lbl">RIFA</div><div class="fssim-cell-val">'+brl(d.rifa)+'</div>');
+    if(lines.length===0) return '<span style="color:#64748b">—</span>';
+    return '<div class="fssim-cell-wrap">'+lines.map(x=>'<div class="fssim-cell-line">'+x+'</div>').join("")+'</div>';
+  }
+
+  function renderTable(matrix, subtitle, alunos){
+    const {years, rows} = matrix;
+    let html = '<div class="fssim-table-sub">'+subtitle+'</div>';
+    html += '<table class="fssim-table"><thead><tr><th style="text-align:left">Meses</th>';
+    years.forEach((y,i)=>{
+      const stage = STAGES[i] || 'Etapa '+(i+1);
+      html += '<th>'+stage+'<br/><span class="fssim-year">'+y+'</span></th>';
+    });
+    if(alunos>1) html += '<th class="fssim-col-turma">Por Aluno<br/><span class="fssim-year">Total Mês</span></th>';
+    html += '</tr></thead><tbody>';
+    const anoTotais = {};
+    years.forEach(y=>{ anoTotais[y]=0; });
+    for(const r of rows){
+      const mIdx = MESES.indexOf(r.mes)+1;
+      const virada = (mIdx===1 || mIdx===7);
+      const rowCls = virada ? ' class="fssim-virada"' : '';
+      html += '<tr'+rowCls+'><th>'+r.mes+(virada?' ↑':'')+'</th>';
+      let rowTotal = 0;
+      years.forEach(y=>{
+        const cell = r[y];
+        if(cell.type==="dash") html += '<td><span style="color:#64748b">—</span></td>';
+        else {
+          const d = cell.data;
+          anoTotais[y] = round2(anoTotais[y]+d.total);
+          rowTotal = round2(rowTotal+d.total);
+          html += '<td>'+renderCellLines(d)+'</td>';
+        }
+      });
+      if(alunos>1){
+        const totalTurma = rowTotal>0 ? '<div class="fssim-turma-val">'+brl(rowTotal)+'</div><div class="fssim-turma-sub">turma: '+brl(round2(rowTotal*alunos))+'</div>' : '<span style="color:#64748b">—</span>';
+        html += '<td class="fssim-col-turma">'+totalTurma+'</td>';
+      }
+      html += '</tr>';
+    }
+    html += '<tr class="fssim-total-row"><th>TOTAL ANO</th>';
+    years.forEach(y=>{
+      const v = anoTotais[y];
+      html += '<td>'+(v>0 ? brl(v) : '—')+'</td>';
+    });
+    if(alunos>1){
+      const totGeral = round2(Object.values(anoTotais).reduce((a,b)=>a+b,0));
+      html += '<td class="fssim-col-turma">'+brl(totGeral)+'<br/><span class="fssim-turma-sub">turma: '+brl(round2(totGeral*alunos))+'</span></td>';
+    }
+    html += '</tr></tbody></table>';
+    return html;
+  }
+
+  function sumMap(m){ return round2([...m.values()].reduce((a,b)=>a+b.total,0)); }
+
+  // ── Persistência por turma ──────────────────────────────────────
+  function lerStore(){
+    try { return JSON.parse(localStorage.getItem('orion_projecoes_fs')||'{}'); }
+    catch(e){ return {}; }
+  }
+  function salvar(turmaId, inputs, resultado){
+    if(!turmaId) return;
+    const all = lerStore();
+    all[turmaId] = {inputs, resultado, updatedAt:new Date().toISOString()};
+    localStorage.setItem('orion_projecoes_fs', JSON.stringify(all));
+    localStorage.setItem('orion_proj_fs_last_turma', turmaId);
+    if(typeof showToast==='function') showToast('Simulação salva');
+  }
+  function carregar(turmaId){
+    if(!turmaId) return null;
+    const all = lerStore();
+    return all[turmaId] || null;
+  }
+
+  // ── Execução + render ──────────────────────────────────────────
+  function lerInputs(){
+    function val(id){ return document.getElementById(id).value; }
+    return {
+      turmaId: val('fs-sim-turma'),
+      nomeTurma: val('fs-sim-nome').trim(),
+      meta: parseFloat(val('fs-sim-meta'))||0,
+      alunos: parseInt(val('fs-sim-alunos'))||0,
+      inicioKey: val('fs-sim-inicio'),
+      fimKey: val('fs-sim-fim'),
+      adesaoValor: parseFloat(val('fs-sim-adesao-val'))||0,
+      adesaoMesKey: val('fs-sim-adesao-mes'),
+      rifaFreq: parseInt(val('fs-sim-rifa-freq'))||0,
+      rifaAnual: parseFloat(val('fs-sim-rifa-val'))||0,
+      gSemPct: parseFloat(val('fs-sim-g'))||0,
+      pctBalaoPct: parseFloat(val('fs-sim-balao'))||30,
+      planoAtivo: document.querySelector('.fssim-tab.active')?.dataset.tab || 'VARIAVEL'
+    };
+  }
+
+  function validar(inp){
+    if(!inp.inicioKey) return 'Informe o início da arrecadação';
+    if(!inp.fimKey) return 'Informe o fim da arrecadação';
+    if(!inp.adesaoMesKey) return 'Informe o mês da taxa de adesão';
+    if(inp.meta<=0) return 'Meta individual deve ser maior que zero';
+    if(inp.alunos<=0) return 'Número de alunos deve ser maior que zero';
+    const [sy,sm] = inp.inicioKey.split('-').map(Number);
+    const [ey,em] = inp.fimKey.split('-').map(Number);
+    if(ey<sy || (ey===sy && em<sm)) return 'Fim deve ser posterior ao início';
+    const [ay,am] = inp.adesaoMesKey.split('-').map(Number);
+    const iniTs = sy*12+sm, fimTs = ey*12+em, adTs = ay*12+am;
+    if(adTs<iniTs || adTs>fimTs) return 'Mês da adesão deve estar dentro do período';
+    if(inp.gSemPct<0 || inp.gSemPct>50) return 'Crescimento deve estar entre 0% e 50%';
+    if(inp.pctBalaoPct<=0 || inp.pctBalaoPct>30) return '% do balão deve estar entre 1% e 30%';
+    return null;
+  }
+
+  function calcularTudo(inp){
+    const g = inp.gSemPct/100;
+    const pctBalao = inp.pctBalaoPct/100;
+    const range = monthRange(inp.inicioKey, inp.fimKey);
+    const rifas = computeRifas(range, inp.rifaFreq, inp.rifaAnual);
+    const mask = buildChargeMask(range, inp.adesaoMesKey);
+    const saldo = inp.meta;
+    const mVAR = planVariavelJanJul(saldo, range, mask, g);
+    const mFIX = planFixo(saldo, range, mask);
+    const mBAL = planBalaoFinal(saldo, range, mask, pctBalao);
+    const acrescimoFUT = round2(saldo*0.30);
+    const totalComAcres = round2(saldo+acrescimoFUT);
+    const parcelaFUT = round2(totalComAcres/6);
+    const mFUT = planPagamentoFuturo(totalComAcres, range, mask);
+    const mpVAR = buildPlan(range, mVAR, mask, inp.adesaoMesKey, inp.adesaoValor, rifas.eventos);
+    const mpFIX = buildPlan(range, mFIX, mask, inp.adesaoMesKey, inp.adesaoValor, rifas.eventos);
+    const mpBAL = buildPlan(range, mBAL, mask, inp.adesaoMesKey, inp.adesaoValor, rifas.eventos);
+    const mpFUT = buildPlanFuturo(range, mFUT, mask, inp.adesaoMesKey, inp.adesaoValor, rifas.eventos);
+    const totalVAR = sumMap(mpVAR), totalFIX = sumMap(mpFIX), totalBAL = sumMap(mpBAL);
+    const totalFUT = round2(totalComAcres+round2(inp.adesaoValor*2)+rifas.total);
+    const subtitle = 'Período: '+ymLabel(inp.inicioKey)+' → '+ymLabel(inp.fimKey)+' • '+range.length+' meses • '+mask.filter(Boolean).length+' mensalidades';
+    return {range, rifas, mpVAR, mpFIX, mpBAL, mpFUT, totalVAR, totalFIX, totalBAL, totalFUT, parcelaFUT, totalComAcres, acrescimoFUT, subtitle};
+  }
+
+  function gerar(){
+    const inp = lerInputs();
+    const err = validar(inp);
+    const wrap = document.getElementById('fssim-output');
+    if(!wrap) return;
+    if(err){
+      wrap.innerHTML = '<div class="fssim-err">⚠ '+err+'</div>';
+      document.getElementById('fssim-kpis').innerHTML = '';
+      return;
+    }
+    const r = calcularTudo(inp);
+    let mp, total, planTitle, aviso='', alunosTbl=inp.alunos;
+    switch(inp.planoAtivo){
+      case 'FIXO': mp=r.mpFIX; total=r.totalFIX; planTitle='PLANO FIXO (saldo ÷ N mensalidades)'; break;
+      case 'BALAO': mp=r.mpBAL; total=r.totalBAL; planTitle='PLANO FIXO + PARC. FINAL (balão '+inp.pctBalaoPct+'%)'; break;
+      case 'FUTURO':
+        mp=r.mpFUT; total=r.totalFUT; planTitle='PLANO PAGAMENTO FUTURO'; alunosTbl=1;
+        aviso = '<div class="fssim-aviso">'+
+          '<div class="fssim-aviso-t">⚠ PAGAMENTO FUTURO — projeção individual</div>'+
+          '<div class="fssim-aviso-d">Nenhuma mensalidade no período regular. Pagamento em <b>6 parcelas nos últimos 6 meses</b>, com acréscimo de <b>30%</b> sobre o saldo. Adesão cobrada em dobro.</div>'+
+          '<div class="fssim-aviso-kpis"><div><span class="lbl">Saldo individual</span><span class="v">'+brl(inp.meta)+'</span></div>'+
+          '<div><span class="lbl">Acréscimo 30%</span><span class="v">+ '+brl(r.acrescimoFUT)+'</span></div>'+
+          '<div><span class="lbl">Total 6 parcelas</span><span class="v">'+brl(r.totalComAcres)+'</span></div>'+
+          '<div><span class="lbl">Parcela mensal</span><span class="v">'+brl(r.parcelaFUT)+'</span></div></div></div>';
+        break;
+      default: mp=r.mpVAR; total=r.totalVAR; planTitle='PLANO VARIÁVEL (crescente semestral '+inp.gSemPct+'%)';
+    }
+    const matrix = buildMatrix(r.range, mp);
+    wrap.innerHTML = '<div class="fssim-title">'+planTitle+'</div>'+aviso+renderTable(matrix, r.subtitle, alunosTbl);
+    document.getElementById('fssim-kpis').innerHTML =
+      '<div class="fs-proj-kpi"><div class="fs-proj-kpi-lbl">Meta Individual</div><div class="fs-proj-kpi-val fs-proj-kpi-blue">'+brl(inp.meta)+'</div></div>'+
+      '<div class="fs-proj-kpi"><div class="fs-proj-kpi-lbl">Arrecadação por Aluno</div><div class="fs-proj-kpi-val fs-proj-kpi-green">'+brl(round2(inp.meta+inp.adesaoValor+r.rifas.total))+'</div></div>'+
+      '<div class="fs-proj-kpi"><div class="fs-proj-kpi-lbl">Total Plano ('+inp.planoAtivo+')</div><div class="fs-proj-kpi-val fs-proj-kpi-amber">'+brl(total)+'</div></div>'+
+      '<div class="fs-proj-kpi"><div class="fs-proj-kpi-lbl">Turma ('+inp.alunos+' alunos)</div><div class="fs-proj-kpi-val fs-proj-kpi-cyan">'+brl(round2(total*(inp.planoAtivo==='FUTURO'?1:inp.alunos)))+'</div></div>';
+    // auto-save
+    if(inp.turmaId) salvar(inp.turmaId, inp, {planoAtivo:inp.planoAtivo, totalAtual:total, updatedAt:new Date().toISOString()});
+  }
+
+  function carregarTurmas(){
+    let turmas = [];
+    try { turmas = JSON.parse(localStorage.getItem('fs2-turmas')||'[]'); } catch(e){}
+    const sel = document.getElementById('fs-sim-turma');
+    if(!sel) return;
+    sel.innerHTML = '<option value="">— Selecionar turma —</option>';
+    turmas.forEach(t=>{
+      const opt = document.createElement('option');
+      opt.value = t.id || t._id || t.nome;
+      opt.textContent = (t.nome||'Turma')+(t.alunos?(' ('+t.alunos+' alunos)'):'');
+      sel.appendChild(opt);
+    });
+  }
+
+  function onTurmaChange(){
+    const sel = document.getElementById('fs-sim-turma');
+    const tid = sel.value;
+    if(!tid){ return; }
+    let turmas = [];
+    try { turmas = JSON.parse(localStorage.getItem('fs2-turmas')||'[]'); } catch(e){}
+    const t = turmas.find(x=>(x.id||x._id||x.nome)===tid);
+    if(t){
+      if(t.nome) document.getElementById('fs-sim-nome').value = t.nome;
+      if(t.alunos) document.getElementById('fs-sim-alunos').value = t.alunos;
+    }
+    const saved = carregar(tid);
+    if(saved && saved.inputs){
+      const inp = saved.inputs;
+      const set = (id,v)=>{ const el=document.getElementById(id); if(el && v!==undefined && v!==null) el.value = v; };
+      set('fs-sim-nome', inp.nomeTurma);
+      set('fs-sim-meta', inp.meta);
+      set('fs-sim-alunos', inp.alunos);
+      set('fs-sim-inicio', inp.inicioKey);
+      set('fs-sim-fim', inp.fimKey);
+      set('fs-sim-adesao-val', inp.adesaoValor);
+      set('fs-sim-adesao-mes', inp.adesaoMesKey);
+      set('fs-sim-rifa-freq', inp.rifaFreq);
+      set('fs-sim-rifa-val', inp.rifaAnual);
+      set('fs-sim-g', inp.gSemPct);
+      set('fs-sim-balao', inp.pctBalaoPct);
+      if(inp.planoAtivo) setActiveTab(inp.planoAtivo);
+      gerar();
+    }
+  }
+
+  function setActiveTab(tab){
+    document.querySelectorAll('.fssim-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
+    gerar();
+  }
+
+  function imprimir(){
+    const inp = lerInputs();
+    const err = validar(inp);
+    if(err){ if(typeof showToast==='function') showToast('Preencha tudo antes de imprimir: '+err); else alert(err); return; }
+    const r = calcularTudo(inp);
+    const dataGer = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const rifaTxt = inp.rifaFreq===0?'Sem rifas':inp.rifaFreq===1?'Rifas anuais: '+brl(inp.rifaAnual)+'/ano':'Rifas semestrais: '+brl(inp.rifaAnual)+'/ano';
+    const metaHTML = '<b>Meta mensalidades:</b> '+brl(inp.meta)+' • <b>Adesão:</b> '+brl(inp.adesaoValor)+' ('+ymLabel(inp.adesaoMesKey)+') • <b>'+rifaTxt+'</b><br/><b>Período:</b> '+ymLabel(inp.inicioKey)+' → '+ymLabel(inp.fimKey)+' • <b>Alunos:</b> '+inp.alunos+' • <b>Gerado em:</b> '+dataGer;
+    const planos = [
+      {label:'PLANO VARIÁVEL', mp:r.mpVAR, alunos:inp.alunos, aviso:''},
+      {label:'PLANO FIXO', mp:r.mpFIX, alunos:inp.alunos, aviso:''},
+      {label:'PLANO FIXO + PARCELA FINAL', mp:r.mpBAL, alunos:inp.alunos, aviso:''},
+      {label:'PLANO PAGAMENTO FUTURO', mp:r.mpFUT, alunos:1, aviso:'<div class="fssim-aviso"><div class="fssim-aviso-t">⚠ PAGAMENTO FUTURO — 1 aluno</div><div class="fssim-aviso-d">Saldo '+brl(inp.meta)+' + 30% = '+brl(r.totalComAcres)+', 6 parcelas de '+brl(r.parcelaFUT)+' + adesão '+brl(round2(inp.adesaoValor*2))+'.</div></div>'}
+    ];
+    const turmaLabel = inp.nomeTurma || '';
+    let pdfBody = '<div class="fssim-print-wrap">';
+    planos.forEach((pl, i)=>{
+      const pgcls = i===0 ? 'fssim-pdfpg-first' : 'fssim-pdfpg';
+      pdfBody += '<section class="'+pgcls+'">'+
+        '<div class="fssim-pdf-head"><div class="fssim-pdf-t">PROJEÇÃO DE ARRECADAÇÃO '+(turmaLabel?'| '+turmaLabel:'')+'</div><div class="fssim-pdf-meta">'+metaHTML+'</div></div>'+
+        '<div class="fssim-pdf-planname">'+pl.label+'</div>'+pl.aviso+renderTable(buildMatrix(r.range, pl.mp), r.subtitle, pl.alunos)+
+        '</section>';
+    });
+    pdfBody += '</div>';
+    const win = window.open('', '_blank');
+    if(!win){ alert('Popup bloqueado. Autorize popups para gerar PDF.'); return; }
+    win.document.write('<!doctype html><html><head><meta charset="utf-8"/><title>Projeções FS — '+turmaLabel+'</title>'+
+      '<style>body{font-family:"DM Sans",Arial,sans-serif;background:#fff;color:#1a1a2e;padding:12px;margin:0}.fssim-print-wrap{max-width:900px;margin:0 auto}.fssim-pdfpg{page-break-before:always}.fssim-pdf-head{border-bottom:2px solid #2A1F4B;padding:8px 0;margin-bottom:12px}.fssim-pdf-t{font-weight:800;color:#2A1F4B;font-size:14px}.fssim-pdf-meta{font-size:11px;color:#555;margin-top:4px}.fssim-pdf-planname{font-weight:800;color:#0DB2AA;font-size:13px;margin:10px 0 6px}.fssim-aviso{border:1px solid #ffa94d;border-radius:8px;padding:10px;background:#fff7ed;margin:8px 0;color:#7c2d12}.fssim-aviso-t{font-weight:800;margin-bottom:4px}.fssim-table{width:100%;border-collapse:collapse;font-size:10px;margin-top:4px}.fssim-table th,.fssim-table td{border:1px solid #e5e7eb;padding:4px 6px;text-align:center}.fssim-table thead th{background:rgba(13,178,170,.14);color:#2A1F4B;font-weight:800}.fssim-table tbody th{text-align:left;background:#f9fafb;font-weight:700}.fssim-virada{background:rgba(13,178,170,.07)}.fssim-total-row th,.fssim-total-row td{background:rgba(13,178,170,.18);font-weight:800;color:#2A1F4B}.fssim-col-turma{background:rgba(42,31,75,.06)}.fssim-cell-wrap{display:grid;gap:4px}.fssim-cell-lbl{font-size:8px;font-weight:700;color:#6b7280;letter-spacing:.3px}.fssim-cell-lbl.ades{color:#2A1F4B}.fssim-cell-val{font-size:10px;font-weight:800;color:#111827}.fssim-turma-val{font-weight:800}.fssim-turma-sub{font-size:9px;color:#6b7280}.fssim-table-sub{font-size:10px;color:#6b7280;margin-bottom:4px}@media print{.fssim-pdfpg{page-break-before:always}@page{margin:10mm}}</style>'+
+      '</head><body>'+pdfBody+'</body></html>');
+    win.document.close();
+    setTimeout(()=>{ try{ win.print(); }catch(e){} }, 400);
+  }
+
+  return {
+    gerar, carregarTurmas, onTurmaChange, setActiveTab, imprimir,
+    // exposto para o render
+    _internal: {calcularTudo, lerInputs, buildMatrix, renderTable}
+  };
+})();
 
 // ── RENTABILIDADE v2 (Forme Seguro) ───────────────────────────────────────
 // Implementação fiel ao FORME_SEGURO_RENTABILIDADE.html original
