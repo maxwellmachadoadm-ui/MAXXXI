@@ -3182,6 +3182,69 @@ html body .home-v2-emp-card .home-v2-emp-info{flex:1 1 auto;min-width:0}
 html body .home-v2-emp-metrics{display:grid !important;grid-template-columns:repeat(3,1fr) !important;gap:10px !important}
 /* ═══ /Ciclo 12A.0.1 ═══ */
 
+/* ═══ Ciclo 12B — AlertPill + TaskCard (Fase 2) ═══ */
+.alert-pill{
+  display:flex;gap:10px;padding:9px 12px;border-radius:10px;
+  border-left:3px solid transparent;
+  background:rgba(255,255,255,0.02);
+  font-family:'Inter Variable','Inter',system-ui,sans-serif;
+  font-size:12.5px;line-height:1.35;
+  align-items:flex-start;
+  transition:background .15s;
+}
+.alert-pill:hover{background:rgba(255,255,255,0.04)}
+.alert-pill--critico{border-left-color:var(--red,#ef4444);background:rgba(239,68,68,.05)}
+.alert-pill--alto{border-left-color:var(--amber,#f59e0b);background:rgba(245,158,11,.04)}
+.alert-pill--atencao{border-left-color:var(--yellow,#eab308);background:rgba(234,179,8,.03)}
+.alert-pill__sev{
+  font-weight:700;text-transform:uppercase;
+  font-size:9px;letter-spacing:.12em;opacity:.8;
+  flex-shrink:0;padding-top:2px;min-width:48px;
+}
+.alert-pill--critico .alert-pill__sev{color:var(--red,#ef4444)}
+.alert-pill--alto .alert-pill__sev{color:var(--amber,#f59e0b)}
+.alert-pill--atencao .alert-pill__sev{color:var(--yellow,#eab308)}
+.alert-pill__body{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.alert-pill__text{font-weight:500;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.alert-pill__emp{font-size:10px;opacity:.6;font-weight:500}
+
+.task-card{
+  padding:12px 14px;border-radius:12px;
+  background:rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.05);
+  display:flex;flex-direction:column;gap:6px;
+  font-family:'Inter Variable','Inter',system-ui,sans-serif;
+  transition:border-color .15s;
+}
+.task-card:hover{border-color:rgba(255,255,255,0.12)}
+.task-card__row{display:flex;align-items:center;gap:10px;min-width:0}
+.task-card__pri-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.task-card__pri-dot--alta{background:var(--red,#ef4444);box-shadow:0 0 0 3px rgba(239,68,68,.15)}
+.task-card__pri-dot--media{background:var(--amber,#f59e0b);box-shadow:0 0 0 3px rgba(245,158,11,.12)}
+.task-card__pri-dot--baixa{background:var(--green,#10b981);box-shadow:0 0 0 3px rgba(16,185,129,.12)}
+.task-card__title{
+  font-weight:600;font-size:13px;color:var(--tx);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;
+}
+.task-card__meta{
+  display:flex;gap:6px;font-size:10.5px;
+  opacity:.7;padding-left:18px;flex-wrap:wrap;
+  color:var(--tx2);
+}
+.task-card__sep{opacity:.5}
+.task-card__impact,.task-card__origem,.task-card__prazo,.task-card__emp{
+  font-weight:500;white-space:nowrap;
+}
+@media (max-width:1024px){
+  #home-v3-sandbox .v3-row-1{grid-template-columns:1fr !important}
+  #home-v3-sandbox .v3-tasks-grid{grid-template-columns:repeat(2,1fr) !important}
+}
+@media (max-width:640px){
+  #home-v3-sandbox .v3-kpis{grid-template-columns:1fr !important}
+  #home-v3-sandbox .v3-tasks-grid{grid-template-columns:1fr !important}
+}
+/* ═══ /Ciclo 12B ═══ */
+
 /* ═══ Ciclo 12A — Central CEO v3 Fase 1 — KpiCard com sparkline ═══ */
 .kpi-card-v3{
   background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
@@ -5727,6 +5790,125 @@ function renderKpiCard(opts){
   </div>`;
 }
 
+// ═══ Ciclo 12B — alerts + tasks aggregators + components ═══
+function getAlertasAtivos(){
+  const emps = (typeof EMPS === 'object' && EMPS)
+    ? Object.values(EMPS).filter(e => e && e.id !== 'gp' && !e.archived && !String(e.id||'').startsWith('custom_'))
+    : [];
+  const buckets = { critico: [], alto: [], atencao: [] };
+  emps.forEach(e => {
+    const recs = (typeof orionRecommendForEmp === 'function') ? orionRecommendForEmp(e.id) : [];
+    recs.forEach(r => {
+      const sev = r.urgency === 'critical' ? 'critico'
+                : r.urgency === 'high' ? 'alto'
+                : 'atencao';
+      buckets[sev].push({
+        empresa: e.nome || e.id,
+        titulo: r.problem || 'Alerta',
+        descricao: r.explain || '',
+        severidade: sev,
+        criadoEm: new Date().toISOString()
+      });
+    });
+  });
+  // Limita 5 por bucket
+  return {
+    critico: buckets.critico.slice(0, 5),
+    alto: buckets.alto.slice(0, 5),
+    atencao: buckets.atencao.slice(0, 5),
+    total: buckets.critico.length + buckets.alto.length + buckets.atencao.length
+  };
+}
+
+function getTarefasPrioritarias(limite = 5){
+  const tarefas = [];
+  // 1) Recs do Plano do Dia (ORION)
+  if(typeof gerarPlanoDoDia === 'function'){
+    try {
+      const recs = gerarPlanoDoDia(10) || [];
+      recs.forEach(r => {
+        const prio = (r.urgency === 'critical' || r.urgency === 'high') ? 'alta'
+                   : r.urgency === 'medium' ? 'media' : 'baixa';
+        const imp = r.impact >= 5000 ? 'alto' : r.impact >= 1000 ? 'medio' : 'baixo';
+        const empNome = (typeof EMPS !== 'undefined' && EMPS[r.empId] && EMPS[r.empId].nome) || r.emp || r.empId;
+        tarefas.push({
+          titulo: r.action || r.problem || 'Ação',
+          empresa: empNome,
+          prioridade: prio,
+          impacto: imp,
+          origem: 'ORION',
+          prazo: 'Hoje'
+        });
+      });
+    } catch(e){}
+  }
+  // 2) Tarefas manuais das empresas
+  const emps = (typeof EMPS === 'object' && EMPS)
+    ? Object.values(EMPS).filter(e => e && !e.archived && !String(e.id||'').startsWith('custom_'))
+    : [];
+  emps.forEach(e => {
+    const t = Array.isArray(e.tarefas) ? e.tarefas : [];
+    t.filter(x => x && !x.k).slice(0, 3).forEach(tk => {
+      const prio = String(tk.p || 'media').toLowerCase();
+      const prioN = prio === 'alta' ? 'alta' : prio === 'baixa' ? 'baixa' : 'media';
+      const impN = prioN === 'alta' ? 'alto' : prioN === 'baixa' ? 'baixo' : 'medio';
+      tarefas.push({
+        titulo: tk.t || 'Tarefa sem título',
+        empresa: e.nome || e.id,
+        prioridade: prioN,
+        impacto: impN,
+        origem: 'Manual',
+        prazo: tk.prazo || '—'
+      });
+    });
+  });
+  // Dedupe por título+empresa, ordena por prioridade
+  const rank = { alta: 0, media: 1, baixa: 2 };
+  const seen = new Set();
+  const uniq = tarefas.filter(t => {
+    const k = (t.titulo || '') + '|' + (t.empresa || '');
+    if(seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  uniq.sort((a, b) => (rank[a.prioridade] ?? 9) - (rank[b.prioridade] ?? 9));
+  return uniq.slice(0, limite);
+}
+
+function renderAlertPill(opts){
+  const { severidade = 'atencao', titulo = '', empresa = '' } = opts || {};
+  const sevLabel = severidade === 'critico' ? 'Crítico'
+                 : severidade === 'alto' ? 'Alto'
+                 : 'Atenção';
+  return `<div class="alert-pill alert-pill--${severidade}">
+    <span class="alert-pill__sev">${sevLabel}</span>
+    <div class="alert-pill__body">
+      <span class="alert-pill__text">${escHtml(titulo)}</span>
+      ${empresa ? `<span class="alert-pill__emp">${escHtml(empresa)}</span>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderTaskCard(opts){
+  const { titulo = '', empresa = '', prioridade = 'media', impacto = 'medio', origem = 'Manual', prazo = '—' } = opts || {};
+  const origemIcon = origem === 'ORION' ? '🤖' : '✍️';
+  const impLabel = impacto === 'alto' ? 'Alto' : impacto === 'baixo' ? 'Baixo' : 'Médio';
+  return `<div class="task-card task-card--${prioridade}">
+    <div class="task-card__row">
+      <span class="task-card__pri-dot task-card__pri-dot--${prioridade}"></span>
+      <span class="task-card__title">${escHtml(titulo)}</span>
+    </div>
+    <div class="task-card__meta">
+      <span class="task-card__impact">Impacto ${impLabel}</span>
+      <span class="task-card__sep">·</span>
+      <span class="task-card__origem">${origemIcon} ${escHtml(origem)}</span>
+      <span class="task-card__sep">·</span>
+      <span class="task-card__prazo">${escHtml(prazo)}</span>
+      ${empresa ? `<span class="task-card__sep">·</span><span class="task-card__emp">${escHtml(empresa)}</span>` : ''}
+    </div>
+  </div>`;
+}
+
 function renderV3KpiSandbox(){
   if(localStorage.getItem('orionV3Preview') !== '1') return;
   const container = document.querySelector('.home-v2-main');
@@ -5739,13 +5921,43 @@ function renderV3KpiSandbox(){
     container.prepend(mount);
   }
   const k = getConsolidatedKPIs();
+  const alertas = (typeof getAlertasAtivos === 'function') ? getAlertasAtivos() : {critico:[],alto:[],atencao:[],total:0};
+  const tarefas = (typeof getTarefasPrioritarias === 'function') ? getTarefasPrioritarias(5) : [];
+  // Lista plana top 5 alertas ordenada crítico→alto→atenção
+  const topAlertas = [...alertas.critico, ...alertas.alto, ...alertas.atencao].slice(0, 5);
+
   mount.innerHTML = `
-    <div style="font-size:11px;font-weight:700;letter-spacing:.14em;opacity:.55;margin-bottom:14px;text-transform:uppercase;color:var(--tx2)">🧪 Preview Central CEO v3 — Fase 1 (aggregator + KpiCard)</div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
-      ${renderKpiCard({ label:'Faturamento', value:k.faturamento.valor, format:'brl', delta:k.faturamento.deltaPct, deltaLabel:k.faturamento.variacao, trend:k.faturamento.trend, tone:'primary' })}
-      ${renderKpiCard({ label:'Resultado Líquido', value:k.resultadoLiquido.valor, format:'brl', delta:k.resultadoLiquido.deltaPct, deltaLabel:k.resultadoLiquido.variacao, trend:k.resultadoLiquido.trend, tone:'positive' })}
-      ${renderKpiCard({ label:'Margem Líquida', value:k.margemLiquida.valor, format:'pct', delta:k.margemLiquida.deltaPct, deltaLabel:k.margemLiquida.variacao, trend:k.margemLiquida.trend, tone: k.margemLiquida.valor>=15?'warn':'critical' })}
-      ${renderKpiCard({ label:'Health Score', value:k.healthScore.valor, format:'score', delta:k.healthScore.deltaAbs, deltaLabel:k.healthScore.variacao, trend:k.healthScore.trend, tone: k.healthScore.valor>=70?'positive':k.healthScore.valor>=50?'warn':'critical' })}
+    <div style="font-size:11px;font-weight:700;letter-spacing:.14em;opacity:.55;margin-bottom:14px;text-transform:uppercase;color:var(--tx2)">🧪 Preview Central CEO v3 — Fase 2 (KPIs + Alertas + Tarefas)</div>
+
+    <!-- Row 1: KPIs 2x2 + Alertas à direita -->
+    <div class="v3-row-1" style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px">
+      <div class="v3-kpis" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+        ${renderKpiCard({ label:'Faturamento', value:k.faturamento.valor, format:'brl', delta:k.faturamento.deltaPct, deltaLabel:k.faturamento.variacao, trend:k.faturamento.trend, tone:'primary' })}
+        ${renderKpiCard({ label:'Resultado Líquido', value:k.resultadoLiquido.valor, format:'brl', delta:k.resultadoLiquido.deltaPct, deltaLabel:k.resultadoLiquido.variacao, trend:k.resultadoLiquido.trend, tone:'positive' })}
+        ${renderKpiCard({ label:'Margem Líquida', value:k.margemLiquida.valor, format:'pct', delta:k.margemLiquida.deltaPct, deltaLabel:k.margemLiquida.variacao, trend:k.margemLiquida.trend, tone: k.margemLiquida.valor>=15?'warn':'critical' })}
+        ${renderKpiCard({ label:'Health Score', value:k.healthScore.valor, format:'score', delta:k.healthScore.deltaAbs, deltaLabel:k.healthScore.variacao, trend:k.healthScore.trend, tone: k.healthScore.valor>=70?'positive':k.healthScore.valor>=50?'warn':'critical' })}
+      </div>
+
+      <div class="v3-alerts" style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.14em;opacity:.6;text-transform:uppercase;color:var(--tx2);display:flex;justify-content:space-between;align-items:center">
+          <span>Alertas Ativos</span>
+          <span style="font-size:10px;opacity:.8">${alertas.total}</span>
+        </div>
+        ${topAlertas.length === 0
+          ? '<div style="padding:16px;color:var(--tx3);font-size:12px;text-align:center;opacity:.7">Nenhum alerta ativo</div>'
+          : topAlertas.map(a=>renderAlertPill(a)).join('')}
+      </div>
+    </div>
+
+    <!-- Row 2: Tarefas Prioritárias (linha única) -->
+    <div class="v3-row-2" style="margin-top:16px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.14em;opacity:.6;text-transform:uppercase;color:var(--tx2);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+        <span>Tarefas Prioritárias</span>
+        <span style="font-size:10px;opacity:.8">${tarefas.length}</span>
+      </div>
+      ${tarefas.length === 0
+        ? '<div style="padding:16px;color:var(--tx3);font-size:12px;text-align:center;opacity:.7">Nenhuma tarefa prioritária</div>'
+        : `<div class="v3-tasks-grid" style="display:grid;grid-template-columns:repeat(${Math.min(tarefas.length,5)},1fr);gap:10px">${tarefas.map(t=>renderTaskCard(t)).join('')}</div>`}
     </div>`;
 }
 // ═══════════════════════════════════════════════════════════════════════════
